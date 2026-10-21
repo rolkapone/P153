@@ -42,6 +42,10 @@ if (-not $smi) {
     Add-Check 'Carte NVIDIA' ([double]::Parse($p[2], [cultureinfo]::InvariantCulture) -ge [double]::Parse($req.minComputeCapability, [cultureinfo]::InvariantCulture)) `
         ("{0}, capacite de calcul {1} (>= {2} requis), {3} Mio" -f $p[0], $p[2], $req.minComputeCapability, $p[3])
     Add-Check 'Pilote' ([version]$p[1] -ge [version]$req.minDriver) ("{0} (>= {1} requis)" -f $p[1], $req.minDriver)
+    if ($req.PSObject.Properties['referenceDriver'] -and $req.referenceDriver -and ([version]$p[1] -ne [version]$req.referenceDriver)) {
+        # Avertissement seulement : les mesures de reference ont ete prises avec ce pilote.
+        Add-Check 'Pilote de reference' $false ("{0} installe, mesures de reference prises avec {1} (comparaisons a interpreter avec prudence)" -f $p[1], $req.referenceDriver) $false
+    }
     Add-Check 'VRAM au depart' ([int]$p[4] -le [int]$req.maxUsedVramAtStartMiB) `
         ("{0} Mio deja utilises (seuil {1} Mio)" -f $p[4], $req.maxUsedVramAtStartMiB) $false
 }

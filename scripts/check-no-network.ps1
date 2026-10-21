@@ -211,6 +211,8 @@ function Test-ExceptionActive($ex) {
         $d = [datetime]::MinValue
         if ([datetime]::TryParseExact([string]$ex.expires, 'yyyy-MM-dd', $null, 'None', [ref]$d)) {
             if ($d.Date -lt $today) { return $false }
+        } else {
+            return $false   # date illisible : exception inutilisable, signalee comme violation par l'appelant
         }
     }
     return $true
@@ -227,7 +229,12 @@ function Invoke-BinaryScan([string]$dir) {
         if ($Package -and $ex.PSObject.Properties['scope'] -and $ex.scope -eq 'dev-only') {
             $notes.Add("Exception $($ex.id) (dev-only) ignoree en mode -Package.")
         } elseif (-not (Test-ExceptionActive $ex)) {
-            $violations.Add("Exception $($ex.id) expiree le $($ex.expires) : a re-valider par secdevops.")
+            $dd = [datetime]::MinValue
+            if (-not [datetime]::TryParseExact([string]$ex.expires, 'yyyy-MM-dd', $null, 'None', [ref]$dd)) {
+                $violations.Add("Exception $($ex.id) : date 'expires' illisible ('$($ex.expires)', format attendu yyyy-MM-dd).")
+            } else {
+                $violations.Add("Exception $($ex.id) expiree le $($ex.expires) : a re-valider par secdevops.")
+            }
         } elseif ($ex.expires) {
             $notes.Add("Exception $($ex.id) : echeance '$($ex.expires)'.")
         }

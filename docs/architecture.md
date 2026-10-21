@@ -399,6 +399,7 @@ ADR du pipeline (plage ADR-040 et plus) — licences à valider par secdevops da
 | ADR-049 | Fichiers : **l'application possède le cycle de vie** ; le pipeline crée le chemin reçu en `CREATE_NEW` ; **E/S FFmpeg par `AVIOContext` Win32** (`\\?\`), ouvertures secondaires refusées | `.enhance-part` géré par le pipeline ; chemins UTF-8 / 8.3 donnés à FFmpeg | Notre code (API Win32) |
 | ADR-050 | Conteneur **MP4, bascule MKV** décidée par `plan()` avant traitement ; SRT/WebVTT convertis en `mov_text` | — | FFmpeg LGPL (déjà listé) |
 | ADR-051 | **Contrat pipeline ↔ application** : `IMediaProbe`, `plan()` pur, `JobHandle` RAII, observateur à un seul thread, progression 4 fois/s, codes P-08 | `unique_ptr<IJob>` + `shared_ptr` d'observateur ; ETA dans le pipeline ; rappels autorisés à rappeler le pipeline | Notre code |
+| ADR-052 | **Pilote NVIDIA minimal 610** (pilote de référence des mesures : 617.42) ; Video Codec SDK 13.1 | Pilote plus ancien non supporté ; détail et raisons dans `docs/gpu/architecture-pipeline.md` § ADR-052 | — |
 
 ---
 
