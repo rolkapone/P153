@@ -1,0 +1,30 @@
+# Configuration gitleaks d'Enhance (secdevops, docs/security/ci-securite.md section 4).
+# Version de gitleaks visee : >= 8.25 (syntaxe [[rules.allowlists]]). Non testee localement (outil absent).
+# Regle du PO : seule l'adresse noreply GitHub du PO est admise. L'adresse professionnelle du PO
+# ne doit JAMAIS etre ecrite ici, meme comme motif interdit : la detection repose sur une liste blanche.
+
+title = "Enhance"
+
+[extend]
+useDefault = true
+
+[[rules]]
+id = "enh-email-address"
+description = "Adresse e-mail dans le contenu versionne (seule la noreply GitHub du PO est admise)"
+regex = '''(?i)\b[a-z0-9._%+\-]+@[a-z0-9\-]+(?:\.[a-z0-9\-]+)*\.[a-z]{2,}\b'''
+keywords = ["@"]
+  [[rules.allowlists]]
+  description = "Adresse noreply GitHub du PO"
+  regexTarget = "match"
+  regexes = ['''(?i)^81617903\+rolkapone@users\.noreply\.github\.com$''']
+
+[[rules]]
+id = "enh-windows-user-path"
+description = "Chemin de profil Windows (information personnelle) dans le contenu versionne"
+regex = '''(?i)\b[a-z]:[\\/]+users[\\/]+[^\\/\s"'<>%$`…]+'''
+keywords = ["users"]
+  [[rules.allowlists]]
+  description = "Gabarits generiques"
+  regexTarget = "match"
+  regexes = ['''(?i)[\\/]users[\\/]+(<[^>]*>|public|default|%username%|\$env:username|\$\{?user)''']
+

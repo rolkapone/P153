@@ -1,0 +1,95 @@
+{
+  "$comment": "Liste blanche du controle zero reseau (ADR-027, docs/security/zero-reseau.md). Fichier de securite : toute modification passe par secdevops. Exceptions marquees [H] : a confirmer sur les binaires reels.",
+  "schemaVersion": 1,
+  "forbiddenFiles": [
+    "Qt6Network*.dll",
+    "Qt6WebEngine*",
+    "Qt6WebSockets*",
+    "Qt6WebView*",
+    "Qt6NetworkAuth*",
+    "libcurl*.dll",
+    "cpprest*.dll",
+    "libssl*.dll",
+    "libcrypto*.dll",
+    "winhttp.dll",
+    "wininet.dll",
+    "urlmon.dll",
+    "plugins/tls/*",
+    "plugins/networkinformation/*",
+    "plugins/bearer/*"
+  ],
+  "forbiddenImports": [
+    "ws2_32.dll",
+    "wsock32.dll",
+    "mswsock.dll",
+    "winhttp.dll",
+    "wininet.dll",
+    "urlmon.dll",
+    "websocket.dll",
+    "httpapi.dll",
+    "dnsapi.dll",
+    "webio.dll",
+    "winhttpcom.dll",
+    "Qt6Network.dll"
+  ],
+  "warnImports": [
+    "iphlpapi.dll",
+    "netapi32.dll",
+    "mpr.dll",
+    "secur32.dll",
+    "sspicli.dll",
+    "crypt32.dll",
+    "cryptnet.dll",
+    "wldp.dll",
+    "bcrypt.dll",
+    "ncrypt.dll",
+    "rpcrt4.dll"
+  ],
+  "exceptions": [
+    {
+      "id": "E2",
+      "module": "Qt6Core.dll",
+      "import": "ws2_32.dll",
+      "allowedFunctions": ["WSAAsyncSelect", "WSAGetLastError", "WSASetLastError"],
+      "justification": "[H] QSocketNotifier dans la boucle d'evenements Windows de QtCore ; aucune creation de socket sans QtNetwork (absent). Liste de fonctions a ajuster au constat sur le build vcpkg, sans jamais y ajouter socket/connect/WSAStartup/getaddrinfo/send/recv.",
+      "owner": "secdevops",
+      "reviewed": "2026-10-21",
+      "expires": null
+    },
+    {
+      "id": "E3",
+      "module": "avformat-*.dll",
+      "import": "ws2_32.dll",
+      "allowedFunctions": ["*"],
+      "justification": "[H] Build BtbN lgpl-shared du spike (protocoles reseau compiles). Neutralise a l'execution : AVIOContext Win32 maison, io_open restrictif, protocol_whitelist=file. Interdit dans tout livrable.",
+      "owner": "secdevops",
+      "reviewed": "2026-10-21",
+      "expires": "avant ENH-030 (build FFmpeg vcpkg --disable-network, SEC-06)",
+      "scope": "dev-only"
+    },
+    {
+      "id": "E3b",
+      "module": "avformat-*.dll",
+      "import": "secur32.dll",
+      "allowedFunctions": ["*"],
+      "justification": "[H] TLS Schannel du build BtbN (protocole https compile). Memes conditions que E3.",
+      "owner": "secdevops",
+      "reviewed": "2026-10-21",
+      "expires": "avant ENH-030 (SEC-06)",
+      "scope": "dev-only"
+    }
+  ],
+  "stringScan": {
+    "skipAuthenticodeCertificateTable": true,
+    "ownBinaries": ["Enhance.exe", "*enhance*.dll"],
+    "ownBinaryFailPatterns": [
+      "https?://",
+      "[A-Za-z]:\\\\Users\\\\",
+      "\\\\Users\\\\",
+      "F:\\\\P153",
+      "C:\\\\vb\\\\"
+    ],
+    "ownBinaryUrlExceptions": []
+  },
+  "sourceUrlExceptions": []
+}
