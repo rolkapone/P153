@@ -69,6 +69,7 @@ Cadence de sortie d'Enhance (décision PO n° 1) : source ≥ 50 i/s conservée 
 
 Un décalage d'une seule image fait chuter le VMAF de plusieurs points et fausserait toute conclusion. Avant chaque comparaison, `Measure-Quality.ps1` :
 
+0. Les deux flux sont remis sur une base de temps 1/30 à horodatages entiers (`settb=1/30,setpts=N`) : avec `setpts=N/30/TB`, l'arrondi en ms du mkv face au mp4 décalait l'appariement libvmaf d'une image sur trois (bug corrigé le 2026-10-21, mesures refaites).
 1. vérifie que premier horodatage = 0 (± 1 ms) des deux flux et que le nombre d'images de la sortie est celui attendu **± 1** (la dernière image interpolée peut manquer) ; il compare alors sur `min(images)` ;
 2. calcule le PSNR Y sur 20 images pour des décalages de −1, 0 et +1 image ; **le meilleur doit être le décalage 0** ; sinon la mesure est marquée `ALIGNEMENT_SUSPECT` et rejetée (bug à signaler, pas à corriger côté mesure).
 
@@ -128,24 +129,46 @@ Le script sort un JSON (`checks[]` : nom, attendu, constaté, statut) et un Mark
 
 Quatre verdicts partiels, tous requis pour un `VERDICT QA: PASS`.
 
-### 7.1 Qualité (jeu A, moyenne sur les clips à vérité terrain, **et** minimum par clip)
+### 7.1 Qualité (jeu A, par clip à vérité terrain, puis moyenne des parts ; **et** minimum par clip)
 
-Écarts **par rapport à Lanczos** mesuré sur les mêmes images :
+**Décision PO du 2026-10-21 : seuils en part de la marge restante par rapport à Lanczos** (les écarts en points absolus étaient arithmétiquement hors de portée : sur des sources déjà compressées, Lanczos laisse 4 à 8 points de VMAF de marge sur 3 des 5 clips, voir `docs/qa/resultats/2026-10-21_reference-lanczos.md`).
 
-| Préréglage | ΔVMAF 4K | ΔSSIM | ΔPSNR Y | Garde-fou NEG | Minimum par clip |
-|---|---|---|---|---|---|
-| **Qualité max** | ≥ +5 (vision §5) | ≥ +0,02 | ≥ +1,5 dB | ΔVMAF-NEG ≥ +3 | aucun clip sous Lanczos + 2 VMAF ; aucune métrique sous Lanczos sur aucun clip |
-| **Équilibré** | ≥ +4 | ≥ +0,015 | ≥ +1,0 dB | ΔVMAF-NEG ≥ +2 | aucun clip sous Lanczos + 1 VMAF ; idem |
-| **Rapide** | ≥ +2 | ≥ +0,01 | ≥ +0,5 dB | ΔVMAF-NEG ≥ +1 | aucun clip sous Lanczos ; idem |
+Pour un clip, avec *L* = métrique de Lanczos sur les mêmes images (jeu A) et *s* la part visée :
 
-**Interpolation** (images `Generated`, clips BBB-FAST et BBB-PAN) :
+- **VMAF** (et VMAF-NEG) : part = (VMAF − L) / (100 − L) ; **VMAF cible = L + s × (100 − L)**.
+- **SSIM Y** : (1 − SSIM) ≤ (1 − s) × (1 − SSIM_Lanczos) (même logique : on réduit l'erreur restante de la part *s*).
+- **PSNR Y** : équivalent à réduire l'erreur quadratique de la part *s* : **ΔPSNR ≥ −10·log10(1 − s)** soit +3,01 dB (s = 50 %), +1,87 dB (35 %), +0,97 dB (20 %).
+
+| Préréglage | Part *s* de la marge VMAF (moyenne des clips) | SSIM / PSNR (mêmes parts, par clip) | Garde-fou NEG (part VMAF-NEG, moyenne) | Minimum par clip |
+|---|---|---|---|---|
+| **Qualité max** | **≥ 50 %** | (1 − SSIM) ≤ 0,5 × celui de Lanczos ; ΔPSNR ≥ +3,01 dB | ≥ 40 % (part visée − 10 points) | aucun clip sous Lanczos + 2 VMAF ; aucune métrique sous Lanczos sur aucun clip |
+| **Équilibré** | **≥ 35 %** | (1 − SSIM) ≤ 0,65 × ; ΔPSNR ≥ +1,87 dB | ≥ 25 % | aucun clip sous Lanczos + 1 VMAF ; idem |
+| **Rapide** | **≥ 20 %** | (1 − SSIM) ≤ 0,80 × ; ΔPSNR ≥ +0,97 dB | ≥ 10 % | aucun clip sous Lanczos ; idem |
+
+SSIM, PSNR et NEG dérivent de la décision du PO sur le VMAF [H : proposition qa-tester, à valider par le PO avec le reste du protocole].
+
+VMAF cibles par clip (jeu A, Lanczos du 2026-10-21, images conservées / alignées) :
+
+| Clip | VMAF Lanczos (A) | Qualité max (50 %) | Équilibré (35 %) | Rapide (20 %) |
+|---|---|---|---|---|
+| BBB-FAST (Kept) | 92,67 | 96,33 | 95,23 | 94,13 |
+| BBB-PAN (Kept) | 83,39 | 91,70 | 89,20 | 86,71 |
+| TOS-FACE (24 → 60, alignées) | 92,81 | 96,41 | 95,33 | 94,25 |
+| TOS-DARK (24 → 60, alignées) | 95,90 | 97,95 | 97,34 | 96,72 |
+| SYN-TEXT | 63,74 | 81,87 | 76,43 | 71,00 |
+
+Ces valeurs sont recalculées à chaque nouvelle mesure de Lanczos (le script de rapport les imprime) ; elles ne sont pas figées dans le protocole au-delà de cet exemple.
+
+**Interpolation** (images `Generated`, clips BBB-FAST et BBB-PAN) : règles inchangées.
+
 
 | Préréglage | VMAF `Generated` | 1er centile des images `Generated` |
 |---|---|---|
 | Qualité max, Équilibré | ≥ Lanczos + duplication + 3 **et** ≥ valeur du spike ENH-002 − 1 (backlog) | ≥ celui de la duplication (l'interpolation ne doit jamais être pire que répéter l'image dans ses pires cas : coupures de plan, bords) |
 | Rapide (interpolation dégradée autorisée) | ≥ Lanczos + duplication + 1 | ≥ celui de la duplication − 2 |
 
-**Contre NVIDIA Broadcast 2.3** (jeu B, au moins 2 clips ; ENH-029 exige au moins 2) : VMAF, SSIM et PSNR d'Enhance (préréglage Qualité max) **≥ ceux de Broadcast sur chaque clip**, avec **tolérance −0,5 VMAF** (Broadcast est limité à 8 bits : si Enhance est au-dessus de plus de 0,5 point, c'est un plus, pas un seuil). SSIM et PSNR : pas de tolérance. Si Broadcast n'est pas encore produit, ce seuil est **« non vérifié »** (jamais PASS par défaut) et le verdict l'écrit.
+**Contre NVIDIA Broadcast 2.3** (jeu B, au moins 2 clips ; ENH-029 exige au moins 2 ; **un clip n'est valide que si la sortie Broadcast fait 3840 de large**, sinon la super-résolution a été ignorée : voir `docs/qa/resultats/2026-10-21_reference-broadcast.md`) : VMAF, SSIM et PSNR d'Enhance (préréglage Qualité max) **≥ ceux de Broadcast sur chaque clip**, avec **tolérance −0,5 VMAF** (Broadcast est limité à 8 bits : si Enhance est au-dessus de plus de 0,5 point, c'est un plus, pas un seuil). SSIM et PSNR : pas de tolérance. Si Broadcast n'est pas encore produit, ce seuil est **« non vérifié »** (jamais PASS par défaut) et le verdict l'écrit.
+Garde-fou : VMAF seul se laisse gonfler par une accentuation (Broadcast : +4 VMAF mais -11 dB de PSNR et -11 de VMAF-NEG sur BBB-FAST) ; la comparaison porte donc aussi sur VMAF-NEG (Enhance ≥ Broadcast - 0,5), mesuré en même temps.
 **Ancien pipeline Python** : information seulement.
 
 ### 7.2 Vitesse (images de sortie par seconde, médiane des 5 répétitions, valeur soutenue)

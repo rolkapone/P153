@@ -24,7 +24,7 @@ param(
     [ValidateSet('Enhance', 'Lanczos', 'Minterpolate', 'Broadcast', 'Python')][string]$Label = 'Enhance',
     [string]$Preset = 'none',                       # quality | balanced | fast | none
     [ValidateSet('A', 'B')][string]$Set = 'A',      # jeu A (sans perte) ou jeu B (H.264, comparaison Broadcast)
-    [ValidateSet('All', 'Kept', 'Generated', 'Aligned24')][string]$Mode = 'All',
+    [ValidateSet('All', 'Kept', 'Generated', 'Aligned24', 'Aligned48')][string]$Mode = 'All',
     [string]$PreFilter = '',                        # appliquee au flux distordu avant comparaison (ex. Lanczos)
     [switch]$Neg,                                   # second passage avec le modele NEG (garde-fou)
     [int]$Subsample = 1,                            # >1 : iteration rapide seulement, jamais pour un rapport officiel
@@ -51,8 +51,9 @@ if ($PreFilter) {
     if ([int]$dist.width -ne 3840 -or [int]$dist.height -ne [int]$ref.height) {
         throw "Sortie $($dist.width)x$($dist.height) differente de la verite terrain $($ref.width)x$($ref.height) : comparaison refusee (defaut de conformite)."
     }
-    if ($dist.color_space -ne 'bt709' -or $dist.color_range -ne 'tv') {
-        $warnings.Add("Etiquettes couleur inattendues (space=$($dist.color_space), range=$($dist.color_range)) : mesure invalide (protocole 2.3).")
+    $cs = if ($dist.PSObject.Properties['color_space']) { $dist.color_space } else { 'absent' }; $cr = if ($dist.PSObject.Properties['color_range']) { $dist.color_range } else { 'absent' }
+    if ($cs -ne 'bt709' -or $cr -ne 'tv') {
+        $warnings.Add("Etiquettes couleur inattendues (space=$cs, range=$cr) : mesure invalide (protocole 2.3).")
     }
 }
 $refFps = ConvertTo-Rate $ref.r_frame_rate
@@ -61,6 +62,7 @@ $distFps = ConvertTo-Rate $dist.r_frame_rate
 # Nombre d'images disponibles dans l'espace d'index du flux distordu (apres PreFilter si fps=60 : x2 ou x2,5).
 $nRef = [int]$ref.frames
 switch ($Mode) {
+    'Aligned48' { $distFrames = [int]$dist.frames }
     'Aligned24' { $distFrames = if ($PreFilter) { [int][math]::Floor($dist.frames * 60 / [math]::Max($distFps, 1)) } else { [int]$dist.frames } }
     default     { $distFrames = if ($PreFilter -and $Mode -in 'Kept', 'Generated') { [int]$dist.frames * 2 } else { [int]$dist.frames } }
 }
@@ -72,10 +74,11 @@ switch ($Mode) {
     'Kept'      { $selD = 'not(mod(n,2))';   $selR = 'not(mod(n,2))';   $limD = $distFrames;                  $limR = $nRef }
     'Generated' { $selD = 'mod(n,2)';        $selR = 'mod(n,2)';        $limD = $distFrames;                  $limR = $nRef }
     'Aligned24' { $selD = 'not(mod(n,5))';   $selR = 'not(mod(n,2))';   $limD = $distFrames;                  $limR = $nRef }
+    'Aligned48' { $selD = 'not(mod(n,2))';   $selR = '1';               $limD = $distFrames;                  $limR = $nRef }   # sortie 48 i/s (24 doublees), verite 24 i/s
 }
 # Alignement : la derniere image interpolee peut manquer (+/- 1), on compare sur le plus petit nombre commun.
-$nPairsD = if ($Mode -eq 'Aligned24') { [math]::Ceiling($limD / 5.0) } elseif ($Mode -eq 'All') { $limD } else { [math]::Floor($limD / 2.0) }
-$nPairsR = if ($Mode -eq 'Aligned24') { [math]::Ceiling($limR / 2.0) } elseif ($Mode -eq 'All') { $limR } else { [math]::Floor($limR / 2.0) }
+$nPairsD = if ($Mode -eq 'Aligned48') { [math]::Ceiling($limD / 2.0) } elseif ($Mode -eq 'Aligned24') { [math]::Ceiling($limD / 5.0) } elseif ($Mode -eq 'All') { $limD } else { [math]::Floor($limD / 2.0) }
+$nPairsR = if ($Mode -eq 'Aligned48') { $limR } elseif ($Mode -eq 'Aligned24') { [math]::Ceiling($limR / 2.0) } elseif ($Mode -eq 'All') { $limR } else { [math]::Floor($limR / 2.0) }
 $pairs = [int][math]::Min($nPairsD, $nPairsR)
 if ([math]::Abs($nPairsD - $nPairsR) -gt 1) {
     $warnings.Add("Nombre d'images different de plus de 1 (distordu=$nPairsD, reference=$nPairsR) : defaut de conformite probable.")
@@ -88,10 +91,10 @@ function New-FilterScript {
     param([string]$Model, [string]$LogName, [string]$Extra = 'name=psnr|name=float_ssim')
     $pre = if ($PreFilter) { "$PreFilter," } else { '' }
     $features = if ($Extra) { ":feature=$Extra" } else { '' }
-    # setpts : meme base de temps pour les deux flux apres selection, sinon libvmaf apparie par horodatage et se decale.
+    # settb+setpts=N : base 1/30 et horodatages entiers pour les deux flux. Avec N/30/TB, l arrondi en ms (mkv) vs 1/12288 (mp4) decalait l appariement libvmaf d une image toutes les 3 (bug trouve le 2026-10-21).
     @"
-[0:v]${pre}select='($selD)*lt(n\,$limD)'${subFilter},setpts=N/30/TB,format=yuv420p10le[d];
-[1:v]select='($selR)*lt(n\,$limR)'${subFilter},setpts=N/30/TB,format=yuv420p10le[r];
+[0:v]${pre}select='($selD)*lt(n\,$limD)'${subFilter},settb=1/30,setpts=N,format=yuv420p10le[d];
+[1:v]select='($selR)*lt(n\,$limR)'${subFilter},settb=1/30,setpts=N,format=yuv420p10le[r];
 [d][r]libvmaf=model=version=${Model}${features}:log_fmt=json:log_path=${LogName}:n_threads=$Threads
 "@
 }
@@ -105,8 +108,8 @@ if (-not $SkipAlignCheck) {
     foreach ($shift in -1, 0, 1) {
         $dTrim = [math]::Max($shift, 0); $rTrim = [math]::Max(-$shift, 0)
         $pre = if ($PreFilter) { "$PreFilter," } else { '' }
-        $g = "[0:v]${pre}select='($alD)*lt(n\,$limD)',setpts=N/30/TB,format=yuv420p10le,trim=start_frame=${dTrim}:end_frame=$($dTrim + 20),setpts=PTS-STARTPTS[d];" +
-             "[1:v]select='($alR)*lt(n\,$limR)',setpts=N/30/TB,format=yuv420p10le,trim=start_frame=${rTrim}:end_frame=$($rTrim + 20),setpts=PTS-STARTPTS[r];[d][r]psnr"
+        $g = "[0:v]${pre}select='($alD)*lt(n\,$limD)',settb=1/30,setpts=N,format=yuv420p10le,trim=start_frame=${dTrim}:end_frame=$($dTrim + 20),setpts=PTS-STARTPTS[d];" +
+             "[1:v]select='($alR)*lt(n\,$limR)',settb=1/30,setpts=N,format=yuv420p10le,trim=start_frame=${rTrim}:end_frame=$($rTrim + 20),setpts=PTS-STARTPTS[r];[d][r]psnr"
         $gf = Join-Path $WorkDir "align_$shift.txt"
         Set-Content -Path $gf -Value $g -Encoding ascii
         $o = Invoke-Native $tools.Ffmpeg @('-hide_banner', '-nostats', '-i', $Distorted, '-i', $Reference, '-/filter_complex', $gf, '-f', 'null', '-') -WorkDir $WorkDir

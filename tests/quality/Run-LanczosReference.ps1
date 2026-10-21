@@ -11,6 +11,7 @@ param(
     [Parameter(Mandatory)][string]$OutDir,
     [string[]]$Clips = @('BBB-FAST', 'BBB-PAN', 'TOS-FACE', 'TOS-DARK', 'SYN-TEXT'),
     [switch]$SkipMinterpolate,
+    [string[]]$Sets = @('A', 'B'),   # ex. B seul pour (re)mesurer le jeu B avec le garde-fou NEG
     [switch]$Force                 # sinon, une mesure dont le JSON existe deja est reprise telle quelle
 )
 $ErrorActionPreference = 'Stop'
@@ -32,13 +33,13 @@ foreach ($id in $Clips) {
         'Align24'  { @(@{ L='Lanczos'; Set='A'; Mode='Aligned24' }, @{ L='Lanczos'; Set='B'; Mode='Aligned24' }) }
         default    { @(@{ L='Lanczos'; Set='A'; Mode='All' }, @{ L='Lanczos'; Set='B'; Mode='All' }) }
     }
-    foreach ($p in $plan) {
+    foreach ($p in ($plan | Where-Object { $_.Set -in $Sets })) {
         $ext = if ($p.Set -eq 'A') { 'mkv' } else { 'mp4' }
         $dist = Join-Path $ClipsDir "in720\$id.$ext"
         $fps = if ($clip.Mode -in 'Interp60', 'Align24') { ',fps=60' } else { '' }
         $pre = if ($p.L -eq 'Minterpolate') { "minterpolate=fps=60:mi_mode=mci:mc_mode=aobmc:me_mode=bidir:vsbmc=1,$scale" } else { "$scale$fps" }
         $out = Join-Path $OutDir "quality_${id}_$($p.L)_$($p.Mode)_$($p.Set).json"
-        $neg = @(if ($p.Set -eq 'A' -and $p.L -eq 'Lanczos') { '-Neg' })
+        $neg = @(if ($p.L -eq 'Lanczos') { '-Neg' })
         # processus fils : isole les variables (Measure-Quality utilise des noms de variables communs avec ce script)
         if ((Test-Path $out) -and -not $Force) { Write-Host "reprise : $(Split-Path $out -Leaf)"; $rows.Add((Get-Content $out -Raw | ConvertFrom-Json)); continue }
         & pwsh -NoProfile -File $mq -FfmpegDir $FfmpegDir -Reference $refFile -Distorted $dist -PreFilter $pre -Label $p.L -ClipId $id -Mode $p.Mode -Set $p.Set -OutJson $out @neg

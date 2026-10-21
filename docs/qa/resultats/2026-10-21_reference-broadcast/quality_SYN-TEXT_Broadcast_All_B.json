@@ -1,0 +1,40 @@
+{
+  "schema": "enhance-qa-quality/1",
+  "clip": "SYN-TEXT",
+  "label": "Broadcast",
+  "preset": "none",
+  "set": "B",
+  "mode": "All",
+  "tool": {
+    "ffmpeg": "ffmpeg version n8.1.3-20-gc8de997cb1-20261021 Copyright (c) 2000-2026 the FFmpeg developers",
+    "libvmaf": "86da14d",
+    "model": "vmaf_4k_v0.6.1",
+    "model_neg": "vmaf_4k_v0.6.1neg"
+  },
+  "machine": {
+    "gpu": "NVIDIA GeForce RTX 5070",
+    "driver": "617.42",
+    "vram_total_mib": 12227,
+    "windows": "10.0.26200.0"
+  },
+  "git": "7f54e6c",
+  "frames_compared": 600,
+  "subsample": 1,
+  "align": "ok",
+  "vmaf": {
+    "mean": 68.554004,
+    "harmonic_mean": 68.134258,
+    "min": 63.92799,
+    "p1": 64.468762
+  },
+  "ssim_y": 0.980364,
+  "psnr_y": 24.2749,
+  "vmaf_neg": {
+    "mean": 59.051492,
+    "min": 54.632755
+  },
+  "warnings": [
+    "Etiquettes couleur inattendues (space=absent, range=absent) : mesure invalide (protocole 2.3)."
+  ],
+  "elapsed_s": 54.3
+}

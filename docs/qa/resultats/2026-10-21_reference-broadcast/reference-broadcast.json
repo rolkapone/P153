@@ -1,0 +1,359 @@
+{
+  "schema": "enhance-qa-reference/1",
+  "date": "2026-10-21",
+  "conformity": [
+    {
+      "clip": "BBB-FAST",
+      "file": "BBB-FAST_2026-10-21_18_40_08.mp4",
+      "codec": "h264",
+      "profile": "High",
+      "pix_fmt": "yuv420p",
+      "width": 3840,
+      "height": 2160,
+      "fps": "60/1",
+      "frames": 599,
+      "duration": "9.983283",
+      "color_space": "absent",
+      "color_range": "absent",
+      "expected": "3840x2160"
+    },
+    {
+      "clip": "BBB-PAN",
+      "file": "BBB-PAN_2026-10-21_18_40_22.mp4",
+      "codec": "h264",
+      "profile": "High",
+      "pix_fmt": "yuv420p",
+      "width": 3840,
+      "height": 2160,
+      "fps": "60/1",
+      "frames": 599,
+      "duration": "9.983283",
+      "color_space": "absent",
+      "color_range": "absent",
+      "expected": "3840x2160"
+    },
+    {
+      "clip": "TOS-FACE",
+      "file": "TOS-FACE_2026-10-21_18_40_43.mp4",
+      "codec": "h264",
+      "profile": "High",
+      "pix_fmt": "yuv420p",
+      "width": 1280,
+      "height": 570,
+      "fps": "48/1",
+      "frames": 479,
+      "duration": "9.979146",
+      "color_space": "absent",
+      "color_range": "absent",
+      "expected": "3840x1710"
+    },
+    {
+      "clip": "TOS-DARK",
+      "file": "TOS-DARK_2026-10-21_18_40_36.mp4",
+      "codec": "h264",
+      "profile": "High",
+      "pix_fmt": "yuv420p",
+      "width": 1280,
+      "height": 570,
+      "fps": "48/1",
+      "frames": 479,
+      "duration": "9.979146",
+      "color_space": "absent",
+      "color_range": "absent",
+      "expected": "3840x1710"
+    },
+    {
+      "clip": "SYN-TEXT",
+      "file": "SYN-TEXT_2026-10-21_18_40_50.mp4",
+      "codec": "h264",
+      "profile": "High",
+      "pix_fmt": "yuv420p",
+      "width": 3840,
+      "height": 2160,
+      "fps": "60/1",
+      "frames": 600,
+      "duration": "9.999950",
+      "color_space": "absent",
+      "color_range": "absent",
+      "expected": "3840x2160"
+    }
+  ],
+  "results": [
+    {
+      "schema": "enhance-qa-quality/1",
+      "clip": "BBB-FAST",
+      "label": "Broadcast",
+      "preset": "none",
+      "set": "B",
+      "mode": "Kept",
+      "tool": {
+        "ffmpeg": "ffmpeg version n8.1.3-20-gc8de997cb1-20261021 Copyright (c) 2000-2026 the FFmpeg developers",
+        "libvmaf": "86da14d",
+        "model": "vmaf_4k_v0.6.1",
+        "model_neg": "vmaf_4k_v0.6.1neg"
+      },
+      "machine": {
+        "gpu": "NVIDIA GeForce RTX 5070",
+        "driver": "617.42",
+        "vram_total_mib": 12227,
+        "windows": "10.0.26200.0"
+      },
+      "git": "7f54e6c",
+      "frames_compared": 300,
+      "subsample": 1,
+      "align": "ok",
+      "vmaf": {
+        "mean": 94.69654,
+        "harmonic_mean": 94.316585,
+        "min": 85.25893,
+        "p1": 85.516044
+      },
+      "ssim_y": 0.991322,
+      "psnr_y": 31.2429,
+      "vmaf_neg": {
+        "mean": 78.208741,
+        "min": 70.428226
+      },
+      "warnings": [
+        "Etiquettes couleur inattendues (space=absent, range=absent) : mesure invalide (protocole 2.3)."
+      ],
+      "elapsed_s": 40.5
+    },
+    {
+      "schema": "enhance-qa-quality/1",
+      "clip": "BBB-FAST",
+      "label": "Broadcast",
+      "preset": "none",
+      "set": "B",
+      "mode": "Generated",
+      "tool": {
+        "ffmpeg": "ffmpeg version n8.1.3-20-gc8de997cb1-20261021 Copyright (c) 2000-2026 the FFmpeg developers",
+        "libvmaf": "86da14d",
+        "model": "vmaf_4k_v0.6.1",
+        "model_neg": "vmaf_4k_v0.6.1neg"
+      },
+      "machine": {
+        "gpu": "NVIDIA GeForce RTX 5070",
+        "driver": "617.42",
+        "vram_total_mib": 12227,
+        "windows": "10.0.26200.0"
+      },
+      "git": "7f54e6c",
+      "frames_compared": 300,
+      "subsample": 1,
+      "align": "ok",
+      "vmaf": {
+        "mean": 89.51864,
+        "harmonic_mean": 82.525575,
+        "min": 5.96491,
+        "p1": 25.163743
+      },
+      "ssim_y": 0.978277,
+      "psnr_y": 30.4418,
+      "vmaf_neg": {
+        "mean": 73.594168,
+        "min": 5.977816
+      },
+      "warnings": [
+        "Etiquettes couleur inattendues (space=absent, range=absent) : mesure invalide (protocole 2.3)."
+      ],
+      "elapsed_s": 40.7
+    },
+    {
+      "schema": "enhance-qa-quality/1",
+      "clip": "BBB-PAN",
+      "label": "Broadcast",
+      "preset": "none",
+      "set": "B",
+      "mode": "Kept",
+      "tool": {
+        "ffmpeg": "ffmpeg version n8.1.3-20-gc8de997cb1-20261021 Copyright (c) 2000-2026 the FFmpeg developers",
+        "libvmaf": "86da14d",
+        "model": "vmaf_4k_v0.6.1",
+        "model_neg": "vmaf_4k_v0.6.1neg"
+      },
+      "machine": {
+        "gpu": "NVIDIA GeForce RTX 5070",
+        "driver": "617.42",
+        "vram_total_mib": 12227,
+        "windows": "10.0.26200.0"
+      },
+      "git": "7f54e6c",
+      "frames_compared": 300,
+      "subsample": 1,
+      "align": "ok",
+      "vmaf": {
+        "mean": 84.119334,
+        "harmonic_mean": 84.067441,
+        "min": 79.945087,
+        "p1": 80.228379
+      },
+      "ssim_y": 0.993418,
+      "psnr_y": 31.3129,
+      "vmaf_neg": {
+        "mean": 72.605826,
+        "min": 69.066284
+      },
+      "warnings": [
+        "Etiquettes couleur inattendues (space=absent, range=absent) : mesure invalide (protocole 2.3)."
+      ],
+      "elapsed_s": 41.3
+    },
+    {
+      "schema": "enhance-qa-quality/1",
+      "clip": "BBB-PAN",
+      "label": "Broadcast",
+      "preset": "none",
+      "set": "B",
+      "mode": "Generated",
+      "tool": {
+        "ffmpeg": "ffmpeg version n8.1.3-20-gc8de997cb1-20261021 Copyright (c) 2000-2026 the FFmpeg developers",
+        "libvmaf": "86da14d",
+        "model": "vmaf_4k_v0.6.1",
+        "model_neg": "vmaf_4k_v0.6.1neg"
+      },
+      "machine": {
+        "gpu": "NVIDIA GeForce RTX 5070",
+        "driver": "617.42",
+        "vram_total_mib": 12227,
+        "windows": "10.0.26200.0"
+      },
+      "git": "7f54e6c",
+      "frames_compared": 300,
+      "subsample": 1,
+      "align": "ok",
+      "vmaf": {
+        "mean": 81.359084,
+        "harmonic_mean": 81.223567,
+        "min": 52.637139,
+        "p1": 73.977127
+      },
+      "ssim_y": 0.993602,
+      "psnr_y": 31.1775,
+      "vmaf_neg": {
+        "mean": 71.314305,
+        "min": 47.960605
+      },
+      "warnings": [
+        "Etiquettes couleur inattendues (space=absent, range=absent) : mesure invalide (protocole 2.3)."
+      ],
+      "elapsed_s": 38.9
+    },
+    {
+      "schema": "enhance-qa-quality/1",
+      "clip": "TOS-FACE",
+      "label": "Broadcast",
+      "preset": "none",
+      "set": "B",
+      "mode": "Aligned48",
+      "tool": {
+        "ffmpeg": "ffmpeg version n8.1.3-20-gc8de997cb1-20261021 Copyright (c) 2000-2026 the FFmpeg developers",
+        "libvmaf": "86da14d",
+        "model": "vmaf_4k_v0.6.1",
+        "model_neg": "vmaf_4k_v0.6.1neg"
+      },
+      "machine": {
+        "gpu": "NVIDIA GeForce RTX 5070",
+        "driver": "617.42",
+        "vram_total_mib": 12227,
+        "windows": "10.0.26200.0"
+      },
+      "git": "7f54e6c",
+      "frames_compared": 240,
+      "subsample": 1,
+      "align": "ok",
+      "vmaf": {
+        "mean": 84.642854,
+        "harmonic_mean": 84.602996,
+        "min": 80.885528,
+        "p1": 81.244786
+      },
+      "ssim_y": 0.993411,
+      "psnr_y": 34.6518,
+      "vmaf_neg": {
+        "mean": 83.163826,
+        "min": 79.591146
+      },
+      "warnings": [],
+      "elapsed_s": 26.3
+    },
+    {
+      "schema": "enhance-qa-quality/1",
+      "clip": "TOS-DARK",
+      "label": "Broadcast",
+      "preset": "none",
+      "set": "B",
+      "mode": "Aligned48",
+      "tool": {
+        "ffmpeg": "ffmpeg version n8.1.3-20-gc8de997cb1-20261021 Copyright (c) 2000-2026 the FFmpeg developers",
+        "libvmaf": "86da14d",
+        "model": "vmaf_4k_v0.6.1",
+        "model_neg": "vmaf_4k_v0.6.1neg"
+      },
+      "machine": {
+        "gpu": "NVIDIA GeForce RTX 5070",
+        "driver": "617.42",
+        "vram_total_mib": 12227,
+        "windows": "10.0.26200.0"
+      },
+      "git": "7f54e6c",
+      "frames_compared": 240,
+      "subsample": 1,
+      "align": "ok",
+      "vmaf": {
+        "mean": 91.098689,
+        "harmonic_mean": 90.668533,
+        "min": 83.419476,
+        "p1": 83.531907
+      },
+      "ssim_y": 0.994701,
+      "psnr_y": 38.2694,
+      "vmaf_neg": {
+        "mean": 89.363376,
+        "min": 81.196428
+      },
+      "warnings": [],
+      "elapsed_s": 24.9
+    },
+    {
+      "schema": "enhance-qa-quality/1",
+      "clip": "SYN-TEXT",
+      "label": "Broadcast",
+      "preset": "none",
+      "set": "B",
+      "mode": "All",
+      "tool": {
+        "ffmpeg": "ffmpeg version n8.1.3-20-gc8de997cb1-20261021 Copyright (c) 2000-2026 the FFmpeg developers",
+        "libvmaf": "86da14d",
+        "model": "vmaf_4k_v0.6.1",
+        "model_neg": "vmaf_4k_v0.6.1neg"
+      },
+      "machine": {
+        "gpu": "NVIDIA GeForce RTX 5070",
+        "driver": "617.42",
+        "vram_total_mib": 12227,
+        "windows": "10.0.26200.0"
+      },
+      "git": "7f54e6c",
+      "frames_compared": 600,
+      "subsample": 1,
+      "align": "ok",
+      "vmaf": {
+        "mean": 68.554004,
+        "harmonic_mean": 68.134258,
+        "min": 63.92799,
+        "p1": 64.468762
+      },
+      "ssim_y": 0.980364,
+      "psnr_y": 24.2749,
+      "vmaf_neg": {
+        "mean": 59.051492,
+        "min": 54.632755
+      },
+      "warnings": [
+        "Etiquettes couleur inattendues (space=absent, range=absent) : mesure invalide (protocole 2.3)."
+      ],
+      "elapsed_s": 54.3
+    }
+  ]
+}

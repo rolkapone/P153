@@ -1,0 +1,38 @@
+{
+  "schema": "enhance-qa-quality/1",
+  "clip": "BBB-PAN",
+  "label": "Lanczos",
+  "preset": "none",
+  "set": "A",
+  "mode": "Kept",
+  "tool": {
+    "ffmpeg": "ffmpeg version n8.1.3-20-gc8de997cb1-20261021 Copyright (c) 2000-2026 the FFmpeg developers",
+    "libvmaf": "86da14d",
+    "model": "vmaf_4k_v0.6.1",
+    "model_neg": "vmaf_4k_v0.6.1neg"
+  },
+  "machine": {
+    "gpu": "NVIDIA GeForce RTX 5070",
+    "driver": "617.42",
+    "vram_total_mib": 12227,
+    "windows": "10.0.26200.0"
+  },
+  "git": "7f54e6c",
+  "frames_compared": 300,
+  "subsample": 1,
+  "align": "ok",
+  "vmaf": {
+    "mean": 83.391803,
+    "harmonic_mean": 83.377692,
+    "min": 81.273805,
+    "p1": 81.430883
+  },
+  "ssim_y": 0.999238,
+  "psnr_y": 33.2838,
+  "vmaf_neg": {
+    "mean": 81.981955,
+    "min": 79.675327
+  },
+  "warnings": [],
+  "elapsed_s": 36.0
+}
