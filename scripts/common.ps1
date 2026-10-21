@@ -12,9 +12,27 @@ function Get-VsInstallPath {
     return $path
 }
 
+# Assainit l'environnement du processus (shells d'agents / Git Bash) :
+#  - retire msys64/mingw du PATH (ld.exe de MinGW passerait avant link.exe de MSVC) ;
+#  - retrouve VCPKG_ROOT (variable utilisateur/machine, sinon C:\Tools\vcpkg) et le cache binaire.
+function Initialize-EnhEnv {
+    $kept = $env:PATH -split ';' | Where-Object { $_ -and ($_ -notmatch '(?i)[\\/](msys(32|64)|mingw(32|64))([\\/]|$)') }
+    $env:PATH = $kept -join ';'
+    foreach ($name in 'VCPKG_ROOT', 'VCPKG_DEFAULT_BINARY_CACHE') {
+        if (-not [Environment]::GetEnvironmentVariable($name, 'Process')) {
+            $v = [Environment]::GetEnvironmentVariable($name, 'User')
+            if (-not $v) { $v = [Environment]::GetEnvironmentVariable($name, 'Machine') }
+            if ($v) { [Environment]::SetEnvironmentVariable($name, $v, 'Process') }
+        }
+    }
+    if (-not $env:VCPKG_ROOT -and (Test-Path 'C:\Tools\vcpkg\vcpkg.exe')) { $env:VCPKG_ROOT = 'C:\Tools\vcpkg' }
+    if (-not $env:VCPKG_DEFAULT_BINARY_CACHE -and (Test-Path 'F:\vcpkg-cache')) { $env:VCPKG_DEFAULT_BINARY_CACHE = 'F:\vcpkg-cache' }
+}
+
 # Charge l'environnement "x64 Native Tools" dans la session courante (cl, link, Ninja, CMake de VS).
 # Le CMake de MSYS2 du PATH est ecarte : on utilise celui de VS (ADR-020).
 function Enter-EnhVsEnv {
+    Initialize-EnhEnv
     $vs = Get-VsInstallPath
     $devShell = Join-Path $vs 'Common7\Tools\Launch-VsDevShell.ps1'
     # Launch-VsDevShell appelle vswhere par le PATH.
