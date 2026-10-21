@@ -23,6 +23,13 @@ try {
         $dir = Join-Path $script:RepoRoot "build\$Preset"
         if (Test-Path $dir) { Remove-Item -Recurse -Force $dir }
     }
+    # Cache CMake configure avant l'installation de vcpkg : le toolchain n'est pas pris en compte
+    # apres coup, on repart d'un dossier propre.
+    $cache = Join-Path $script:RepoRoot "build\$Preset\CMakeCache.txt"
+    if ($env:VCPKG_ROOT -and (Test-Path $cache) -and -not (Test-Path (Join-Path $script:RepoRoot "build\$Preset\vcpkg_installed"))) {
+        Write-Host "Cache CMake anterieur a vcpkg (build\$Preset, pas de vcpkg_installed) : reinitialisation." -ForegroundColor Yellow
+        Remove-Item -Recurse -Force (Join-Path $script:RepoRoot "build\$Preset")
+    }
     if (-not $env:VCPKG_ROOT) {
         Write-Warning 'VCPKG_ROOT non defini : dependances vcpkg indisponibles (tests/UI ignores). Voir scripts\bootstrap.ps1.'
     }

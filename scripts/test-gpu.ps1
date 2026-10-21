@@ -84,7 +84,10 @@ if ($tools) {
 $ffRoot = if ($env:ENH_FFMPEG_ROOT) { $env:ENH_FFMPEG_ROOT } else { Join-Path $script:RepoRoot 'third_party\ffmpeg\lgpl-shared' }
 $ffOk = Test-Path (Join-Path $ffRoot 'include\libavcodec\avcodec.h')
 Add-Check 'FFmpeg LGPL (shared)' $ffOk $(if ($ffOk) { 'en-tetes presents' } else { 'absent : third_party\ffmpeg\lgpl-shared\include\libavcodec\avcodec.h (voir ADR-025, scripts\fetch-ffmpeg.ps1)' })
-# TODO : controle de licence (scripts\check-ffmpeg-license.ps1, ADR-025) quand FFmpeg sera present.
+if ($ffOk) {
+    & "$PSScriptRoot\check-ffmpeg-license.ps1" -Root $ffRoot *> $null
+    Add-Check 'FFmpeg : licence LGPL (check-ffmpeg-license)' ($LASTEXITCODE -eq 0) $(if ($LASTEXITCODE -eq 0) { 'aucune option GPL/nonfree' } else { 'build GPL ou nonfree refuse : voir scripts\check-ffmpeg-license.ps1' })
+}
 
 # --- 5. Disque ------------------------------------------------------------------------------
 $drive = Get-PSDrive -Name ($script:RepoRoot.Substring(0, 1))
