@@ -1,6 +1,7 @@
 # Pipeline video : api (en-tetes) / core + fake (testes en CI) / gpu (seulement si ENH_WITH_GPU).
 add_library(enh_pipeline_api INTERFACE)
 target_include_directories(enh_pipeline_api INTERFACE api/include)
+target_link_libraries(enh_pipeline_api INTERFACE enh_common)
 
 add_library(enh_pipeline_core STATIC core/pipeline_core.cpp)
 enh_target_defaults(enh_pipeline_core)

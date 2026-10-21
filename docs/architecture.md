@@ -419,7 +419,7 @@ ADR du pipeline (plage ADR-040 et plus) — licences à valider par secdevops da
 
 ## 15. Build, dépendances, CI, packaging (devops)
 
-Statut : proposition devops du 2026-10-21 (ADR-020 à ADR-036), **à valider par le PO avant toute installation**. Rien n'est encore installé ni téléchargé. **[H]** = hypothèse à vérifier à l'étape 5 (installation) ou en ENH-003.
+Statut : proposition devops du 2026-10-21 (ADR-020 à ADR-037), **à valider par le PO avant toute installation**. Rien n'est encore installé ni téléchargé. **[H]** = hypothèse à vérifier à l'étape 5 (installation) ou en ENH-003.
 
 Principe directeur : **deux mondes de build**.
 - **Monde sans GPU** (CI, et tout poste sans SDK) : `ENH_WITH_GPU=OFF`, pipeline simulé (`FakePipeline`), aucune DLL NVIDIA, aucun SDK. C'est ce que la CI compile.
@@ -468,7 +468,7 @@ Principe directeur : **deux mondes de build**.
 **Décision.**
 - `CMAKE_CXX_STANDARD 20`, `CXX_EXTENSIONS OFF` ; MSVC : `/std:c++20 /permissive- /Zc:__cplusplus /utf-8 /W4 /WX` (la CI et `release` ; `dev` garde `/W4` sans `/WX` pour ne pas freiner l'apprentissage), `/EHsc`, `/Zc:preprocessor`, `/MD` partout, `/guard:cf` et `/GS` en release, ASLR/DEP/CFG par défaut de l'éditeur de liens (`/DYNAMICBASE /NXCOMPAT /HIGHENTROPYVA`).
 - **« Sans exception » = politique, pas drapeau** : `/EHsc` reste activé car Qt, la STL et les tiers peuvent en lancer ; aucune exception ne traverse une API d'Enhance (ADR-003) ; `throw` interdit dans `src/` (règle de revue + clang-tidy `hicpp-exception-baseclass` / `bugprone-exception-escape`). Pas de `/EHs-c-` (provoquerait des comportements indéfinis avec la STL).
-- `tl::expected` (ADR-003) via vcpkg, alias `enh::Expected` défini dans `src/core/include/enh/expected.hpp`.
+- `tl::expected` (ADR-003) via vcpkg, alias `enh::Expected` défini dans `src/common/include/enh/expected.hpp` (cible `enh_common`, ADR-037).
 - Warnings des en-têtes tiers en `SYSTEM` (Qt, FFmpeg, SDK NVIDIA) pour que `/WX` ne casse pas sur du code qui n'est pas le nôtre.
 
 **Alternatives écartées.**
@@ -758,3 +758,15 @@ Les noms `pipeline/api` et `pipeline/impl` du gpu-engineer sont conservés (`pip
 2. **ux-designer** : « Rétablir » après annulation = « Reprendre depuis le début » ; au redémarrage, jobs interrompus remis « En attente » (MVP) ; progression sur l'icône de la barre des tâches ; suffixe de sortie quand la source est déjà en 4K ou à ≥ 50 i/s (`_Enhance_4K60` reste-t-il exact ?).
 3. ~~**gpu-engineer** : accord sur l'interface du § 12, l'alias `enh::Expected`, le `FakePipeline`, `plan()` sans GPU, le passage des chemins longs à FFmpeg.~~ **Tranché le 2026-10-21** (§ 12, ADR-047, ADR-049, ADR-051). Reste pour l'ux-designer : texte P-08 du code `SourceUnreadable` (fichier verrouillé) et libellé de l'étape `PreparingModels` (premier lancement, 1–3 min **[H]**).
 4. **devops** : source de Qt (vcpkg avec options vs installeur officiel), version exacte, rendu QML en CI.
+
+### 15.18 ADR-037 — Amendement d'ADR-036 : `enh_common`, `enh_pipeline_ffmpeg`, `enhance-bench`, pont RTX Video
+
+**Contexte.** Demandes du gpu-engineer (`docs/gpu/ENH-008.md`, `ENH-040.md`, `ENH-047.md`), sprint 1.
+
+**Décision.**
+1. **`enh_common`** (`src/common/`, INTERFACE, en-têtes seuls) : porte `enh/expected.hpp` (alias `enh::Expected`, `tl::expected`) et `ENH_HAVE_EXPECTED`. Lié par `enh_pipeline_api` (donc tout le pipeline) et par `enh_core`. Le pipeline ne dépend jamais d'`enh_core`. Déplacement fait sur `main` (commit `build:`) avant les branches.
+2. **`enh_pipeline_ffmpeg`** (`src/pipeline/ffmpeg/`, STATIC, **sans CUDA**) : accepté. Démux, AVIO, décodage logiciel ; construite dès que la feature vcpkg `ffmpeg` est présente, **indépendamment de `ENH_WITH_GPU`** (testable en CI si FFmpeg y est installé, sinon cible absente et tests sautés ; `ENH_WITH_GPU=OFF` compile toujours). Ne lie que `enh_pipeline_api`. `enh_pipeline_gpu` la lie et y ajoute NVDEC/CUDA ; `enh_pipeline_fake` ne la lie pas.
+3. **`enhance-bench`** (`src/tools/bench/`, exécutable console) : construit seulement si `ENH_GPU_EFFECTIVE`, lie `enh_pipeline_impl`, jamais livré dans le ZIP/installeur (outil de dev appelé par `test-gpu.ps1`).
+4. **`enh_rtxvideo_bridge`** (`src/pipeline/rtxvideo_bridge/`, SHARED, seulement si `ENH_GPU_EFFECTIVE`) : DLL séparée avec `.def`, CRT statique `/MT` (`MSVC_RUNTIME_LIBRARY MultiThreaded`, dérogation locale au `/MD` de l'ADR-020), sans cudart, sans dépendance vers `enh_*` ; chargée dynamiquement par `enh_pipeline_gpu` (non liée à la compilation), livrée à côté de `enhance.exe` ; licence à consigner par secdevops.
+
+**Conséquences.** La règle « une cible ne lie que la couche du dessous » est inchangée. **Alternatives écartées.** `expected.hpp` dans `enh_pipeline_api` : force `enh_core` à en dépendre pour un utilitaire hors pipeline ; FFmpeg seulement dans `enh_pipeline_gpu` : démux non testable en CI.

@@ -1,4 +1,5 @@
 # Arborescence : ADR-036. Une cible ne lie que la couche du dessous.
+add_subdirectory(common)
 add_subdirectory(pipeline)
 add_subdirectory(core)
 add_subdirectory(platform/win)
