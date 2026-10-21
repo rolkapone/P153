@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="fr" data-theme="dark">
+<html lang="fr" data-theme="dark" class="refract">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -89,6 +89,29 @@
   --c-skeleton: #A6A6A6; --c-skeleton-shine: #A6A6A6;
   --c-shadow1: transparent; --c-shadow2: transparent; --c-shadow3: transparent; --size-border: 2px;
 }
+/* ---- Verre « liquide » (tokens.json > glass) ---- */
+:root {
+  --c-glass-tint: #1E1E23; --c-glass-rim: rgba(255, 255, 255, 0.22); --c-glass-rim-low: rgba(255, 255, 255, 0.06);
+  --c-glass-specular: rgba(255, 255, 255, 0.55); --c-glass-shadow: rgba(0, 0, 0, 0.36);
+  --glass-tint-rgb: 30, 30, 35; --glass-tint-alpha: 0.80;
+  --glass-regular-blur: 24px; --glass-regular-sat: 1.35; --glass-regular-bezel: 14px; --glass-regular-specular: 0.35;
+  --glass-clear-blur: 8px; --glass-clear-sat: 1.2; --glass-clear-bezel: 16px; --glass-clear-specular: 0.45; --glass-clear-tint-scale: 0.55;
+  --glass-thick-blur: 40px; --glass-thick-sat: 1.2; --glass-thick-bezel: 18px; --glass-thick-specular: 0.25;
+  --r-glass-bar: 22px; --r-glass-sheet: 20px; --r-glass-toast: 18px;
+  --glass-press-scale: 1.03; --glass-segment-stretch: 1.12;
+  --shadow-glass: 0 8px 28px var(--c-glass-shadow), 0 1px 3px var(--c-glass-shadow);
+}
+:root[data-theme="light"] {
+  --c-glass-tint: #F8F8FA; --c-glass-rim: rgba(255, 255, 255, 0.85); --c-glass-rim-low: rgba(0, 0, 0, 0.08);
+  --c-glass-specular: rgba(255, 255, 255, 0.90); --c-glass-shadow: rgba(0, 0, 0, 0.14);
+  --glass-tint-rgb: 248, 248, 250;
+}
+:root.no-transparency { --glass-tint-rgb: 44, 44, 49; --glass-tint-alpha: 1; --glass-regular-blur: 0px; --glass-clear-blur: 0px; --glass-thick-blur: 0px;
+  --glass-regular-specular: 0; --glass-clear-specular: 0; --glass-thick-specular: 0; --glass-clear-tint-scale: 1; }
+:root.no-transparency[data-theme="light"] { --glass-tint-rgb: 255, 255, 255; }
+:root.hc { --c-glass-tint: #202020; --glass-tint-rgb: 32, 32, 32; --glass-tint-alpha: 1; --c-glass-rim: #FFFFFF; --c-glass-rim-low: #FFFFFF;
+  --c-glass-specular: transparent; --c-glass-shadow: transparent; --glass-regular-blur: 0px; --glass-clear-blur: 0px; --glass-thick-blur: 0px;
+  --glass-regular-specular: 0; --glass-clear-specular: 0; --glass-thick-specular: 0; --glass-clear-tint-scale: 1; }
 
 /* =====================================================================
    2. BASE ET COMPOSANTS (identique au catalogue index.html)
@@ -440,6 +463,46 @@ p, h1, h2, h3 { margin: 0; }
 .scroll::-webkit-scrollbar-thumb { border: 4px solid transparent; border-radius: 6px; background: var(--c-fill-control-hover) padding-box; }
 .scroll::-webkit-scrollbar-thumb:hover { background: var(--c-border-strong) padding-box; }
 
+/* --- Verre « liquide » : teinte + flou + réfraction (filtre SVG) + liseré + reflet qui suit le pointeur --- */
+@property --mx { syntax: '<percentage>'; inherits: true; initial-value: 22%; }
+@property --my { syntax: '<percentage>'; inherits: true; initial-value: 0%; }
+:root { interpolate-size: allow-keywords; }
+.glass { --g-blur: var(--glass-regular-blur); --g-sat: var(--glass-regular-sat); --g-bezel: var(--glass-regular-bezel);
+  --g-spec: var(--glass-regular-specular); --g-tint: 1;
+  isolation: isolate;
+  background: rgba(var(--glass-tint-rgb), calc(var(--glass-tint-alpha) * var(--g-tint)));
+  -webkit-backdrop-filter: blur(var(--g-blur)) saturate(var(--g-sat)); backdrop-filter: blur(var(--g-blur)) saturate(var(--g-sat));
+  box-shadow: var(--shadow-glass); }
+.refract .glass { -webkit-backdrop-filter: url(#lg-refract) blur(var(--g-blur)) saturate(var(--g-sat)); backdrop-filter: url(#lg-refract) blur(var(--g-blur)) saturate(var(--g-sat)); }
+.refract .glass[data-lens="sq"] { -webkit-backdrop-filter: url(#lg-refract-sq) blur(var(--g-blur)) saturate(var(--g-sat)); backdrop-filter: url(#lg-refract-sq) blur(var(--g-blur)) saturate(var(--g-sat)); }
+.glass::before { content: ""; position: absolute; inset: 0; z-index: 3; border-radius: inherit; padding: 1px; pointer-events: none;
+  background: linear-gradient(140deg, var(--c-glass-rim) 0%, var(--c-glass-rim-low) 38%, var(--c-glass-rim-low) 62%, var(--c-glass-rim) 100%);
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0); -webkit-mask-composite: xor; mask-composite: exclude; }
+.glass::after { content: ""; position: absolute; inset: 0; z-index: 3; border-radius: inherit; padding: var(--g-bezel); pointer-events: none;
+  background: radial-gradient(closest-side, var(--c-glass-specular), transparent) no-repeat; background-size: 220px 90px;
+  background-position: var(--mx) var(--my); opacity: var(--g-spec);
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0); -webkit-mask-composite: xor; mask-composite: exclude;
+  transition: opacity var(--dur-fast) var(--ease-standard); }
+.glass.pressing::after { opacity: calc(var(--g-spec) * 1.6); }
+.glass-clear { --g-blur: var(--glass-clear-blur); --g-sat: var(--glass-clear-sat); --g-bezel: var(--glass-clear-bezel); --g-spec: var(--glass-clear-specular); --g-tint: var(--glass-clear-tint-scale); }
+.glass-thick { --g-blur: var(--glass-thick-blur); --g-sat: var(--glass-thick-sat); --g-bezel: var(--glass-thick-bezel); --g-spec: var(--glass-thick-specular); }
+.hc .glass, .no-transparency .glass { -webkit-backdrop-filter: none; backdrop-filter: none; box-shadow: var(--shadow-e2); }
+.hc .glass::after, .no-transparency .glass::after { display: none; }
+:where(.glass) { position: relative; }
+.tip.glass { --g-spec: 0; }
+.glass-group { display: inline-flex; align-items: center; gap: 2px; padding: 3px; border-radius: var(--r-full); }
+.glass-group .btn, .glass-group .icon-btn { background: transparent; border-radius: var(--r-full); }
+.glass-group .btn:hover, .glass-group .icon-btn:hover { background: var(--c-fill-control-hover); }
+.glass-group .btn:active, .glass-group .icon-btn:active, .glass .btn-primary:active { transform: scale(var(--glass-press-scale));
+  transition-duration: var(--move-press); transition-timing-function: var(--ease-decelerate); }
+.glass .btn-primary { border-radius: var(--r-full); box-shadow: var(--shadow-e1), inset 0 1px 0 rgba(255, 255, 255, 0.28), inset 0 -1px 0 rgba(0, 0, 0, 0.12); }
+.glass .btn-primary[aria-disabled="true"] { box-shadow: none; }
+.toast.glass { border-radius: var(--r-glass-toast); }
+.menu.glass { border-radius: 14px; }
+.sheet.glass { border-radius: var(--r-glass-sheet); }
+.seg.liquid .seg-thumb { animation: seg-stretch var(--move-medium) var(--ease-emphasized); }
+@keyframes seg-stretch { 50% { scale: var(--glass-segment-stretch) 0.94; } }
+
 /* =====================================================================
    3. MAQUETTE : PAGE, FENÊTRE, MISE EN PAGE DE L'APP
    ===================================================================== */
@@ -485,7 +548,7 @@ body { min-height: 100vh; display: grid; grid-template-rows: auto 1fr; overflow:
 .cap.close:hover { background: #C42B1C; color: #FFFFFF; }
 .cap svg { width: 10px; height: 10px; fill: none; stroke: currentColor; stroke-width: 1; }
 
-.app { position: relative; flex: 1; min-height: 0; display: grid; grid-template-rows: auto minmax(0, 1fr) auto auto; }
+.app { position: relative; flex: 1; min-height: 0; display: grid; grid-template-rows: auto minmax(0, 1fr) auto; }
 .toolbar { display: flex; align-items: center; gap: var(--s2); height: var(--size-toolbar-h); padding: 0 var(--s6); }
 .toolbar-title { flex: 1; min-width: 0; font: var(--t-title2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .toolbar-title .count { color: var(--c-text-secondary); font-weight: var(--fw-regular); }
@@ -494,7 +557,8 @@ body { min-height: 100vh; display: grid; grid-template-rows: auto 1fr; overflow:
 .center { position: relative; min-height: 0; }
 .main { height: 100%; overflow: auto; }
 .main.fade-bottom { -webkit-mask-image: linear-gradient(to bottom, #000 calc(100% - 20px), transparent); mask-image: linear-gradient(to bottom, #000 calc(100% - 20px), transparent); }
-.content { display: grid; grid-template-rows: auto auto 1fr; min-height: 100%; max-width: calc(var(--size-content-max-w) + 2 * var(--s6)); margin: 0 auto; padding: 0 var(--s6) var(--s4); }
+.content { display: grid; grid-template-rows: auto auto 1fr; min-height: 100%; max-width: calc(var(--size-content-max-w) + 2 * var(--s6)); margin: 0 auto; padding: 0 var(--s6) calc(var(--panel-h, 0px) + var(--s8));
+  transition: padding-bottom var(--move-slower) var(--ease-spring); }
 .banner-slot { padding-bottom: 0; }
 .banner-slot.open { padding-bottom: var(--s3); }
 .body-cell { display: grid; min-height: 0; }
@@ -524,21 +588,27 @@ body { min-height: 100vh; display: grid; grid-template-rows: auto 1fr; overflow:
   transition: opacity var(--dur-fast) var(--ease-accelerate), transform var(--move-fast) var(--ease-accelerate), visibility 0s linear var(--dur-fast); }
 .drop-overlay.open { opacity: 1; visibility: visible; transform: none;
   transition: opacity var(--dur-base) var(--ease-decelerate), transform var(--move-base) var(--ease-decelerate), visibility 0s; }
-.drop-pill { display: flex; align-items: center; gap: var(--s2); padding: 10px 18px; border-radius: var(--r-full);
-  background: var(--c-surface-raised); box-shadow: var(--shadow-e2); font: var(--t-headline); }
+.drop-pill { display: flex; align-items: center; gap: var(--s2); padding: 12px 20px; border-radius: var(--r-full); font: var(--t-headline); }
+.drop-pill > * { position: relative; z-index: 1; }
 .drop-pill .ic { color: var(--c-accent-text); width: 20px; height: 20px; }
 
-.toast-region { position: absolute; left: 0; right: 0; bottom: var(--s4); z-index: 20; display: grid; justify-items: center; padding: 0 var(--s4); pointer-events: none; }
+.toast-region { position: absolute; left: 0; right: 0; bottom: calc(var(--panel-h, 0px) + var(--s4) + var(--s3)); z-index: 20; display: grid; justify-items: center; padding: 0 var(--s4); pointer-events: none;
+  transition: bottom var(--move-slower) var(--ease-spring); }
 
-/* Panneau Préréglage */
-.panel-wrap { display: grid; grid-template-rows: 0fr; transition: grid-template-rows var(--move-slow) var(--ease-emphasized); }
-.panel-wrap.open { grid-template-rows: 1fr; }
-.panel-clip { min-height: 0; overflow: hidden; }
-.panel { border-top: 1px solid var(--c-border-hairline); opacity: 0; transform: translateY(16px);
-  transition: opacity var(--dur-base) var(--ease-standard), transform var(--move-slow) var(--ease-emphasized); }
-.panel-wrap.open .panel { opacity: 1; transform: none; }
-.panel-inner { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: end; gap: var(--s3) var(--s8);
-  max-width: calc(var(--size-content-max-w) + 2 * var(--s6)); margin: 0 auto; padding: var(--s4) var(--s6); }
+/* Barre Préréglage : verre flottant au-dessus de la liste, qui se transforme (barre ↔ capsule) */
+.panel-float { position: absolute; left: 50%; bottom: var(--s4); z-index: 10;
+  width: min(calc(var(--size-content-max-w) + 2 * var(--s3)), calc(100% - 2 * var(--s4))); border-radius: var(--r-glass-bar);
+  opacity: 0; visibility: hidden; transform: translateX(-50%) translateY(24px) scale(0.98);
+  transition: width var(--move-slower) var(--ease-spring), border-radius var(--move-slower) var(--ease-spring),
+    transform var(--move-slow) var(--ease-emphasized), opacity var(--dur-base) var(--ease-standard), visibility 0s linear var(--dur-base); }
+.panel-float.open { opacity: 1; visibility: visible; transform: translateX(-50%);
+  transition: width var(--move-slower) var(--ease-spring), border-radius var(--move-slower) var(--ease-spring),
+    transform var(--move-slow) var(--ease-emphasized), opacity var(--dur-base) var(--ease-standard), visibility 0s; }
+.panel-float.compact { width: fit-content; max-width: calc(100% - 2 * var(--s4)); border-radius: 30px; }
+.reduce-motion .panel-float { transition: opacity var(--dur-fast) var(--ease-standard), visibility 0s; }
+.panel-inner { position: relative; z-index: 1; display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: end; gap: var(--s3) var(--s8);
+  padding: var(--s4) var(--s4) var(--s4) var(--s5); }
+.panel-float.compact .panel-inner { grid-template-columns: auto auto; align-items: center; gap: var(--s4); padding: var(--s3) var(--s3) var(--s3) var(--s5); }
 .cfg { min-width: 0; }
 .cfg-blocks { display: flex; flex-wrap: wrap; gap: var(--s4) var(--s8); }
 .cfg-block { display: grid; gap: 6px; justify-items: start; }
@@ -557,7 +627,7 @@ body { min-height: 100vh; display: grid; grid-template-rows: auto 1fr; overflow:
 
 /* Largeur réduite (< 900 px) */
 @container win (max-width: 899px) {
-  .toolbar, .panel-inner { padding-left: var(--s4); padding-right: var(--s4); }
+  .toolbar { padding-left: var(--s4); padding-right: var(--s4); }
   .content { padding-left: var(--s4); padding-right: var(--s4); }
   .thumb { width: var(--size-thumb-narrow-w); height: var(--size-thumb-narrow-h); }
   .card[data-state="running"] .thumb, .card[data-state="paused"] .thumb { width: var(--size-thumb-w); height: var(--size-thumb-h); }
@@ -606,6 +676,15 @@ body { min-height: 100vh; display: grid; grid-template-rows: auto 1fr; overflow:
   <symbol id="i-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2.5v2M12 19.5v2M2.5 12h2M19.5 12h2M5.3 5.3l1.4 1.4M17.3 17.3l1.4 1.4M5.3 18.7l1.4-1.4M17.3 6.7l1.4-1.4"/></symbol>
   <symbol id="i-moon" viewBox="0 0 24 24"><path d="M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5z"/></symbol>
   <symbol id="i-keyboard" viewBox="0 0 24 24"><rect x="2.5" y="6" width="19" height="12" rx="2"/><path d="M6 10h.01M10 10h.01M14 10h.01M18 10h.01M7.5 14h9"/></symbol>
+  <!-- Réfraction du verre : carte de déplacement (R = x, G = y, neutre 50 %) qui « tord » le fond près des bords -->
+  <filter id="lg-refract" x="0" y="0" width="1" height="1" color-interpolation-filters="sRGB">
+    <feImage preserveAspectRatio="none" result="map" href="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100' preserveAspectRatio='none'><defs><linearGradient id='r'><stop offset='0' stop-color='%23ff0000'/><stop offset='.04' stop-color='%23800000'/><stop offset='.96' stop-color='%23800000'/><stop offset='1' stop-color='%23000000'/></linearGradient><linearGradient id='g' x2='0' y2='1'><stop offset='0' stop-color='%2300ff00'/><stop offset='.2' stop-color='%23008000'/><stop offset='.8' stop-color='%23008000'/><stop offset='1' stop-color='%23000000'/></linearGradient></defs><rect width='100' height='100' fill='url(%23r)'/><rect width='100' height='100' fill='url(%23g)' style='mix-blend-mode:screen'/></svg>"/>
+    <feDisplacementMap in="SourceGraphic" in2="map" scale="22" xChannelSelector="R" yChannelSelector="G"/>
+  </filter>
+  <filter id="lg-refract-sq" x="0" y="0" width="1" height="1" color-interpolation-filters="sRGB">
+    <feImage preserveAspectRatio="none" result="map" href="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100' preserveAspectRatio='none'><defs><linearGradient id='r'><stop offset='0' stop-color='%23ff0000'/><stop offset='.18' stop-color='%23800000'/><stop offset='.82' stop-color='%23800000'/><stop offset='1' stop-color='%23000000'/></linearGradient><linearGradient id='g' x2='0' y2='1'><stop offset='0' stop-color='%2300ff00'/><stop offset='.22' stop-color='%23008000'/><stop offset='.78' stop-color='%23008000'/><stop offset='1' stop-color='%23000000'/></linearGradient></defs><rect width='100' height='100' fill='url(%23r)'/><rect width='100' height='100' fill='url(%23g)' style='mix-blend-mode:screen'/></svg>"/>
+    <feDisplacementMap in="SourceGraphic" in2="map" scale="16" xChannelSelector="R" yChannelSelector="G"/>
+  </filter>
 </svg>
 
 <!-- ===================== Commandes de la maquette (hors application) ===================== -->
@@ -641,6 +720,9 @@ body { min-height: 100vh; display: grid; grid-template-rows: auto 1fr; overflow:
     <button class="chip" data-theme-set="light">Clair</button>
     <button class="chip" id="mkHc" aria-pressed="false">Contraste élevé</button>
     <button class="chip" id="mkReduce" aria-pressed="false">Réduire les animations</button>
+    <span class="mk-sep"></span>
+    <button class="chip" id="mkTransp" aria-pressed="true" title="Simule le réglage Windows « Effets de transparence »">Transparence</button>
+    <button class="chip" id="mkRefract" aria-pressed="true" title="Approximation SVG de la réfraction (Edge / Chrome)">Réfraction</button>
   </div>
 </header>
 
@@ -659,8 +741,10 @@ body { min-height: 100vh; display: grid; grid-template-rows: auto 1fr; overflow:
       <!-- Barre d'outils -->
       <div class="toolbar">
         <h1 class="toolbar-title" id="tbTitle" aria-live="off"></h1>
-        <button class="btn btn-sm has-icon" id="btnAdd" data-tip="Ajouter des vidéos (Ctrl+O)"><svg class="ic"><use href="#i-plus"/></svg><span class="lbl">Ajouter</span></button>
-        <button class="icon-btn" id="btnSettings" aria-label="Réglages" data-tip="Réglages (Ctrl+,)"><svg class="ic ic-20"><use href="#i-sliders"/></svg></button>
+        <div class="glass glass-group" data-lens="sq" role="group" aria-label="Actions">
+          <button class="btn btn-sm has-icon" id="btnAdd" data-tip="Ajouter des vidéos (Ctrl+O)"><svg class="ic"><use href="#i-plus"/></svg><span class="lbl">Ajouter</span></button>
+          <button class="icon-btn sm" id="btnSettings" aria-label="Réglages" data-tip="Réglages (Ctrl+,)"><svg class="ic"><use href="#i-sliders"/></svg></button>
+        </div>
       </div>
 
       <!-- Zone centrale -->
@@ -714,14 +798,12 @@ body { min-height: 100vh; display: grid; grid-template-rows: auto 1fr; overflow:
           </div>
         </div>
         <div class="drop-overlay" id="dropOverlay" aria-hidden="true">
-          <div class="drop-pill"><svg class="ic"><use href="#i-import"/></svg><span id="dropOverlayText">Relâcher pour ajouter 3 vidéos</span></div>
+          <div class="drop-pill glass glass-clear" data-lens="sq"><svg class="ic"><use href="#i-import"/></svg><span id="dropOverlayText">Relâcher pour ajouter 3 vidéos</span></div>
         </div>
         <div class="toast-region" id="toastRegion" aria-live="polite"></div>
-      </div>
 
-      <!-- Panneau Préréglage -->
-      <div class="panel-wrap" id="panelWrap"><div class="panel-clip">
-        <section class="panel" aria-label="Préréglage">
+        <!-- Barre Préréglage : verre flottant -->
+        <section class="panel-float glass" id="panelWrap" aria-label="Préréglage">
           <div class="panel-inner">
             <div class="cfg">
               <div class="sec" id="cfgFull"><div>
@@ -765,7 +847,7 @@ body { min-height: 100vh; display: grid; grid-template-rows: auto 1fr; overflow:
             </div>
           </div>
         </section>
-      </div></div>
+      </div>
 
       <!-- Barre d'état -->
       <footer class="statusbar">
@@ -776,7 +858,7 @@ body { min-height: 100vh; display: grid; grid-template-rows: auto 1fr; overflow:
       <!-- Couches : voile, feuilles, menu, info-bulle -->
       <div class="scrim" id="scrim"></div>
 
-      <section class="sheet" id="sheetSettings" role="dialog" aria-modal="true" aria-labelledby="stTitle">
+      <section class="sheet glass glass-thick" id="sheetSettings" role="dialog" aria-modal="true" aria-labelledby="stTitle">
         <div class="sheet-head"><h2 class="sheet-title" id="stTitle">Réglages</h2></div>
         <div class="sheet-body">
           <div class="sheet-section">
@@ -815,7 +897,7 @@ body { min-height: 100vh; display: grid; grid-template-rows: auto 1fr; overflow:
         <div class="sheet-foot"><button class="btn btn-primary" data-close>OK</button></div>
       </section>
 
-      <section class="sheet" id="sheetError" role="dialog" aria-modal="true" aria-labelledby="seTitle">
+      <section class="sheet glass glass-thick" id="sheetError" role="dialog" aria-modal="true" aria-labelledby="seTitle">
         <div class="sheet-head"><h2 class="sheet-title" id="seTitle">Pourquoi ce fichier a échoué</h2></div>
         <div class="sheet-body">
           <p style="font:var(--t-headline);padding-bottom:4px" id="seName"></p>
@@ -831,7 +913,7 @@ body { min-height: 100vh; display: grid; grid-template-rows: auto 1fr; overflow:
         </div>
       </section>
 
-      <section class="sheet" id="sheetHelp" role="dialog" aria-modal="true" aria-labelledby="shTitle">
+      <section class="sheet glass glass-thick" id="sheetHelp" role="dialog" aria-modal="true" aria-labelledby="shTitle">
         <div class="sheet-head"><h2 class="sheet-title" id="shTitle">Mettre à jour le pilote graphique</h2>
           <p class="sheet-sub">Trois étapes, environ 5 minutes. Enhance n'ouvre aucune page Internet de lui-même.</p></div>
         <div class="sheet-body">
@@ -847,20 +929,20 @@ body { min-height: 100vh; display: grid; grid-template-rows: auto 1fr; overflow:
         </div>
       </section>
 
-      <section class="sheet" id="sheetKeys" role="dialog" aria-modal="true" aria-labelledby="skTitle">
+      <section class="sheet glass glass-thick" id="sheetKeys" role="dialog" aria-modal="true" aria-labelledby="skTitle">
         <div class="sheet-head"><h2 class="sheet-title" id="skTitle">Raccourcis clavier</h2></div>
         <div class="sheet-body" id="keysBody"></div>
         <div class="sheet-foot"><button class="btn btn-primary" data-close>Fermer</button></div>
       </section>
 
-      <div class="menu" id="menu" role="menu" aria-label="Actions du fichier">
+      <div class="menu glass" data-lens="sq" id="menu" role="menu" aria-label="Actions du fichier">
         <button class="menu-item" role="menuitem" data-act="top"><svg class="ic"><use href="#i-arrow-up"/></svg>Placer en tête de la file</button>
         <button class="menu-item" role="menuitem" data-act="bottom"><svg class="ic"><use href="#i-arrow-down"/></svg>Placer en fin de file</button>
         <button class="menu-item" role="menuitem" data-act="reveal"><svg class="ic"><use href="#i-folder"/></svg>Afficher la vidéo d'origine</button>
         <div class="menu-sep" role="separator"></div>
         <button class="menu-item" role="menuitem" data-act="remove"><svg class="ic"><use href="#i-x"/></svg>Retirer de la liste</button>
       </div>
-      <div class="tip" id="tip" role="tooltip"></div>
+      <div class="tip glass" data-lens="sq" id="tip" role="tooltip"></div>
     </div>
   </div>
 </main>
@@ -1220,6 +1302,7 @@ function renderPanel() {
   const mode = panelMode();
   $('#panelWrap').classList.toggle('open', mode !== 'none');
   const full = (mode === 'setup' && (!S.short || S.panelExpanded)) || (mode === 'running' && S.panelExpanded);
+  $('#panelWrap').classList.toggle('compact', mode !== 'none' && !full);
   const compact = (mode === 'running' && !S.panelExpanded) || (mode === 'setup' && S.short && !S.panelExpanded);
   setSec($('#cfgFull'), full);
   setSec($('#cfgCompact'), compact);
@@ -1267,6 +1350,8 @@ function renderPanel() {
   bs.textContent = failed ? 'Voir les erreurs' : 'Tout afficher dans le dossier';
 }
 function syncSeg(seg, i) {
+  const prev = seg.style.getPropertyValue('--i');
+  if (prev !== '' && +prev !== i) { seg.classList.remove('liquid'); void seg.offsetWidth; seg.classList.add('liquid'); }
   seg.style.setProperty('--i', i);
   $$('.seg-item', seg).forEach((b, k) => { b.setAttribute('aria-checked', String(k === i)); b.tabIndex = k === i ? 0 : -1; });
 }
@@ -1454,7 +1539,8 @@ let toastEl = null;
 function toast(text, actionLabel, onAction) {
   dismissToast(true);
   const t = document.createElement('div');
-  t.className = 'toast';
+  t.className = 'toast glass';
+  t.dataset.lens = 'sq';
   t.setAttribute('role', 'status');
   t.innerHTML = `<span class="toast-text"></span>${actionLabel ? '<button class="btn btn-sm btn-plain"></button>' : ''}<span class="toast-timer"></span>`;
   $('.toast-text', t).textContent = text;
@@ -1723,6 +1809,32 @@ $$('[data-size]').forEach(b => b.onclick = () => {
   if (b.dataset.size === 'min') { win.style.setProperty('--win-w', '760px'); win.style.setProperty('--win-h', '520px'); }
   if (b.dataset.size === 'ref') { win.style.setProperty('--win-w', '1100px'); win.style.setProperty('--win-h', '720px'); }
 });
+// Verre : hauteur de la barre flottante (la liste défile dessous), reflet qui suit le pointeur, pression
+const panelEl = $('#panelWrap');
+new ResizeObserver(() => {
+  $('.center').style.setProperty('--panel-h', (panelEl.classList.contains('open') ? panelEl.offsetHeight : 0) + 'px');
+}).observe(panelEl);
+new MutationObserver(() => $('.center').style.setProperty('--panel-h', (panelEl.classList.contains('open') ? panelEl.offsetHeight : 0) + 'px'))
+  .observe(panelEl, { attributes: true, attributeFilter: ['class'] });
+let specRaf = 0, specEvt = null;
+document.addEventListener('pointermove', e => {
+  if (root.classList.contains('reduce-motion')) return;
+  specEvt = e;
+  if (specRaf) return;
+  specRaf = requestAnimationFrame(() => {
+    specRaf = 0;
+    const g = specEvt.target.closest && specEvt.target.closest('.glass');
+    if (!g) return;
+    const r = g.getBoundingClientRect();
+    g.style.setProperty('--mx', ((specEvt.clientX - r.left) / r.width * 100).toFixed(1) + '%');
+    g.style.setProperty('--my', ((specEvt.clientY - r.top) / r.height * 100).toFixed(1) + '%');
+  });
+}, { passive: true });
+document.addEventListener('pointerdown', e => { const g = e.target.closest && e.target.closest('.glass'); if (g) g.classList.add('pressing'); });
+document.addEventListener('pointerup', () => $$('.glass.pressing').forEach(g => g.classList.remove('pressing')));
+$('#mkTransp').onclick = () => { const off = root.classList.toggle('no-transparency'); $('#mkTransp').setAttribute('aria-pressed', String(!off)); };
+$('#mkRefract').onclick = () => { const on = root.classList.toggle('refract'); $('#mkRefract').setAttribute('aria-pressed', String(on)); };
+
 new ResizeObserver(() => {
   const short = $('#win').getBoundingClientRect().height < 600;
   if (short !== S.short) { S.short = short; renderPanel(); }

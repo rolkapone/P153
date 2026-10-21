@@ -7,6 +7,8 @@
 //   Theme.highContrast     <- SystemAppearance.highContrast (SPI_GETHIGHCONTRAST)
 //   Theme.reduceMotion     <- SystemAppearance.reduceMotion (SPI_GETCLIENTAREAANIMATION == FALSE)
 //   Theme.devicePixelRatio <- Screen.devicePixelRatio de la fenêtre principale
+//   Theme.transparencyEnabled   <- SystemAppearance.transparency (« Effets de transparence » Windows)
+//   Theme.glassQualityRequested <- RenderPolicy.glassQuality (budget GPU mesuré, voir design-system.md §6)
 //
 // Exemples d'usage :
 //   color: Theme.color.textSecondary
@@ -30,6 +32,8 @@ QtObject {
     property bool highContrast: false
     property bool reduceMotion: false
     property real devicePixelRatio: 1.0
+    property bool transparencyEnabled: true   // <- SystemAppearance.transparency (HKCU\...\Personalize\EnableTransparency)
+    property int glassQualityRequested: 2     // <- RenderPolicy.glassQuality (2 complète, 1 allégée, 0 opaque)
 
     // 1 pixel physique, pour les séparateurs nets à 125 / 150 / 175 %.
     readonly property real hairline: 1 / Math.max(1, devicePixelRatio)
@@ -86,6 +90,11 @@ QtObject {
         property color shadow1
         property color shadow2
         property color shadow3
+        property color glassTint
+        property color glassRim
+        property color glassRimLow
+        property color glassSpecular
+        property color glassShadow
     }
 
     readonly property ColorPalette darkPalette: ColorPalette {
@@ -133,6 +142,11 @@ QtObject {
         shadow1: theme.rgba(0, 0, 0, 0.30)
         shadow2: theme.rgba(0, 0, 0, 0.32)
         shadow3: theme.rgba(0, 0, 0, 0.48)
+        glassTint: "#1E1E23"
+        glassRim: theme.rgba(255, 255, 255, 0.22)
+        glassRimLow: theme.rgba(255, 255, 255, 0.06)
+        glassSpecular: theme.rgba(255, 255, 255, 0.55)
+        glassShadow: theme.rgba(0, 0, 0, 0.36)
     }
 
     readonly property ColorPalette lightPalette: ColorPalette {
@@ -180,6 +194,11 @@ QtObject {
         shadow1: theme.rgba(0, 0, 0, 0.06)
         shadow2: theme.rgba(0, 0, 0, 0.10)
         shadow3: theme.rgba(0, 0, 0, 0.18)
+        glassTint: "#F8F8FA"
+        glassRim: theme.rgba(255, 255, 255, 0.85)
+        glassRimLow: theme.rgba(0, 0, 0, 0.08)
+        glassSpecular: theme.rgba(255, 255, 255, 0.90)
+        glassShadow: theme.rgba(0, 0, 0, 0.14)
     }
 
     // Contraste élevé : couleurs système. Si la palette Qt ne reflète pas fidèlement
@@ -233,13 +252,82 @@ QtObject {
         shadow1: "transparent"
         shadow2: "transparent"
         shadow3: "transparent"
+        glassTint: theme._sys.window
+        glassRim: theme._sys.windowText
+        glassRimLow: theme._sys.windowText
+        glassSpecular: "transparent"
+        glassShadow: "transparent"
     }
 
     readonly property ColorPalette color: highContrast ? highContrastPalette
                                                  : (dark ? darkPalette : lightPalette)
 
-    // Matières : translucidité désactivée en contraste élevé.
-    readonly property bool materialsEnabled: !highContrast
+    // Matières : translucidité désactivée en contraste élevé ou si Windows
+    // « Effets de transparence » est désactivé.
+    readonly property bool materialsEnabled: !highContrast && transparencyEnabled
+
+    // ------------------------------------------------------------------ Verre « liquide »
+    // Rendu par le composant GlassSurface (ShaderEffect + glass.frag.qsb), qui échantillonne
+    // une ShaderEffectSource du contenu (demi-résolution, mipmaps). Voir design-system.md §6.
+    // Qualité : 2 = complète, 1 = allégée (flou + teinte), 0 = opaque.
+    // glassQualityRequested est posé par RenderPolicy (C++) selon le budget GPU mesuré.
+    readonly property int glassFull: 2
+    readonly property int glassLite: 1
+    readonly property int glassOpaque: 0
+    readonly property int glassQuality: materialsEnabled ? glassQualityRequested : glassOpaque
+    // Pas de fusion animée ni de reflet qui suit le pointeur en mouvement réduit.
+    readonly property bool glassMotion: !reduceMotion && glassQuality === glassFull
+
+    component GlassLevel: QtObject {
+        property real blur          // px logiques (rayon de flou équivalent)
+        property real saturation    // multiplicateur
+        property real refraction    // déplacement max en px logiques au bord
+        property real bezel         // largeur de la zone réfractante (px) : aucun texte dedans
+        property real specular      // intensité max du reflet (0..1)
+        property real tintScale     // multiplie l'alpha de teinte adaptative
+    }
+    component GlassLevels: QtObject {
+        property GlassLevel regular
+        property GlassLevel clear
+        property GlassLevel thick
+    }
+    readonly property GlassLevels glass: GlassLevels {
+        regular: GlassLevel { blur: 24; saturation: 1.35; refraction: 12; bezel: 14; specular: 0.35; tintScale: 1.0 }
+        clear:   GlassLevel { blur: 8;  saturation: 1.2;  refraction: 16; bezel: 16; specular: 0.45; tintScale: 0.55 }
+        thick:   GlassLevel { blur: 40; saturation: 1.2;  refraction: 8;  bezel: 18; specular: 0.25; tintScale: 1.0 }
+    }
+
+    // Teinte adaptative : alpha = mix(alphaA, alphaB, smoothstep(lumaA, lumaB, Lb)),
+    // Lb = luminance relative du fond flouté sous le pixel (calcul dans le shader).
+    component AdaptiveTint: QtObject {
+        property real alphaA
+        property real alphaB
+        property real lumaA
+        property real lumaB
+    }
+    readonly property AdaptiveTint glassTintCurve: dark
+        ? darkTintCurve : lightTintCurve
+    readonly property AdaptiveTint darkTintCurve: AdaptiveTint { alphaA: 0.62; alphaB: 0.88; lumaA: 0.05; lumaB: 0.50 }
+    readonly property AdaptiveTint lightTintCurve: AdaptiveTint { alphaA: 0.90; alphaB: 0.62; lumaA: 0.10; lumaB: 0.60 }
+
+    component GlassGeometry: QtObject {
+        readonly property int bar: 22
+        readonly property int capsule: 999
+        readonly property int sheet: 20
+        readonly property int toast: 18
+        readonly property real fusionK: 16       // smooth-min (px)
+        readonly property int fusionMaxShapes: 4
+        readonly property real lightAngleDeg: -50
+        readonly property real pressScale: 1.03
+        readonly property real pressSpecularBoost: 1.6
+        readonly property real segmentStretch: 1.12
+        // Budget : rendu de l'interface sur la RTX, par image affichée.
+        readonly property real budgetGpuMs: 1.0
+        readonly property real budgetGpuMsMax: 2.0
+        readonly property real backdropScale: 0.5
+        readonly property int backdropMaxHzDuringProcessing: 10
+    }
+    readonly property GlassGeometry glassGeo: GlassGeometry {}
 
     // ------------------------------------------------------------------ Typographie
     readonly property string familyDisplay: "Segoe UI Variable Display"

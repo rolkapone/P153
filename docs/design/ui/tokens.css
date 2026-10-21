@@ -190,3 +190,29 @@
   --c-shadow1: transparent; --c-shadow2: transparent; --c-shadow3: transparent;
   --size-border: 2px;
 }
+
+/* ---- Verre « liquide » (tokens.json > glass) ---- */
+:root {
+  --c-glass-tint: #1E1E23; --c-glass-rim: rgba(255, 255, 255, 0.22); --c-glass-rim-low: rgba(255, 255, 255, 0.06);
+  --c-glass-specular: rgba(255, 255, 255, 0.55); --c-glass-shadow: rgba(0, 0, 0, 0.36);
+  --glass-tint-rgb: 30, 30, 35; --glass-tint-alpha: 0.80;
+  --glass-regular-blur: 24px; --glass-regular-sat: 1.35; --glass-regular-bezel: 14px; --glass-regular-specular: 0.35;
+  --glass-clear-blur: 8px; --glass-clear-sat: 1.2; --glass-clear-bezel: 16px; --glass-clear-specular: 0.45; --glass-clear-tint-scale: 0.55;
+  --glass-thick-blur: 40px; --glass-thick-sat: 1.2; --glass-thick-bezel: 18px; --glass-thick-specular: 0.25;
+  --r-glass-bar: 22px; --r-glass-sheet: 20px; --r-glass-toast: 18px;
+  --glass-press-scale: 1.03; --glass-segment-stretch: 1.12;
+  --shadow-glass: 0 8px 28px var(--c-glass-shadow), 0 1px 3px var(--c-glass-shadow);
+}
+:root[data-theme="light"] {
+  --c-glass-tint: #F8F8FA; --c-glass-rim: rgba(255, 255, 255, 0.85); --c-glass-rim-low: rgba(0, 0, 0, 0.08);
+  --c-glass-specular: rgba(255, 255, 255, 0.90); --c-glass-shadow: rgba(0, 0, 0, 0.14);
+  --glass-tint-rgb: 248, 248, 250;
+}
+/* « Effets de transparence » désactivés dans Windows : verre opaque */
+:root.no-transparency { --glass-tint-rgb: 44, 44, 49; --glass-tint-alpha: 1; --glass-regular-blur: 0px; --glass-clear-blur: 0px; --glass-thick-blur: 0px;
+  --glass-regular-specular: 0; --glass-clear-specular: 0; --glass-thick-specular: 0; --glass-clear-tint-scale: 1; }
+:root.no-transparency[data-theme="light"] { --glass-tint-rgb: 255, 255, 255; }
+/* Contraste élevé : verre = fenêtre système, liseré = texte système */
+:root.hc { --c-glass-tint: #202020; --glass-tint-rgb: 32, 32, 32; --glass-tint-alpha: 1; --c-glass-rim: #FFFFFF; --c-glass-rim-low: #FFFFFF;
+  --c-glass-specular: transparent; --c-glass-shadow: transparent; --glass-regular-blur: 0px; --glass-clear-blur: 0px; --glass-thick-blur: 0px;
+  --glass-regular-specular: 0; --glass-clear-specular: 0; --glass-thick-specular: 0; --glass-clear-tint-scale: 1; }

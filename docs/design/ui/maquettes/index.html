@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="fr" data-theme="dark">
+<html lang="fr" data-theme="dark" class="refract">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -89,6 +89,29 @@
   --c-skeleton: #A6A6A6; --c-skeleton-shine: #A6A6A6;
   --c-shadow1: transparent; --c-shadow2: transparent; --c-shadow3: transparent; --size-border: 2px;
 }
+/* ---- Verre « liquide » (tokens.json > glass) ---- */
+:root {
+  --c-glass-tint: #1E1E23; --c-glass-rim: rgba(255, 255, 255, 0.22); --c-glass-rim-low: rgba(255, 255, 255, 0.06);
+  --c-glass-specular: rgba(255, 255, 255, 0.55); --c-glass-shadow: rgba(0, 0, 0, 0.36);
+  --glass-tint-rgb: 30, 30, 35; --glass-tint-alpha: 0.80;
+  --glass-regular-blur: 24px; --glass-regular-sat: 1.35; --glass-regular-bezel: 14px; --glass-regular-specular: 0.35;
+  --glass-clear-blur: 8px; --glass-clear-sat: 1.2; --glass-clear-bezel: 16px; --glass-clear-specular: 0.45; --glass-clear-tint-scale: 0.55;
+  --glass-thick-blur: 40px; --glass-thick-sat: 1.2; --glass-thick-bezel: 18px; --glass-thick-specular: 0.25;
+  --r-glass-bar: 22px; --r-glass-sheet: 20px; --r-glass-toast: 18px;
+  --glass-press-scale: 1.03; --glass-segment-stretch: 1.12;
+  --shadow-glass: 0 8px 28px var(--c-glass-shadow), 0 1px 3px var(--c-glass-shadow);
+}
+:root[data-theme="light"] {
+  --c-glass-tint: #F8F8FA; --c-glass-rim: rgba(255, 255, 255, 0.85); --c-glass-rim-low: rgba(0, 0, 0, 0.08);
+  --c-glass-specular: rgba(255, 255, 255, 0.90); --c-glass-shadow: rgba(0, 0, 0, 0.14);
+  --glass-tint-rgb: 248, 248, 250;
+}
+:root.no-transparency { --glass-tint-rgb: 44, 44, 49; --glass-tint-alpha: 1; --glass-regular-blur: 0px; --glass-clear-blur: 0px; --glass-thick-blur: 0px;
+  --glass-regular-specular: 0; --glass-clear-specular: 0; --glass-thick-specular: 0; --glass-clear-tint-scale: 1; }
+:root.no-transparency[data-theme="light"] { --glass-tint-rgb: 255, 255, 255; }
+:root.hc { --c-glass-tint: #202020; --glass-tint-rgb: 32, 32, 32; --glass-tint-alpha: 1; --c-glass-rim: #FFFFFF; --c-glass-rim-low: #FFFFFF;
+  --c-glass-specular: transparent; --c-glass-shadow: transparent; --glass-regular-blur: 0px; --glass-clear-blur: 0px; --glass-thick-blur: 0px;
+  --glass-regular-specular: 0; --glass-clear-specular: 0; --glass-thick-specular: 0; --glass-clear-tint-scale: 1; }
 
 /* =====================================================================
    2. BASE ET COMPOSANTS (identique à ecran-principal.html)
@@ -402,6 +425,46 @@ p, h1, h2, h3 { margin: 0; }
 .scroll::-webkit-scrollbar-thumb { border: 4px solid transparent; border-radius: 6px; background: var(--c-fill-control-hover) padding-box; }
 .scroll::-webkit-scrollbar-thumb:hover { background: var(--c-border-strong) padding-box; }
 
+/* --- Verre « liquide » : teinte + flou + réfraction (filtre SVG) + liseré + reflet qui suit le pointeur --- */
+@property --mx { syntax: '<percentage>'; inherits: true; initial-value: 22%; }
+@property --my { syntax: '<percentage>'; inherits: true; initial-value: 0%; }
+:root { interpolate-size: allow-keywords; }
+.glass { --g-blur: var(--glass-regular-blur); --g-sat: var(--glass-regular-sat); --g-bezel: var(--glass-regular-bezel);
+  --g-spec: var(--glass-regular-specular); --g-tint: 1;
+  isolation: isolate;
+  background: rgba(var(--glass-tint-rgb), calc(var(--glass-tint-alpha) * var(--g-tint)));
+  -webkit-backdrop-filter: blur(var(--g-blur)) saturate(var(--g-sat)); backdrop-filter: blur(var(--g-blur)) saturate(var(--g-sat));
+  box-shadow: var(--shadow-glass); }
+.refract .glass { -webkit-backdrop-filter: url(#lg-refract) blur(var(--g-blur)) saturate(var(--g-sat)); backdrop-filter: url(#lg-refract) blur(var(--g-blur)) saturate(var(--g-sat)); }
+.refract .glass[data-lens="sq"] { -webkit-backdrop-filter: url(#lg-refract-sq) blur(var(--g-blur)) saturate(var(--g-sat)); backdrop-filter: url(#lg-refract-sq) blur(var(--g-blur)) saturate(var(--g-sat)); }
+.glass::before { content: ""; position: absolute; inset: 0; z-index: 3; border-radius: inherit; padding: 1px; pointer-events: none;
+  background: linear-gradient(140deg, var(--c-glass-rim) 0%, var(--c-glass-rim-low) 38%, var(--c-glass-rim-low) 62%, var(--c-glass-rim) 100%);
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0); -webkit-mask-composite: xor; mask-composite: exclude; }
+.glass::after { content: ""; position: absolute; inset: 0; z-index: 3; border-radius: inherit; padding: var(--g-bezel); pointer-events: none;
+  background: radial-gradient(closest-side, var(--c-glass-specular), transparent) no-repeat; background-size: 220px 90px;
+  background-position: var(--mx) var(--my); opacity: var(--g-spec);
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0); -webkit-mask-composite: xor; mask-composite: exclude;
+  transition: opacity var(--dur-fast) var(--ease-standard); }
+.glass.pressing::after { opacity: calc(var(--g-spec) * 1.6); }
+.glass-clear { --g-blur: var(--glass-clear-blur); --g-sat: var(--glass-clear-sat); --g-bezel: var(--glass-clear-bezel); --g-spec: var(--glass-clear-specular); --g-tint: var(--glass-clear-tint-scale); }
+.glass-thick { --g-blur: var(--glass-thick-blur); --g-sat: var(--glass-thick-sat); --g-bezel: var(--glass-thick-bezel); --g-spec: var(--glass-thick-specular); }
+.hc .glass, .no-transparency .glass { -webkit-backdrop-filter: none; backdrop-filter: none; box-shadow: var(--shadow-e2); }
+.hc .glass::after, .no-transparency .glass::after { display: none; }
+:where(.glass) { position: relative; }
+.tip.glass { --g-spec: 0; }
+.glass-group { display: inline-flex; align-items: center; gap: 2px; padding: 3px; border-radius: var(--r-full); }
+.glass-group .btn, .glass-group .icon-btn { background: transparent; border-radius: var(--r-full); }
+.glass-group .btn:hover, .glass-group .icon-btn:hover { background: var(--c-fill-control-hover); }
+.glass-group .btn:active, .glass-group .icon-btn:active, .glass .btn-primary:active { transform: scale(var(--glass-press-scale));
+  transition-duration: var(--move-press); transition-timing-function: var(--ease-decelerate); }
+.glass .btn-primary { border-radius: var(--r-full); box-shadow: var(--shadow-e1), inset 0 1px 0 rgba(255, 255, 255, 0.28), inset 0 -1px 0 rgba(0, 0, 0, 0.12); }
+.glass .btn-primary[aria-disabled="true"] { box-shadow: none; }
+.toast.glass { border-radius: var(--r-glass-toast); }
+.menu.glass { border-radius: 14px; }
+.sheet.glass { border-radius: var(--r-glass-sheet); }
+.seg.liquid .seg-thumb { animation: seg-stretch var(--move-medium) var(--ease-emphasized); }
+@keyframes seg-stretch { 50% { scale: var(--glass-segment-stretch) 0.94; } }
+
 /* =====================================================================
    3. MISE EN PAGE DU CATALOGUE
    ===================================================================== */
@@ -479,6 +542,22 @@ table.t code { font: var(--t-caption); font-family: var(--font-mono); color: var
 .cards-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(420px, 1fr)); gap: var(--s4); align-items: start; }
 .cards-grid figure { margin: 0; }
 .cards-grid figcaption { font: var(--t-caption-strong); color: var(--c-text-secondary); padding-bottom: 6px; }
+.glass-lab { position: relative; height: 340px; border-radius: var(--r-lg); overflow: hidden; background: var(--c-bg-window); box-shadow: inset 0 0 0 1px var(--c-border-hairline); }
+.glass-content { position: absolute; inset: 0; overflow: auto; padding: 16px; display: grid; gap: 12px; align-content: start; outline: none; }
+.gl-row { display: flex; gap: 12px; width: max-content; }
+.gl-row span[class^="img"] { display: block; width: 160px; height: 90px; border-radius: var(--r-sm); flex: none; }
+.gl-text { display: grid; place-items: center; height: 90px; padding: 0 16px; flex: none; border-radius: var(--r-lg); background: var(--c-surface-card); font: var(--t-headline); }
+.gl-actions { position: absolute; top: 14px; right: 14px; }
+.gl-pill { position: absolute; left: 24px; top: 118px; display: flex; align-items: center; gap: 8px; padding: 10px 18px; border-radius: var(--r-full); font: var(--t-headline); }
+.gl-pill .ic { color: var(--c-accent-text); }
+.gl-sheet { position: absolute; right: 24px; top: 70px; width: 260px; padding: 16px; border-radius: var(--r-glass-sheet); }
+.gl-bar { position: absolute; left: 50%; bottom: 16px; width: calc(100% - 32px); transform: translateX(-50%); border-radius: var(--r-glass-bar);
+  transition: width var(--move-slower) var(--ease-spring), border-radius var(--move-slower) var(--ease-spring); }
+.gl-bar.compact { width: fit-content; border-radius: 30px; }
+.gl-bar-in { position: relative; z-index: 1; display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 12px 12px 12px 20px; }
+.gl-bar-text { display: grid; }
+.gl-bar-text b { font: var(--t-headline); }
+.gl-bar-text span { font: var(--t-callout); color: var(--c-text-secondary); }
 @media (max-width: 860px) { .layout { grid-template-columns: 1fr; } nav { display: none; } }
 </style>
 </head>
@@ -507,6 +586,15 @@ table.t code { font: var(--t-caption); font-family: var(--font-mono); color: var
   <symbol id="i-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2.5v2M12 19.5v2M2.5 12h2M19.5 12h2M5.3 5.3l1.4 1.4M17.3 17.3l1.4 1.4M5.3 18.7l1.4-1.4M17.3 6.7l1.4-1.4"/></symbol>
   <symbol id="i-moon" viewBox="0 0 24 24"><path d="M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5z"/></symbol>
   <symbol id="i-keyboard" viewBox="0 0 24 24"><rect x="2.5" y="6" width="19" height="12" rx="2"/><path d="M6 10h.01M10 10h.01M14 10h.01M18 10h.01M7.5 14h9"/></symbol>
+  <!-- Réfraction du verre : carte de déplacement (R = x, G = y, neutre 50 %) qui « tord » le fond près des bords -->
+  <filter id="lg-refract" x="0" y="0" width="1" height="1" color-interpolation-filters="sRGB">
+    <feImage preserveAspectRatio="none" result="map" href="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100' preserveAspectRatio='none'><defs><linearGradient id='r'><stop offset='0' stop-color='%23ff0000'/><stop offset='.04' stop-color='%23800000'/><stop offset='.96' stop-color='%23800000'/><stop offset='1' stop-color='%23000000'/></linearGradient><linearGradient id='g' x2='0' y2='1'><stop offset='0' stop-color='%2300ff00'/><stop offset='.2' stop-color='%23008000'/><stop offset='.8' stop-color='%23008000'/><stop offset='1' stop-color='%23000000'/></linearGradient></defs><rect width='100' height='100' fill='url(%23r)'/><rect width='100' height='100' fill='url(%23g)' style='mix-blend-mode:screen'/></svg>"/>
+    <feDisplacementMap in="SourceGraphic" in2="map" scale="22" xChannelSelector="R" yChannelSelector="G"/>
+  </filter>
+  <filter id="lg-refract-sq" x="0" y="0" width="1" height="1" color-interpolation-filters="sRGB">
+    <feImage preserveAspectRatio="none" result="map" href="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100' preserveAspectRatio='none'><defs><linearGradient id='r'><stop offset='0' stop-color='%23ff0000'/><stop offset='.18' stop-color='%23800000'/><stop offset='.82' stop-color='%23800000'/><stop offset='1' stop-color='%23000000'/></linearGradient><linearGradient id='g' x2='0' y2='1'><stop offset='0' stop-color='%2300ff00'/><stop offset='.22' stop-color='%23008000'/><stop offset='.78' stop-color='%23008000'/><stop offset='1' stop-color='%23000000'/></linearGradient></defs><rect width='100' height='100' fill='url(%23r)'/><rect width='100' height='100' fill='url(%23g)' style='mix-blend-mode:screen'/></svg>"/>
+    <feDisplacementMap in="SourceGraphic" in2="map" scale="16" xChannelSelector="R" yChannelSelector="G"/>
+  </filter>
 </svg>
 
 <header class="top">
@@ -516,6 +604,8 @@ table.t code { font: var(--t-caption); font-family: var(--font-mono); color: var
     <button class="chip" data-theme-set="light" aria-pressed="false">Clair</button>
     <button class="chip" id="hcBtn" aria-pressed="false">Contraste élevé</button>
     <button class="chip" id="rmBtn" aria-pressed="false">Réduire les animations</button>
+    <button class="chip" id="trBtn" aria-pressed="true" title="Simule le réglage Windows « Effets de transparence »">Transparence</button>
+    <button class="chip" id="rfBtn" aria-pressed="true" title="Approximation SVG de la réfraction (Edge / Chrome)">Réfraction</button>
     <a class="chip" href="ecran-principal.html" style="display:inline-flex;align-items:center;text-decoration:none">Écran principal →</a>
   </div>
 </header>
@@ -523,7 +613,7 @@ table.t code { font: var(--t-caption); font-family: var(--font-mono); color: var
 <div class="layout">
 <nav aria-label="Sommaire">
   <a href="#principes">Principes</a><a href="#couleurs">Couleurs</a><a href="#contrastes">Contrastes</a><a href="#typo">Typographie</a>
-  <a href="#espaces">Espacements</a><a href="#formes">Rayons et ombres</a><a href="#matieres">Matières</a><a href="#icones">Icônes</a>
+  <a href="#espaces">Espacements</a><a href="#formes">Rayons et ombres</a><a href="#matieres">Matières et verre</a><a href="#icones">Icônes</a>
   <a href="#mouvement">Mouvement</a><a href="#boutons">Boutons</a><a href="#segments">Segments, interrupteur</a><a href="#pastilles">Pastilles, progression</a>
   <a href="#cartes">Carte de fichier</a><a href="#bandeaux">Bandeaux, toast</a><a href="#feuilles">Feuille, menu, info-bulle</a><a href="#depot">Zone de dépôt, barre d'état</a>
 </nav>
@@ -585,12 +675,40 @@ table.t code { font: var(--t-caption); font-family: var(--font-mono); color: var
 
 <!-- ============================================================ MATIÈRES -->
 <section class="cat" id="matieres">
-  <h2>Matières</h2>
-  <p class="lead">Deux matières seulement. Mica pour le fond de fenêtre (teinte par-dessus le fond d'écran flouté par Windows) ; verre flouté pour les feuilles. Tout le reste est opaque.</p>
-  <div class="material-demo">
-    <div class="m-win"><p class="m-label">Fenêtre · Mica + teinte</p><p class="m-text">windowTint 80 % (sombre) / 78 % (clair). Repli opaque : bgWindow.</p></div>
-    <div class="m-sheet"><p class="m-label">Feuille · verre</p><p class="m-text">surfaceSheet 88 %, flou 32 px, saturation ×1,2, voile en dessous.</p></div>
+  <h2>Matières : Mica et verre « liquide »</h2>
+  <p class="lead">Le contenu (les vidéos) est opaque et au centre ; tout ce qui <i>flotte</i> au-dessus (barre Préréglage, groupe d'actions, toast, menu, info-bulle, feuilles) est en verre : il réfracte le contenu près des bords comme une lentille, le floute, le teinte assez pour rester lisible, et porte un liseré lumineux et un reflet qui suit le pointeur. Le fond de fenêtre reste le Mica de Windows. Défilez la bande ou survolez le verre.</p>
+  <div class="glass-lab">
+    <div class="glass-content scroll" id="glassContent" tabindex="0" aria-label="Contenu d'exemple sous le verre">
+      <div class="gl-row"><span class="img-mariage"></span><span class="img-mer"></span><span class="img-jeu"></span><span class="img-vhs"></span><span class="img-salon"></span><span class="img-mariage"></span><span class="img-mer"></span><span class="img-jeu"></span></div>
+      <div class="gl-row"><span class="gl-text">mariage_1998.avi · 38 % · 52 images/s</span><span class="img-jeu"></span><span class="img-salon"></span><span class="gl-text">vacances_ete.mkv · ≈ 52 min</span><span class="img-mer"></span><span class="img-vhs"></span></div>
+      <div class="gl-row"><span class="img-salon"></span><span class="img-mariage"></span><span class="gl-text">capture_zelda.mp4 · 60 images/s conservées</span><span class="img-mer"></span><span class="img-jeu"></span><span class="img-mariage"></span></div>
+    </div>
+    <div class="glass glass-group gl-actions" data-lens="sq"><button class="btn btn-sm"><svg class="ic"><use href="#i-plus"/></svg>Ajouter</button><button class="icon-btn sm" aria-label="Réglages"><svg class="ic"><use href="#i-sliders"/></svg></button></div>
+    <div class="glass glass-clear gl-pill" data-lens="sq"><svg class="ic"><use href="#i-import"/></svg><span>Relâcher pour ajouter 3 vidéos</span></div>
+    <div class="glass glass-thick gl-sheet"><p class="m-label">Verre épais · feuille</p><p class="m-text">Flou 40 px, réfraction 8 px, biseau 18 px.</p></div>
+    <div class="glass gl-bar" id="morphBar">
+      <div class="gl-bar-in">
+        <span class="gl-bar-text"><b>Équilibré · Compatible</b><span>appliqué aux vidéos à venir</span></span>
+        <button class="btn btn-primary"><svg class="ic"><use href="#i-pause"/></svg>Pause</button>
+      </div>
+    </div>
   </div>
+  <div class="row" style="padding-top:12px">
+    <button class="btn btn-sm" id="morphBtn">Transformer barre ↔ capsule</button>
+    <span class="note" style="padding:0">Morphing : 350 ms, courbe spring. Mouvement réduit : simple fondu.</span>
+  </div>
+
+  <h3 class="sub">Trois niveaux de verre</h3>
+  <table class="t"><thead><tr><th>Niveau</th><th>Où</th><th>Flou</th><th>Réfraction / biseau</th><th>Reflet</th><th>Teinte</th></tr></thead><tbody>
+    <tr><td><b>Normal</b></td><td>barre Préréglage, groupe d'actions, toast, menu, info-bulle</td><td>24 px</td><td>12 px / 14 px</td><td>0,35</td><td>adaptative</td></tr>
+    <tr><td><b>Clair</b></td><td>au-dessus d'images : pastille de dépôt, futur comparateur ; libellé court</td><td>8 px</td><td>16 px / 16 px</td><td>0,45</td><td>adaptative × 0,55 (+ voile local sous le texte)</td></tr>
+    <tr><td><b>Épais</b></td><td>feuilles</td><td>40 px</td><td>8 px / 18 px</td><td>0,25</td><td>adaptative</td></tr>
+    <tr><td><b>Mica</b></td><td>fond de fenêtre (système)</td><td colspan="4">teinte windowTint 80 % / 78 % ; jamais de verre sur le contenu lui-même (cartes opaques)</td></tr>
+  </tbody></table>
+
+  <h3 class="sub">Teinte adaptative : preuve de lisibilité (pire cas)</h3>
+  <p class="note" style="padding-bottom:8px">Dans l'app, le shader mesure la luminance <i>Lb</i> du fond flouté sous chaque pixel et ajuste l'opacité de la teinte : alpha = mix(A, B, smoothstep(L1, L2, Lb)). Le tableau balaie tous les fonds possibles, du noir au blanc, et donne le contraste minimal obtenu. Les maquettes HTML, qui ne peuvent pas mesurer le fond, utilisent une teinte fixe de 80 %.</p>
+  <table class="t" id="adaptTable"><thead><tr><th>Mode</th><th>Courbe</th><th>Texte principal (min)</th><th>Texte secondaire (min)</th><th>Pire fond</th></tr></thead><tbody></tbody></table>
 </section>
 
 <!-- ============================================================ ICÔNES -->
@@ -756,7 +874,7 @@ table.t code { font: var(--t-caption); font-family: var(--font-mono); color: var
       <div class="card" style="min-height:0"><div class="thumb"><div class="thumb-img img-jeu"></div></div><div><p class="card-name">capture_zelda.mp4</p><p class="card-meta">1 h 02 · 1280 × 720 · 60 i/s</p></div></div>
     </div>
     <div class="scrim" id="cScrim"></div>
-    <section class="sheet" id="cSheet" role="dialog" aria-modal="true" aria-labelledby="cSheetT">
+    <section class="sheet glass glass-thick" id="cSheet" role="dialog" aria-modal="true" aria-labelledby="cSheetT">
       <div class="sheet-head"><h2 class="sheet-title" id="cSheetT">Pourquoi ce fichier a échoué</h2></div>
       <div class="sheet-body">
         <p style="font:var(--t-headline);padding-bottom:4px">interview_tante_marie.mov</p>
@@ -767,14 +885,14 @@ table.t code { font: var(--t-caption); font-family: var(--font-mono); color: var
   </div>
   <h3 class="sub">Menu et info-bulle (statiques)</h3>
   <div class="row" style="align-items:flex-start;gap:48px">
-    <div style="position:relative;width:240px;height:150px"><div class="menu open" style="position:relative;top:0;right:auto" role="menu">
+    <div style="position:relative;width:240px;height:150px"><div class="menu open glass" data-lens="sq" style="position:relative;top:0;right:auto" role="menu">
       <button class="menu-item" role="menuitem"><svg class="ic"><use href="#i-arrow-up"/></svg>Placer en tête de la file</button>
       <button class="menu-item" role="menuitem"><svg class="ic"><use href="#i-arrow-down"/></svg>Placer en fin de file</button>
       <button class="menu-item" role="menuitem"><svg class="ic"><use href="#i-folder"/></svg>Afficher la vidéo d'origine</button>
       <div class="menu-sep"></div>
       <button class="menu-item" role="menuitem"><svg class="ic"><use href="#i-x"/></svg>Retirer de la liste</button>
     </div></div>
-    <div style="position:relative;padding-top:40px"><div class="tip show" style="position:absolute;top:0;left:-20px;white-space:nowrap">Mettez à jour le pilote pour démarrer.</div>
+    <div style="position:relative;padding-top:40px"><div class="tip show glass" style="position:absolute;top:0;left:-20px;white-space:nowrap">Mettez à jour le pilote pour démarrer.</div>
       <button class="btn btn-primary" aria-disabled="true">Démarrer (3)</button>
       <p class="note">Délai 600 ms, fondu 150 ms. Jamais seule porteuse d'une information indispensable.</p></div>
   </div>
@@ -1019,7 +1137,7 @@ fill(live, 'waiting', cycleData('waiting')); $$('#cycleBtns .chip')[1].setAttrib
 /* ---------- Toast ---------- */
 function toast(text, action) {
   const host = $('#toastHost'); host.innerHTML = '';
-  const t = document.createElement('div'); t.className = 'toast'; t.setAttribute('role', 'status');
+  const t = document.createElement('div'); t.className = 'toast glass'; t.dataset.lens = 'sq'; t.setAttribute('role', 'status');
   t.innerHTML = `<span class="toast-text"></span>${action ? `<button class="btn btn-sm btn-plain">${action}</button>` : ''}<span class="toast-timer"></span>`;
   $('.toast-text', t).textContent = text; if (!action) t.style.paddingRight = '16px';
   const out = () => { t.classList.add('out'); setTimeout(() => t.remove(), ms('--dur-base') + 30); };
@@ -1046,7 +1164,51 @@ d.addEventListener('dragover', e => e.preventDefault());
 d.addEventListener('dragleave', () => { if (--depth <= 0) { depth = 0; d.classList.remove('hover'); } });
 d.addEventListener('drop', e => { e.preventDefault(); depth = 0; d.classList.remove('hover'); toast(`${e.dataTransfer.files.length} fichier(s) déposé(s) — dans l'app, ils arrivent en cascade dans la file.`); });
 
-function refresh() { renderSwatches(); renderContrast(); }
+/* ---------- Verre : teinte adaptative (preuve), morphing, reflet, pression ---------- */
+const CURVE = { dark: { tint: '#1E1E23', A: 0.62, B: 0.88, L1: 0.05, L2: 0.50, primary: '#F4F4F6', secondary: '#A9A9B2' },
+                light: { tint: '#F8F8FA', A: 0.90, B: 0.62, L1: 0.10, L2: 0.60, primary: '#1D1D21', secondary: '#5E5E66' } };
+const smooth = (a, b, x) => { const t = Math.min(1, Math.max(0, (x - a) / (b - a))); return t * t * (3 - 2 * t); };
+const hex = h => ({ r: parseInt(h.slice(1, 3), 16), g: parseInt(h.slice(3, 5), 16), b: parseInt(h.slice(5, 7), 16), a: 1 });
+function renderAdaptive() {
+  const backs = [];
+  for (let v = 0; v <= 255; v += 5) backs.push({ r: v, g: v, b: v, a: 1, name: `gris ${v}` });
+  [['#FF0000', 'rouge'], ['#00FF00', 'vert'], ['#0000FF', 'bleu'], ['#FFFF00', 'jaune'], ['#00FFFF', 'cyan'], ['#FF00FF', 'magenta'], ['#F2B880', 'peau'], ['#9AD7F5', 'ciel']]
+    .forEach(([h, n]) => backs.push(Object.assign(hex(h), { name: n })));
+  $('#adaptTable tbody').innerHTML = Object.entries(CURVE).map(([mode, c]) => {
+    let minP = 99, minS = 99, worst = '';
+    backs.forEach(bk => {
+      const alpha = c.A + (c.B - c.A) * smooth(c.L1, c.L2, L(bk));
+      const comp = over(Object.assign(hex(c.tint), { a: alpha }), bk);
+      const p = ratio(hex(c.primary), comp), s = ratio(hex(c.secondary), comp);
+      if (p < minP) minP = p;
+      if (s < minS) { minS = s; worst = bk.name; }
+    });
+    return `<tr><td>${mode === 'dark' ? 'Sombre' : 'Clair'}</td><td><code>alpha = mix(${c.A}, ${c.B}, smoothstep(${c.L1}, ${c.L2}, Lb))</code></td>
+      <td class="num ${minP >= 4.5 ? 'pass' : 'fail'}">${minP.toFixed(2)}:1</td><td class="num ${minS >= 4.5 ? 'pass' : 'fail'}">${minS.toFixed(2)}:1</td><td>${worst}</td></tr>`;
+  }).join('');
+}
+$('#morphBtn').onclick = () => $('#morphBar').classList.toggle('compact');
+$('#trBtn').onclick = () => { const off = root.classList.toggle('no-transparency'); $('#trBtn').setAttribute('aria-pressed', String(!off)); };
+$('#rfBtn').onclick = () => { const on = root.classList.toggle('refract'); $('#rfBtn').setAttribute('aria-pressed', String(on)); };
+let specRaf = 0, specEvt = null;
+document.addEventListener('pointermove', e => {
+  if (root.classList.contains('reduce-motion')) return;
+  specEvt = e;
+  if (specRaf) return;
+  specRaf = requestAnimationFrame(() => {
+    specRaf = 0;
+    const g = specEvt.target.closest && specEvt.target.closest('.glass');
+    if (!g) return;
+    const r = g.getBoundingClientRect();
+    g.style.setProperty('--mx', ((specEvt.clientX - r.left) / r.width * 100).toFixed(1) + '%');
+    g.style.setProperty('--my', ((specEvt.clientY - r.top) / r.height * 100).toFixed(1) + '%');
+  });
+}, { passive: true });
+document.addEventListener('pointerdown', e => { const g = e.target.closest && e.target.closest('.glass'); if (g) g.classList.add('pressing'); });
+document.addEventListener('pointerup', () => $$('.glass.pressing').forEach(g => g.classList.remove('pressing')));
+$$('.seg').forEach(seg => seg.addEventListener('click', () => { seg.classList.remove('liquid'); void seg.offsetWidth; seg.classList.add('liquid'); }));
+
+function refresh() { renderSwatches(); renderContrast(); renderAdaptive(); }
 refresh();
 })();
 </script>

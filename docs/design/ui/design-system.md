@@ -1,6 +1,6 @@
 # Enhance — Design system
 
-Statut : v1.0 (ui-designer), 2026-10-21. Sources : `docs/design/ux/` (principes, écrans, wireframes, parcours dont P-08 `SourceUnreadable` et P-08b), ADR-001 (Qt 6.8+ / Qt Quick, style Basic, Mica via DWM, `MultiEffect`, D3D11) et ADR-008 (i18n).
+Statut : v1.1 (ui-designer), 2026-10-21 — v1.1 : adoption du verre « liquide » (directive PO : « épouser le Liquid Glass 2.0 »). Sources : `docs/design/ux/` (principes, écrans, wireframes, parcours dont P-08 `SourceUnreadable` et P-08b), ADR-001 (Qt 6.8+ / Qt Quick, style Basic, Mica via DWM, `MultiEffect`, D3D11) et ADR-008 (i18n).
 
 | Fichier | Rôle |
 |---|---|
@@ -23,13 +23,14 @@ Règle : on modifie une valeur dans `tokens.json`, puis dans `Theme.qml` et `tok
 | Final Cut Pro | Interface graphite qui s'efface derrière l'image ; une seule couleur pour l'action |
 | Compressor | File de travaux dense mais ordonnée ; chiffres honnêtes, alignés, tabulaires |
 | Pixelmator Pro | Profondeur et matières (verre, ombres douces) ; micro-animations agréables mais brèves |
+| Langage Liquid Glass d'Apple (2025 →) | **Les principes seulement** : contrôles et barres en verre qui flottent au-dessus du contenu, réfraction en « lentille » sur les bords, reflets et liseré lumineux, formes qui se transforment et fusionnent, teinte qui s'adapte au fond, hiérarchie contenu > contrôles |
 
-- **Ambiance** : graphite neutre en sombre (par défaut), gris perle en clair ; les vignettes vidéo sont les seules taches de couleur.
+- **Ambiance** : graphite neutre en sombre (par défaut), gris perle en clair ; les vignettes vidéo sont les seules taches de couleur. Le contenu (cartes, vignettes) est opaque et au centre.
 - **Accent** : indigo « Iris » (`#535BE8` sombre / `#4B53E0` clair), réservé au bouton principal, au focus, à la progression et aux liens. **Un seul élément plein accent à l'écran.**
-- **Matières** : Mica pour le fond de la fenêtre, verre flouté pour les feuilles, rien d'autre de translucide.
-- **Mouvement** : 150–350 ms, courbes douces ou légèrement élastiques ; trois moments soignés (dépôt en cascade, coche de fin, plus tard la comparaison avant/après), le reste reste sobre.
+- **Matières** : Mica pour le fond de la fenêtre ; **verre « liquide »** pour tout ce qui flotte au-dessus du contenu (barre Préréglage, groupe d'actions, toast, menu, info-bulle, feuilles). Voir §6.
+- **Mouvement** : 150–350 ms, courbes douces ou légèrement élastiques ; le verre se transforme (barre ↔ capsule) au lieu d'apparaître/disparaître ; trois moments soignés (dépôt en cascade, coche de fin, plus tard la comparaison avant/après), le reste reste sobre.
 
-Pas d'imitation de macOS : barre de titre Windows standard (sombre ou claire via DWM), boutons de fenêtre Windows, raccourcis Ctrl. Aucun élément protégé d'Apple (ni SF Symbols, ni SF Pro, ni captures d'écran).
+Inspiration, pas copie : barre de titre Windows standard (DWM), boutons de fenêtre Windows, raccourcis Ctrl, icônes Lucide, Segoe UI Variable. Aucun élément protégé d'Apple (ni SF Symbols, ni SF Pro, ni captures, ni le nom « Liquid Glass » dans l'interface ou la doc utilisateur : on parle de « verre »).
 
 ---
 
@@ -67,6 +68,10 @@ Noms identiques dans les trois fichiers (`Theme.color.textSecondary` = `--c-text
 | fillControl / Hover / Pressed | blanc 7 / 10 / 5 % | noir 5 / 8 / 11 % | Bouton secondaire, piste de segment |
 | segmentThumb | blanc 16 % | `#FFFFFF` | Pastille du segment choisi |
 | scrim | noir 40 % | noir 20 % | Voile sous une feuille |
+| glassTint | `#1E1E23` | `#F8F8FA` | Teinte du verre (opacité adaptative, §6.3) |
+| glassRim / glassRimLow | blanc 22 % / blanc 6 % | blanc 85 % / noir 8 % | Liseré lumineux (côtés éclairés / côtés à l'ombre) |
+| glassSpecular | blanc 55 % | blanc 90 % | Reflet (dans le biseau seulement) |
+| glassShadow | noir 36 % | noir 14 % | Ombre portée du verre (0 8 28 + 0 1 3) |
 
 ### 2.2 Contrastes vérifiés (WCAG 2.2)
 
@@ -158,7 +163,8 @@ Rayons : `xs` 4 · `sm` 6 (vignette, pastille de segment, info-bulle) · `md` 8 
 
 | Niveau | y / flou | Couleur (sombre · clair) | Usage |
 |---|---|---|---|
-| e0 | — | — | Barres, panneau |
+| e0 | — | — | Barre d'état, barre d'outils |
+| verre | 8 / 28 + 1 / 3 | glassShadow | Toutes les surfaces de verre |
 | e1 | 1 / 2 | noir 30 % · 6 % | Carte au repos (+ contour `borderCard`) |
 | e2 | 4 / 12 | noir 32 % · 10 % | Carte en cours, toast, info-bulle |
 | e3 | 16 / 40 | noir 48 % · 18 % | Feuille, menu, carte soulevée pendant un glisser |
@@ -167,14 +173,83 @@ QML : `RectangularShadow` (Qt ≥ 6.9, peu coûteux) avec `offset.y`, `blur`, `c
 
 ---
 
-## 6. Matières
+## 6. Matières : Mica et verre « liquide »
 
-| Matière | Implémentation | Repli |
+### 6.1 Principe
+
+Deux couches, jamais mélangées :
+- **Contenu** (la liste, les cartes, les vignettes, la zone de dépôt) : opaque, au centre, posé sur le **Mica** de la fenêtre.
+- **Contrôles** (ce qui agit sur le contenu) : en **verre**, ils **flottent** au-dessus du contenu, qui défile dessous et se voit au travers.
+
+Le verre d'Enhance n'est pas un simple flou : il (1) **réfracte** le contenu près de ses bords comme une lentille épaisse (le contenu « se courbe » dans un biseau de 14–18 px), (2) le **floute** et le sature légèrement, (3) le **teinte** juste assez pour que le texte reste lisible, la teinte s'adaptant au fond pixel par pixel, (4) porte un **liseré lumineux** (bord clair en haut à gauche et en bas à droite) et un **reflet spéculaire** qui suit le pointeur, (5) **se transforme** : une barre devient capsule, deux formes proches fusionnent comme des gouttes.
+
+### 6.2 Niveaux et usages
+
+| Niveau | Où | Flou | Réfraction / biseau | Reflet | Teinte |
+|---|---|---|---|---|---|
+| **Mica** | fond de fenêtre (système, `DWMSBT_MAINWINDOW` + `windowTint`) | système | — | — | 80 % / 78 % |
+| **Verre normal** | barre Préréglage flottante, groupe d'actions de la barre d'outils, toast, menu, info-bulle (sans reflet) | 24 px, sat. ×1,35 | 12 px / 14 px | 0,35 | adaptative |
+| **Verre clair** | au-dessus d'images : pastille « Relâcher pour ajouter… », futur comparateur avant/après | 8 px, ×1,2 | 16 px / 16 px | 0,45 | adaptative × 0,55, voile local sous le libellé |
+| **Verre épais** | feuilles (Réglages, Détails de l'erreur, Comment mettre à jour, Raccourcis, Quitter) | 40 px, ×1,2 | 8 px / 18 px | 0,25 | adaptative |
+
+Rayons : barre 22 px (capsule 30 px quand compacte), groupe et pastilles : capsule, toast 18 px, menu 14 px, feuille 20 px.
+
+**Règles**
+1. Jamais de verre sur du verre (une feuille cache la barre ; un menu ouvert depuis une feuille est en verre épais opaque à 100 %).
+2. Jamais de verre sur le contenu lui-même : les cartes restent opaques (hiérarchie contenu > contrôles).
+3. Aucun texte dans le biseau : padding intérieur ≥ largeur du biseau.
+4. Sur le verre : textPrimary et textSecondary seulement, jamais textTertiary.
+5. Un seul élément plein accent : le bouton principal, posé dans la barre de verre, est un « verre teinté » accent opaque (capsule, reflet interne), pas une teinte translucide.
+6. Toujours une ombre `shadowGlass` (0 8 28 + 0 1 3) pour décoller le verre du contenu.
+7. Pas de verre tant qu'il n'y a rien dessous à montrer : la barre Préréglage est absente quand la liste est vide (inchangé).
+
+### 6.3 Lisibilité garantie : teinte adaptative
+
+La teinte (`glassTint` : `#1E1E23` sombre, `#F8F8FA` clair) est posée avec une opacité calculée **par pixel** dans le shader, à partir de la luminance relative *Lb* du fond flouté sous ce pixel :
+
+`alpha = mix(A, B, smoothstep(L1, L2, Lb))`
+- sombre : A 0,62 · B 0,88 · L1 0,05 · L2 0,50 (fond clair → teinte plus opaque) ;
+- clair : A 0,90 · B 0,62 · L1 0,10 · L2 0,60 (fond sombre → teinte plus opaque).
+
+Pire cas calculé sur tous les gris de 0 à 255 et des couleurs saturées (catalogue, section « Matières », recalculé en direct) : textSecondary ≥ 4,6:1 et textPrimary ≥ 9:1 en sombre, textSecondary ≥ 4,8:1 en clair. Le reflet ne touche que le biseau (sans texte). Les maquettes HTML ne savent pas mesurer le fond : elles utilisent une teinte fixe de 80 %.
+
+### 6.4 Réalisation en Qt Quick 6.11 (RHI Direct3D 11)
+
+| Effet | Comment | Coût GPU estimé **[H]** (RTX 5070, fenêtre 2560 × 1440) |
 |---|---|---|
-| **Fenêtre (Mica)** | `DWMSBT_MAINWINDOW` + `windowTint` peint par-dessus dans la fenêtre Qt Quick transparente ; barre de titre via `DWMWA_USE_IMMERSIVE_DARK_MODE` | `bgWindow` opaque (quasi indiscernable) |
-| **Feuille (verre)** | `MultiEffect` sur une capture de la zone sous la feuille : flou 32 px, saturation +0,2 ; remplissage `surfaceSheet` 88 % ; voile `scrim` | `surfaceSheetOpaque` |
+| **Capture du contenu sous le verre** | Une seule `ShaderEffectSource` (`sourceItem` = zone de contenu, frère *en dessous* du verre, jamais parent), `textureSize` = ½ résolution, `mipmap: true`, `hideSource: false`. Rafraîchie seulement quand le contenu change (Qt ne re-rend la source que si son sous-arbre est modifié) ; partagée par toutes les surfaces de verre (chacune lit sa zone via un `sourceRect` en uniformes) | 0,1–0,2 ms par mise à jour (passe de rendu du contenu à ½ résolution + génération des mipmaps) ; 0 ms quand rien ne bouge |
+| **Flou** | Dans le shader du verre : `textureLod` sur les mipmaps (niveau ≈ log2(flou)) + 5 échantillons décalés → flou lisse sans passe séparée. Alternative si artefacts : un `MultiEffect` (blur) partagé appliqué une fois à la capture | ~0,05 ms pour la barre ; ~0,15 ms pour une feuille |
+| **Réfraction (lentille)** | `ShaderEffect` + `glass.frag` compilé en `.qsb` (`qt_add_shaders`, Qt Shader Tools = outil de build, non redistribué). Distance signée au rectangle arrondi (SDF) → normale du biseau → décalage des coordonnées de texture vers l'intérieur selon un profil de lentille (`refraction` px max, `bezel` px de large) ; aberration chromatique désactivée par défaut | inclus dans la même passe (10–12 lectures de texture / pixel sur l'aire du verre uniquement) |
+| **Teinte adaptative** | Même shader : luminance du pixel flouté → `alpha` (formule §6.3) → mélange avec `glassTint` | inclus |
+| **Liseré lumineux** | Même shader : bande de 1 px physique le long du bord, intensité = f(normale · direction de lumière) | inclus |
+| **Reflet spéculaire** | Même shader : lobe analytique (pas de texture) dans le biseau, direction de lumière en uniforme ; elle suit le pointeur (`HoverHandler`, lissage `Theme.dur.fast` / decelerate) et le défilement de la liste ; pression : intensité × 1,6 | inclus ; **aucune image rendue** tant que le pointeur ne bouge pas au-dessus du verre |
+| **Fusion / morphing** | Les formes d'un même groupe (ex. barre Préréglage + bouton principal, boutons d'un groupe) passées en tableau d'uniformes (`vec4 rects[4]`, rayons) ; union lisse `smin(k = 16 px)` des SDF : les formes se rapprochent et fusionnent ; leur géométrie est animée par `NumberAnimation` (`Theme.dur.moveSlower`, `Theme.ease.spring`) | inclus ; seulement pendant la transition (350 ms) |
+| **Ombre** | `RectangularShadow` (Qt ≥ 6.9) sous chaque surface | négligeable |
+| **Pastille de segment « liquide »** | Échelle 1,12 × 0,94 à mi-course pendant le glissement (`SequentialAnimation` de `ScaleAnimator`) | négligeable |
 
-Tout le reste est opaque (cartes, toast, menu, panneau Préréglage) : lisibilité garantie et coût GPU nul pendant un traitement. Le panneau Préréglage n'est **pas** translucide : la liste s'arrête au-dessus de lui, avec un fondu de 20 px en bas de la liste quand elle déborde.
+Composant à créer par le developer : `GlassSurface.qml` (propriétés : `level` → `Theme.glass.regular|clear|thick`, `radius`, `shapes` pour la fusion, `backdrop` = la `ShaderEffectSource` partagée) + `glass.frag`. Si `Theme.glassQuality` vaut 0, `GlassSurface` se rend comme un simple `Rectangle` opaque (`surfaceRaised`, contour `borderControl`) : aucun shader, aucune capture.
+
+### 6.5 Garde-fous de performance (ne jamais gêner le pipeline)
+
+- **Budget GPU de l'interface** : ≤ 1 ms par image en moyenne, ≤ 2 ms au pire (`Theme.glassGeo.budgetGpuMs*`), mesuré par horodatage GPU du rendu Qt (`QQuickWindow::beforeRendering/afterRendering`, requêtes D3D11 timestamp) et par QA pendant un traitement CUDA/NVENC.
+- **Pas de rendu continu au repos** : aucune animation en boucle hors barre de progression et préparation (indéterminée) ; reflet seulement quand le pointeur bouge ; le Mica est système (DWM), il ne coûte rien à Qt.
+- **Capture mise en cache** : la `ShaderEffectSource` ne se met à jour que si le contenu change ; pendant un traitement, mises à jour **plafonnées à 10 Hz** (`live: false` + `scheduleUpdate()` sur minuterie quand le contenu est sale), capture à ½ résolution.
+- **Dégradation automatique** (`RenderPolicy` en C++ → `Theme.glassQualityRequested`) : complète au repos ; pendant un traitement, si le rendu de l'interface dépasse 4 ms GPU sur 30 images → **allégée** (flou + teinte + liseré fixe ; pas de réfraction ni de reflet mobile) ; au-delà de 8 ms → **opaque**. Retour à la qualité supérieure après 10 s sous le budget. Aucun changement brusque : fondu de 150 ms.
+- La liste garde un espace en bas égal à la hauteur de la barre + 32 px : la carte en cours (qui bouge à 10 Hz) n'est en général pas sous le verre.
+
+### 6.6 Accessibilité et replis
+
+| Réglage Windows | Effet sur le verre |
+|---|---|
+| « Effets de transparence » désactivé (`EnableTransparency = 0`) → `Theme.transparencyEnabled = false` | verre **opaque** (`surfaceRaised`), pas de capture, ombre e2 ; Mica remplacé par `bgWindow` |
+| Contraste élevé | verre opaque aux couleurs système, liseré `WindowText` 2 px, ni reflet ni ombre |
+| « Effets d'animation » désactivé | pas de morphing (fondu enchaîné 150 ms), pas de reflet qui suit le pointeur, pas d'étirement de la pastille |
+
+Les maquettes simulent les trois réglages (boutons « Transparence », « Contraste élevé », « Réduire les animations ») ; « Réfraction » bascule l'approximation SVG.
+
+### 6.7 Approximation dans les maquettes HTML
+
+`backdrop-filter: url(#lg-refract) blur() saturate()` : filtre SVG `feDisplacementMap` alimenté par une carte de déplacement en dégradés (dessinée en ligne, aucune ressource externe) ; liseré = bord en dégradé masqué (`::before`) ; reflet = dégradé radial positionné sous le pointeur, confiné au biseau (`::after`) ; morphing barre ↔ capsule = transition de `width` vers `fit-content` (`interpolate-size`). Rendu fidèle dans Edge / Chrome ; ailleurs, le verre reste flouté sans réfraction.
 
 ---
 
@@ -244,7 +319,11 @@ Toutes les transitions passent par des courbes de Bézier + durées pour que maq
 | Bandeau | medium | decelerate | hauteur, opacité |
 | Toast | medium / base | decelerate / accelerate | y +8 → 0, opacité ; barre de temps 5 s (pause au survol / focus) |
 | Feuille (ouverture / fermeture) | slower / medium | emphasized / accelerate | opacité, y −12 → 0, échelle 0,98 → 1 ; voile en medium |
-| Panneau Préréglage | slow | emphasized | apparition y +16, hauteur |
+| Barre Préréglage (apparition) | slow | emphasized | y +24 → 0, échelle 0,98 → 1, opacité |
+| **Verre : barre ↔ capsule, fusion** | slower | spring | largeur, hauteur, rayon, facteur de fusion (formes du groupe) ; mouvement réduit : fondu enchaîné fast |
+| Verre : pression | press puis medium | decelerate puis spring | échelle 1 → 1,03 → 1, reflet × 1,6 (le verre « gonfle » au lieu de s'enfoncer) |
+| Verre : reflet qui suit le pointeur | fast | decelerate | direction de la lumière (uniquement au survol) |
+| Pastille de segment « liquide » | medium | emphasized | étirement 1,12 × 0,94 à mi-course |
 | Doublon | highlightFlash | standard | fond accentTint aller-retour |
 | Info-bulle | délai 600, fast | standard | opacité |
 | Changement de thème | themeFade | standard | fondu d'une capture de la fenêtre (`grabToImage`), pas d'animation couleur par couleur |
@@ -256,13 +335,14 @@ Interdits : rien ne clignote au-delà de 3 Hz, aucune boucle décorative, le fon
 Si « Effets d'animation » est désactivé dans Windows (`SPI_GETCLIENTAREAANIMATION`) → `Theme.reduceMotion = true` :
 - toutes les durées `Theme.dur.move*` (déplacements, échelles, hauteurs) passent à **0 ms** ; les fondus (`Theme.dur.fast`, `base`…) restent ;
 - squelette et barre indéterminée deviennent statiques (`Theme.dur.loopsEnabled = false`) ;
-- barre de temps du toast masquée (le délai reste).
+- barre de temps du toast masquée (le délai reste) ;
+- verre : ni morphing, ni fusion animée, ni reflet qui suit le pointeur, ni étirement de pastille (`Theme.glassMotion = false`).
 
 Dans les maquettes : bouton « Réduire les animations », ou préférence système `prefers-reduced-motion`.
 
 ### 8.4 Performance (60 images/s pendant un traitement GPU)
 
-Animer de préférence `opacity`, `scale`, `x`, `y` avec les *Animators* (`OpacityAnimator`, `ScaleAnimator`, `YAnimator`), qui tournent sur le thread de rendu. Hauteurs de carte : `NumberAnimation` sur `implicitHeight`, une carte à la fois. Les effets `MultiEffect` sont limités à la feuille ouverte.
+Animer de préférence `opacity`, `scale`, `x`, `y` avec les *Animators* (`OpacityAnimator`, `ScaleAnimator`, `YAnimator`), qui tournent sur le thread de rendu. Hauteurs de carte : `NumberAnimation` sur `implicitHeight`, une carte à la fois. Le verre suit le budget et la dégradation automatique du §6.5.
 
 ---
 
@@ -280,7 +360,8 @@ Animer de préférence `opacity`, `scale`, `x`, `y` avec les *Animators* (`Opaci
 ### 9.1 Boutons
 | Type | Taille | Repos | Usage |
 |---|---|---|---|
-| Principal | 36 px, min 148 px, headline | `accent`, texte blanc, ombre e1 + reflet interne 1 px | Démarrer (N) · Pause · Reprendre ; OK / Fermer dans une feuille |
+| Principal | 36 px, min 148 px, headline ; capsule dans le verre | `accent` opaque, texte blanc, ombre e1 + reflet interne haut 1 px / ombre interne bas | Démarrer (N) · Pause · Reprendre ; OK / Fermer dans une feuille |
+| Dans un groupe de verre | 28 px, capsule | transparent ; survol `fillControlHover` ; pression : échelle 1,03 (gonfle) | Ajouter, Réglages (barre d'outils) |
 | Secondaire | 32 px, body | `fillControl`, texte primaire | Choisir des fichiers…, Comment mettre à jour |
 | Discret | 32 / 28 px | transparent, texte `accentText` (ou secondaire « neutre ») | Rétablir, Modifier, Annuler, Détails, Retirer |
 | Petit (carte) | 28 px, callout, icône 16 | secondaire | Pause, Lire, Afficher dans le dossier, Réessayer |
@@ -289,7 +370,7 @@ Animer de préférence `opacity`, `scale`, `x`, `y` avec les *Animators* (`Opaci
 Le libellé du bouton principal change en fondu (150 ms) ; sa largeur minimale évite qu'il « saute ». En largeur étroite, les boutons de carte qui ont une icône passent en icône seule (nom accessible et info-bulle conservés).
 
 ### 9.2 Contrôle segmenté (Préréglage, Format, Apparence, Dossier de sortie)
-Piste `fillControl` r 8, padding 2 ; segments **de largeur égale** ; pastille `segmentThumb` r 6 + ombre e1, glisse en 250 ms emphasized. Libellé choisi : primaire semi-gras (largeur réservée pour éviter tout décalage), autres : secondaire. Survol : libellé primaire. Pressé : opacité 0,7. Désactivé (AV1 indisponible) : libellé `textDisabled`, info-bulle « Cette carte ne sait pas produire ce format. ». Clavier : un seul arrêt de tabulation, flèches pour changer (rôle `RadioButton` / `ButtonGroup`), anneau autour de la piste. Description (caption, secondaire) sous le contrôle ; légende `HEVC` / `AV1` en tertiaire.
+Piste `fillControl` r 8, padding 2 ; segments **de largeur égale** ; pastille `segmentThumb` r 6 + ombre e1, glisse en 250 ms emphasized en s'étirant comme une goutte (1,12 × 0,94 à mi-course). Libellé choisi : primaire semi-gras (largeur réservée pour éviter tout décalage), autres : secondaire. Survol : libellé primaire. Pressé : opacité 0,7. Désactivé (AV1 indisponible) : libellé `textDisabled`, info-bulle « Cette carte ne sait pas produire ce format. ». Clavier : un seul arrêt de tabulation, flèches pour changer (rôle `RadioButton` / `ButtonGroup`), anneau autour de la piste. Description (caption, secondaire) sous le contrôle ; légende `HEVC` / `AV1` en tertiaire.
 
 ### 9.3 Carte de fichier — 7 états
 Structure unique : vignette 16:9 à gauche, nom (headline), puis des sections qui s'ouvrent / se ferment en hauteur (300 ms emphasized). Actions d'en-tête (⋯, ✕) visibles au survol, à la sélection ou au focus. Toute la carte « En attente » se glisse (la poignée n'est qu'un indice visuel) ; au clavier : Alt+↑/↓.
@@ -317,32 +398,33 @@ Piste `fillControl`, remplissage `progress`, rayon plein. Variantes : en cours (
 Haut de la liste, r 12, fond `warningTint` (ou `dangerTint`, `accentTint`) + contour de la même teinte à 30 %, icône 20 px, titre headline + texte callout secondaire, une action secondaire à droite. Persistant, jamais bloquant ; entrée 250 ms. Cas : pilote trop ancien, carte non compatible, aucune carte NVIDIA, composant manquant, espace disque, (plus tard) reprise après plantage.
 
 ### 9.6 Feuille
-Centrée horizontalement, à 64 px du haut, largeur 520 px (moins 32 px si la fenêtre est étroite), r 16, verre + e3, voile. Titre title1, sections séparées par un trait, **boutons en bas à droite** (principal à droite). Échap / clic sur le voile ferment et rendent le focus à l'élément d'origine ; focus piégé dans la feuille. Feuilles : Réglages (W5 ; réglages appliqués immédiatement, « OK » ferme), Détails de l'erreur (W6, détail technique en Cascadia Mono, copiable), Comment mettre à jour (texte local, aucun lien ouvert automatiquement), Raccourcis, Quitter pendant un traitement.
+Centrée horizontalement, à 64 px du haut, largeur 520 px (moins 32 px si la fenêtre est étroite), r 20, **verre épais** + ombre verre, voile. Titre title1, sections séparées par un trait, **boutons en bas à droite** (principal à droite). Échap / clic sur le voile ferment et rendent le focus à l'élément d'origine ; focus piégé dans la feuille. Feuilles : Réglages (W5 ; réglages appliqués immédiatement, « OK » ferme), Détails de l'erreur (W6, détail technique en Cascadia Mono, copiable), Comment mettre à jour (texte local, aucun lien ouvert automatiquement), Raccourcis, Quitter pendant un traitement.
 
 ### 9.7 Barre d'état
 32 px, caption secondaire. À gauche : point 8 px (vert « prête », indigo « au travail », ambre « pilote à mettre à jour ») + texte. À droite : « 3 sur 12 terminées · il reste environ 2 h 10 ».
 
 ### 9.8 Zone de dépôt (état vide)
-Occupe toute la liste, r 16, pointillés 1,5 px `borderStrong` (6 / 6) dessinés en `Shape` / `ShapePath` (`strokeStyle: ShapePath.DashLine`). Illustration vectorielle originale (cadre vidéo, cadre arrière incliné, pastille flèche indigo), titre « Déposez vos vidéos ici » (title1), sous-titre body secondaire, bouton secondaire « Choisir des fichiers… ». Au survol (< 100 ms) : les pointillés se referment en trait plein accent, fond accentTint, cadres qui s'écartent, flèche qui monte, titre remplacé en fondu par « Relâcher pour ajouter N vidéos ». Avec une liste non vide : voile accent sur la liste + pastille centrale « Relâcher pour ajouter N vidéos ».
+Occupe toute la liste, r 16, pointillés 1,5 px `borderStrong` (6 / 6) dessinés en `Shape` / `ShapePath` (`strokeStyle: ShapePath.DashLine`). Illustration vectorielle originale (cadre vidéo, cadre arrière incliné, pastille flèche indigo), titre « Déposez vos vidéos ici » (title1), sous-titre body secondaire, bouton secondaire « Choisir des fichiers… ». Au survol (< 100 ms) : les pointillés se referment en trait plein accent, fond accentTint, cadres qui s'écartent, flèche qui monte, titre remplacé en fondu par « Relâcher pour ajouter N vidéos ». Avec une liste non vide : voile accent sur la liste + pastille centrale « Relâcher pour ajouter N vidéos » en **verre clair**.
 
 ### 9.9 Toast « Rétablir »
-Centré au-dessus du panneau, r 12, `surfaceRaised` + e2, body + bouton discret (« Annuler » / « Rétablir »), barre de temps 2 px. Ne prend pas le focus, annoncé poliment au Narrateur, pause au survol et au focus (10 s pour le Narrateur, cf. principes), équivalent Ctrl+Z. Un seul à la fois.
+Centré au-dessus de la barre Préréglage flottante (il la suit quand elle change de taille), r 18, **verre normal**, body + bouton discret (« Annuler » / « Rétablir »), barre de temps 2 px. Ne prend pas le focus, annoncé poliment au Narrateur, pause au survol et au focus (10 s pour le Narrateur, cf. principes), équivalent Ctrl+Z. Un seul à la fois.
 
-### 9.10 Panneau Préréglage
-Collé en bas, séparé par un trait 1 px, sur le fond de fenêtre (pas de carte). Absent quand la liste est vide (apparition 300 ms). Trois modes :
+### 9.10 Barre Préréglage (verre flottant)
+**Barre de verre normal qui flotte** à 16 px du bas de la zone de contenu, largeur de la colonne (880 + 24 px), r 22 ; la liste défile dessous (marge basse de la liste = hauteur de la barre + 32 px). Absente quand la liste est vide (apparition 300 ms). La barre **se transforme** d'un mode à l'autre (350 ms, spring) : pleine largeur en mode Réglage, **capsule** ajustée à son contenu (r 30) en modes En cours et Résumé. Trois modes :
 - **Réglage** : « Préréglage » + segment + description, « Format » + segment + description · légende, à droite « Environ 2 h 14 pour l'ensemble » au-dessus de **Démarrer (N)**.
 - **En cours** : une ligne « Équilibré · Compatible — appliqué aux vidéos à venir » + **Modifier** (déplie les segments) ; à droite **Pause / Reprendre**.
 - **Résumé** : « 3 vidéos terminées. » (coche) ou « 2 vidéos terminées, 2 en échec. » + bouton secondaire « Tout afficher dans le dossier » / « Voir les erreurs ».
 Fenêtre basse (< 600 px) : le mode Réglage se replie aussi en une ligne avec « Modifier ».
 
 ### 9.11 Menu, info-bulle, pastilles, interrupteur
-Menu : `surfaceRaised` + e3, r 10, entrées 28 px r 6, survol `fillControlHover` (pas d'accent : un seul accent à l'écran), flèches / Échap. Info-bulle : délai 600 ms, `surfaceTooltip`, caption. Pastilles : 20 px, badge, `fillControl` + secondaire (neutre), contour (MKV), `dangerTint` + danger (Échec). Interrupteur (vision long terme, ex. « Couleurs HDR ») : 36 × 20, bouton blanc, piste accent quand actif.
+Barre d'outils : titre sur le Mica à gauche ; à droite, **groupe de verre** en capsule (Ajouter, Réglages). Menu : **verre normal**, r 14, entrées 28 px r 6, survol `fillControlHover` (pas d'accent : un seul accent à l'écran), flèches / Échap. Info-bulle : délai 600 ms, verre normal sans reflet, caption. Pastilles : 20 px, badge, `fillControl` + secondaire (neutre), contour (MKV), `dangerTint` + danger (Échec). Interrupteur (vision long terme, ex. « Couleurs HDR ») : 36 × 20, bouton blanc, piste accent quand actif.
 
 ---
 
 ## 10. Pour le developer (Qt Quick)
 
-- Module `Enhance.Design` : `Theme.qml` + `qmldir` ; avec `qt_add_qml_module`, marquer le fichier `QT_QML_SINGLETON_TYPE TRUE`. Branchement unique dans `Main.qml` : `Theme.dark`, `Theme.highContrast`, `Theme.reduceMotion`, `Theme.devicePixelRatio`.
+- Module `Enhance.Design` : `Theme.qml` + `qmldir` ; avec `qt_add_qml_module`, marquer le fichier `QT_QML_SINGLETON_TYPE TRUE`. Branchement unique dans `Main.qml` : `Theme.dark`, `Theme.highContrast`, `Theme.reduceMotion`, `Theme.devicePixelRatio`, `Theme.transparencyEnabled`, `Theme.glassQualityRequested`.
+- Verre : un composant `GlassSurface.qml` + un shader `glass.frag` (§6.4), une seule `ShaderEffectSource` partagée par fenêtre. `RenderPolicy` (C++, couche présentation) mesure le temps GPU de rendu et fixe la qualité ; ce n'est pas de la logique métier.
 - Contrôles : style **Basic** / **Templates**, chaque contrôle restylé uniquement avec `Theme` ; aucune couleur, taille ou durée en dur dans les fichiers QML de l'app.
 - Liste : `ListView` avec transitions `add` (cascade : `PauseAnimation { duration: index * Theme.dur.moveStagger }`), `remove`, `displaced`, `move` ; tout en courbes `Theme.ease.*`.
 - Positions arrondies au pixel (`Math.round`) pour les éléments statiques ; jamais de demi-pixel sur un texte ou un trait.
@@ -355,4 +437,24 @@ Menu : `surfaceRaised` + e3, r 10, entrées 28 px r 6, survol `fillControlHover`
 1. **Ctrl+Entrée** (conflit signalé par l'UX) : proposition — Ctrl+Entrée = toujours l'action principale ; « Afficher dans le dossier » sur une carte terminée = **Maj+Entrée**. À trancher avec ux / qa.
 2. **Rétablir après annulation** : la maquette remet le fichier en tête de « À suivre » (il repartira depuis le début, le suivant a déjà démarré). À confirmer avec le gpu-engineer (P-06).
 3. **Feuilles** : boutons placés en bas à droite (au lieu du « OK » en haut de W5) pour la cohérence entre toutes les feuilles.
-4. Prototype ENH-004 : vérifier Mica + fenêtre Qt Quick transparente, nom de famille « Segoe UI Variable Text » sous Qt, `RectangularShadow` (Qt ≥ 6.9) et palette système en contraste élevé.
+4. **« Liquid Glass 2.0 »** : je connais le langage Liquid Glass présenté par Apple en juin 2025 (iOS / macOS 26) et ses premiers ajustements (réglage d'opacité « transparent / teinté », lisibilité renforcée). Je n'ai pas d'information fiable sur ce que le PO appelle « 2.0 » (une évolution plus récente) : la direction ci-dessus s'appuie sur les principes connus. Si le PO a des captures ou une liste de différences, je les intègre.
+
+## 12. À prouver dans le prototype ENH-004
+
+Chaque mesure est faite à 100 % et 200 %, fenêtre 1100 × 720 puis plein écran 4K, **au repos et pendant un traitement CUDA/NVENC réel** (720p → 4K60), sur la RTX 5070. Critère commun : 60 images/s sans saccade dans l'interface et aucune baisse > 2 % des images/s du pipeline.
+
+| # | À prouver | Mesure | Seuil |
+|---|---|---|---|
+| 1 | Fenêtre Qt Quick transparente + Mica (DWM) + barre de titre sombre | visuel + temps de rendu | rendu correct, pas de scintillement au redimensionnement |
+| 2 | Capture partagée (`ShaderEffectSource`, ½ résolution, mipmaps) | temps GPU par mise à jour ; nombre de mises à jour/s au repos | ≤ 0,2 ms ; **0 mise à jour au repos** |
+| 3 | Shader du verre complet (réfraction + flou mip + teinte + liseré + reflet) sur la barre | temps GPU de la passe | ≤ 0,15 ms |
+| 4 | Même shader sur une feuille ouverte | temps GPU | ≤ 0,3 ms |
+| 5 | Fusion de 2 à 4 formes (smin) pendant le morphing barre ↔ capsule | temps GPU + fluidité | ≤ 0,2 ms, 60 i/s |
+| 6 | Reflet qui suit le pointeur | nombre d'images rendues pointeur immobile | 0 |
+| 7 | Total interface pendant un traitement | temps GPU par image (moyenne / pire) | ≤ 1 ms / ≤ 2 ms |
+| 8 | Impact sur le pipeline | images/s du traitement avec l'app au premier plan, verre complet vs opaque | écart ≤ 2 % |
+| 9 | Dégradation automatique (`RenderPolicy`) | simuler une charge GPU : bascule complète → allégée → opaque et retour | bascules sans saut visible, < 1 s |
+| 10 | Contraste réel sur verre | captures sur fonds extrêmes (vignette blanche, noire, saturée) | textSecondary ≥ 4,5:1 |
+| 11 | Replis Windows : transparence désactivée, contraste élevé, animations désactivées | visuel | verre opaque, couleurs système, aucun morphing |
+| 12 | Netteté du texte sur le verre à 125 / 150 / 175 % | visuel | aucun flou de texte (le texte n'est jamais dans la texture capturée) |
+| 13 | `Segoe UI Variable Text` sous Qt, `RectangularShadow` (Qt ≥ 6.9), palette système en contraste élevé | visuel | conforme aux maquettes |
