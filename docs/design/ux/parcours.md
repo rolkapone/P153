@@ -21,7 +21,7 @@ Légende : **P1** Carol, **P2** Hélène, **P3** Maxime. [LT] = point d'accroche
 
 | Situation | Ce que voit l'utilisateur | Action proposée |
 |---|---|---|
-| Pilote trop ancien | Bandeau en haut de la zone de dépôt : « Le pilote graphique est trop ancien (version 551). Enhance a besoin de la version 580 ou plus récente. » | Bouton « Comment mettre à jour » (ouvre une feuille d'aide locale, texte statique, aucun lien réseau automatique) ; copie de l'adresse du site NVIDIA à la demande. L'app reste ouverte, dépôt possible, **Démarrer désactivé**. |
+| Pilote trop ancien | Bandeau en haut de la zone de dépôt : « Le pilote graphique est trop ancien (version 551). Enhance a besoin de la version 610 ou plus récente. » | Bouton « Comment mettre à jour » (ouvre une feuille d'aide locale, texte statique, aucun lien réseau automatique) ; copie de l'adresse du site NVIDIA à la demande. L'app reste ouverte, dépôt possible, **Démarrer désactivé**. |
 | Carte non compatible (pas RTX 50, autre marque) | « Cette carte graphique n'est pas compatible. Enhance nécessite une GeForce RTX série 50. » | Mode lecture seule : on peut ajouter des fichiers et parcourir, pas traiter. |
 | Aucune carte NVIDIA détectée | « Aucune carte NVIDIA n'a été trouvée. » | Idem, + conseil de vérifier le pilote. |
 | Composant manquant (DLL, modèle) | « Un composant d'Enhance est manquant ou endommagé. Réinstallez l'application. » + « Copier le détail » | Détail technique en dépliant « Détails ». |
@@ -97,7 +97,7 @@ Règle : jamais de blocage plein écran ; le bandeau reste, l'app reste explorab
 
 ## P-06 Pause, annulation, réordonnancement
 
-**Pause** : bouton Pause / Espace. La carte passe en « En pause » (barre grisée, pas d'animation), la VRAM est relâchée (<2 s). Reprise : même bouton. Texte de la carte : « En pause à 38 % ».
+**Pause** : bouton Pause / Espace. La carte passe en « En pause » (barre grisée, pas d'animation), la VRAM reste réservée pour une reprise immédiate (décision PO n° 8 ; libération prévue plus tard avec ENH-038). Reprise : même bouton. Texte de la carte : « En pause à 38 % · Reprise immédiate ».
 
 **Annulation (pas de boîte de confirmation)** : Échap ou bouton « Annuler » sur la carte. La carte se replie en « Annulé » avec **un bandeau de retour** « Traitement annulé. [Rétablir] » pendant 5 s ; si l'utilisateur clique sur Rétablir dans ces 5 s, le job reprend **depuis le début** (le traitement partiel est supprimé à l'expiration seulement, donc rétablir = relancer proprement ; texte du bouton : « Reprendre depuis le début »). Après 5 s, le fichier partiel est supprimé et la carte reste en « Annulé » avec un bouton « Relancer ».
 *À valider avec le gpu-engineer* : l'annulation dans les 5 s peut-elle reprendre sans perte ? Sinon, le libellé reste « Relancer ».

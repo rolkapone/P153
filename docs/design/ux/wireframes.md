@@ -35,7 +35,7 @@ Panneau Préréglage absent. Raison : rien à régler tant que la liste est vide
 ```
 ├──────────────────────────────────────────────────────────────┤
 │ ⚠ Le pilote graphique est trop ancien (version 551).         │
-│   Enhance a besoin de la version 580 ou plus récente.        │
+│   Enhance a besoin de la version 610 ou plus récente.        │
 │                                    [ Comment mettre à jour ] │
 ├──────────────────────────────────────────────────────────────┤
 │        (zone de dépôt identique, active)                     │
@@ -116,7 +116,7 @@ Variante « Estimation en cours… » les 10 premières secondes à la place du 
 
 ### W3b — En pause
 ```
-│ │ ▓▓▓▓▓▓▓▓▓░░░░░░░░░░░░ (grisée)   En pause à 38 %          │
+│ │ ▓▓▓▓▓▓▓▓▓░░░░░░░░░░░░ (grisée)  En pause à 38 % · Reprise immédiate │
 │ │ [ Reprendre ]  [ Annuler ]                                │
 ```
 

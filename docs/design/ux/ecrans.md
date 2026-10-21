@@ -78,7 +78,7 @@ flowchart TD
 | Lecture | Squelette animé, nom visible | Retirer |
 | En attente | Vignette, nom, « 12 min · 1280×720 · 30 i/s », estimation, pastille « 30 → 60 i/s » (toute source < 50 i/s, 31-49 incluses : décidé) ou « 60 i/s conservées » (>= 50 i/s), « MKV » si applicable | Retirer, déplacer (poignée), menu ⋯ |
 | En cours | Carte déployée : barre, %, images/s, temps restant, étape | Pause, Annuler |
-| En pause | Barre figée grisée, « En pause à 38 % » | Reprendre, Annuler |
+| En pause | Barre figée grisée, « En pause à 38 % · Reprise immédiate » | Reprendre, Annuler |
 | Terminé | Coche, « Terminé en 18 min · 2,3 Gio » | Lire, Afficher dans le dossier, Retirer |
 | Échec | Pastille rouge discrète + phrase d'explication | Réessayer, Détails, Retirer |
 | Annulé | « Annulé » + « Rétablir » (5 s) puis « Relancer » | Relancer, Retirer |
