@@ -10,7 +10,9 @@ $ErrorActionPreference = 'Stop'
 $vs = Get-VsInstallPath
 $cf = Join-Path $vs 'VC\Tools\Llvm\x64\bin\clang-format.exe'
 if (-not (Test-Path $cf)) { $cf = (Get-Command clang-format -ErrorAction Stop).Source }
-Write-Host ("clang-format " + (& $cf --version))
+$cfVer = (& $cf --version) -join ' '
+Write-Host $cfVer
+if ($cfVer -notmatch 'version 22\.1\.3\b') { Write-Warning 'clang-format 22.1.3 attendu (version epinglee, ADR-030) : le formatage peut differer de la CI.' }
 
 $files = & git -C $script:RepoRoot ls-files -co --exclude-standard -- 'src/*.cpp' 'src/*.hpp' 'src/*.h' 'tests/*.cpp' 'tests/*.hpp'
 $files = @($files | ForEach-Object { Join-Path $script:RepoRoot $_ })

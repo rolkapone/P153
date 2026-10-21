@@ -1,0 +1,126 @@
+# Controles de securite (docs/security/ci-securite.md). Volontairement SANS paths-ignore :
+# un e-mail ou un secret dans docs/ doit etre vu. Aucun secret, aucune permission d'ecriture.
+name: security
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: security-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  identity:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Auteurs, committers et trailers de tout l'historique
+        run: |
+          expected='81617903+rolkapone@users.noreply.github.com'
+          git log --all --format='%H %ae %ce' | awk -v e="$expected" '$2!=e || $3!=e {print "Identite non conforme : " $0; bad=1} END{exit bad}'
+          # Trailers : toute adresse autre que la noreply du PO est refusee.
+          bad=$(git log --all --format='%B' | grep -iE '^(co-authored-by|signed-off-by|reviewed-by|acked-by|tested-by):' | grep -ioE '<[^>]+>' | grep -vF "<$expected>" || true)
+          if [ -n "$bad" ]; then echo "Adresses de trailers non autorisees :"; echo "$bad"; exit 1; fi
+          # Regle du PO : aucune mention de l'assistant dans les messages.
+          if git log --all --format='%B' | grep -iE 'co-authored-by:.*(claude|anthropic)|generated with .*claude'; then echo "Mention interdite dans un message de commit"; exit 1; fi
+
+  forbidden-files:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Chemins, extensions, taille, binaires non listes
+        run: |
+          bad=$(git ls-files | grep -E '^(\.claude/|_claude-setup/|third_party/|(build|out|dist|vcpkg_installed|\.vs|logs|tests/clips)/)|(^|/)(CLAUDE\.md|LISEZMOI-EQUIPE\.md|KICKOFF\.txt|CMakeUserPresets\.json)$|(^|/)\.env($|\.)|\.(dll|exe|lib|pdb|obj|ilk|exp|msi|msix|zip|7z|onnx|engine|plan|trt|pth|pt|ckpt|safetensors|pkl|mp4|mkv|mov|avi|webm|mxf|y4m|yuv|ts|m2ts|mpg|mpeg|vob|wmv|flv|3gp|h264|h265|hevc|ivf|pfx|p12|pem|key|cer|crt|jks|log|dmp)$' | grep -v '^\.env\.example$' || true)
+          if [ -n "$bad" ]; then echo "Fichiers interdits :"; echo "$bad"; exit 1; fi
+          big=$(git ls-files -z | xargs -0 -r stat -c '%s %n' | awk '$1 > 5242880 {print}')
+          if [ -n "$big" ]; then echo "Fichiers > 5 Mio :"; echo "$big"; exit 1; fi
+          # Binaires detectes par git (i/-text) hors liste blanche.
+          allow=$(grep -vE '^\s*(#|$)' scripts/binary-allowlist.txt || true)
+          bins=$(git ls-files --eol | awk '$1 == "i/-text" {sub(/^[^\t]*\t/, ""); print}' | grep -vxF -f <(printf '%s\n' "$allow") || true)
+          if [ -n "$bins" ]; then echo "Binaires non listes (scripts/binary-allowlist.txt) :"; echo "$bins"; exit 1; fi
+          # Verrou FFmpeg hors third_party (SEC-17).
+          test -f deps/ffmpeg.lock.json
+
+  secrets:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: gitleaks 8.30.1 (SHA-256 verifiee) sur l'historique complet
+        run: |
+          curl -sSLo "$RUNNER_TEMP/gl.tgz" https://github.com/gitleaks/gitleaks/releases/download/v8.30.1/gitleaks_8.30.1_linux_x64.tar.gz
+          echo "551f6fc83ea457d62a0d98237cbad105af8d557003051f41f3e7ca7b3f2470eb  $RUNNER_TEMP/gl.tgz" | sha256sum -c -
+          mkdir "$RUNNER_TEMP/gl" && tar -xzf "$RUNNER_TEMP/gl.tgz" -C "$RUNNER_TEMP/gl" gitleaks
+          "$RUNNER_TEMP/gl/gitleaks" git --config .gitleaks.toml --redact --no-banner --exit-code 1 --log-opts="--all"
+
+  zero-network-src:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: C1 - sources, CMake, vcpkg.json, QML
+        shell: pwsh
+        run: scripts/check-no-network.ps1 -SourcesOnly
+
+  deps:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Manifeste vcpkg
+        shell: pwsh
+        run: |
+          $m = Get-Content vcpkg.json -Raw | ConvertFrom-Json
+          if ($m.'builtin-baseline' -notmatch '^[0-9a-f]{40}$') { throw 'builtin-baseline invalide (40 hex attendus).' }
+          if ($m.PSObject.Properties['overrides']) { throw 'overrides interdit sans justification revue par secdevops.' }
+          if (-not (Test-Path cmake/triplets/x64-windows-enh.cmake)) { throw 'Triplet maison absent.' }
+          # TODO(secdevops) : scripts/licences.ps1 -Check (registre des licences) ; cve-watch hebdomadaire.
+      - name: osv-scanner 2.7.0 (SHA-256 verifiee, informatif : vcpkg non gere)
+        continue-on-error: true
+        run: |
+          curl -sSLo "$RUNNER_TEMP/osv" https://github.com/google/osv-scanner/releases/download/v2.7.0/osv-scanner_linux_amd64
+          echo "160c6253e2922e9e0a6a9771c5c4c40a4b3c6090b34a3cdd5e80c96cc2e4218b  $RUNNER_TEMP/osv" | sha256sum -c -
+          chmod +x "$RUNNER_TEMP/osv"
+          "$RUNNER_TEMP/osv" scan source --no-resolve -r . || test $? -eq 128
+
+  workflow-lint:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Actions epinglees, permissions, declencheurs
+        run: |
+          fail=0
+          if grep -nE '^\s*-?\s*uses:' .github/workflows/*.yml | grep -vE 'uses:\s*[^@ ]+@[0-9a-f]{40}(\s|$)'; then echo "Action non epinglee par SHA de commit"; fail=1; fi
+          for f in .github/workflows/*.yml; do
+            grep -qE '^permissions:\s*$' "$f" || { echo "permissions absentes : $f"; fail=1; }
+            grep -A3 -E '^permissions:\s*$' "$f" | grep -E '^\s+[a-z-]+:\s*write' && { echo "permission d'ecriture : $f"; fail=1; }
+          done
+          if grep -nE 'pull_request_targe[t]|self-hoste[d]|secret[s]\.' .github/workflows/*.yml; then echo "Declencheur ou secret interdit"; fail=1; fi
+          exit $fail
+      - name: zizmor 1.31.1 (informatif tant que non verifie en local)
+        continue-on-error: true
+        run: |
+          python3 -m pip install --user "zizmor==1.31.1"
+          "$HOME/.local/bin/zizmor" --offline .github/workflows

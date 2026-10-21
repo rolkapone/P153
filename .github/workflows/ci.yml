@@ -1,11 +1,7 @@
 # CI Enhance (ADR-029). Aucun GPU, aucun SDK NVIDIA, aucun secret, aucune publication.
 # Les tests GPU tournent en LOCAL (scripts/test-gpu.ps1).
-#
-# Marqueurs a resoudre avant la premiere execution (lister : grep -n "TODO-" .github/workflows/ci.yml) :
-#   TODO-SHA          SHA de commit (40 hex) de chaque action, version en commentaire
-#   TODO-PIN-CLANG    version exacte de clang-format (identique a celle du poste, ADR-030)
-#   TODO-QT-VERSION   version de Qt officiel = celle de vcpkg (job ui)
-#   TODO-VCPKG-BASELINE-SHA  dans vcpkg.json (scripts/bootstrap.ps1 le refuse tant que present)
+# Les controles de securite (identite, secrets, zero reseau sources, deps, lint des workflows) sont dans
+# security.yml (sans paths-ignore). TODO restant : confirmer l'image Windows avec VS 2026 (toolset v145).
 name: ci
 
 on:
@@ -31,11 +27,11 @@ jobs:
     runs-on: ubuntu-24.04
     timeout-minutes: 10
     steps:
-      - uses: actions/checkout@TODO-SHA # v4
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
       - name: Installer clang-format (version epinglee)
-        run: pip install "clang-format==TODO-PIN-CLANG"
+        run: pip install "clang-format==22.1.3"
       - name: clang-format --dry-run
         run: |
           clang-format --version
@@ -46,11 +42,11 @@ jobs:
     runs-on: windows-2025 # TODO: image VS 2026 (toolset v145) a confirmer ; sinon v143 en CI, ecart documente
     timeout-minutes: 30
     steps:
-      - uses: actions/checkout@TODO-SHA # v4
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
       - name: Cache binaire vcpkg
-        uses: actions/cache@TODO-SHA # v4
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: ~\vcpkg-cache
           key: vcpkg-${{ runner.os }}-${{ hashFiles('vcpkg.json', 'cmake/triplets/**') }}
@@ -68,6 +64,17 @@ jobs:
       - name: Tests unitaires (label unit)
         shell: pwsh
         run: scripts/test.ps1 -Preset ci -NoBuild
+      - name: Zero reseau sur les binaires du build ci (C2/C3/C4)
+        shell: pwsh
+        run: scripts/check-no-network.ps1 -Path build/ci -Report zero-network.md
+      - name: Rapport zero reseau
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: zero-network
+          path: zero-network.md
+          retention-days: 7
+          if-no-files-found: ignore
       # TODO: variante ASan (/fsanitize=address, ADR-030) une fois le coeur en place.
 
   tidy:
@@ -75,11 +82,11 @@ jobs:
     timeout-minutes: 30
     needs: core
     steps:
-      - uses: actions/checkout@TODO-SHA # v4
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
       - name: Cache binaire vcpkg
-        uses: actions/cache@TODO-SHA # v4
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: ~\vcpkg-cache
           key: vcpkg-${{ runner.os }}-${{ hashFiles('vcpkg.json', 'cmake/triplets/**') }}
@@ -109,13 +116,13 @@ jobs:
       QT_QPA_PLATFORM: offscreen
       QT_QUICK_BACKEND: software
     steps:
-      - uses: actions/checkout@TODO-SHA # v4
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
       - name: Qt officiel (tests seulement ; le Qt livre est celui de vcpkg, ADR-024)
-        uses: jurplel/install-qt-action@TODO-SHA # v4
+        uses: jurplel/install-qt-action@a9c63c7c123f3069cff414e7e482d95dfa9d8125 # v4.4.1
         with:
-          version: 'TODO-QT-VERSION'
+          version: '6.11.2'
           arch: win64_msvc2022_64
           modules: ''
       - name: Configure + build (preset ci-ui)
@@ -130,17 +137,31 @@ jobs:
           & $t.Ctest --test-dir build/ci-ui -L ui --output-on-failure --no-tests=ignore
           if ($LASTEXITCODE -ne 0) { exit 1 }
 
-  security:
-    # Emplacement reserve a secdevops (ADR-029 / ADR-027) : check-no-network.ps1, inventaire des
-    # licences, scan de secrets (gitleaks epingle), audit des dependances. A definir avec lui.
-    runs-on: ubuntu-24.04
-    timeout-minutes: 10
+  sast:
+    runs-on: windows-2025
+    timeout-minutes: 15
     steps:
-      - uses: actions/checkout@TODO-SHA # v4
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
-      - name: Aucun fichier interdit suivi par git
+      - name: cppcheck 2.22.0 (MSI epingle, SHA-256 verifiee)
+        shell: pwsh
         run: |
-          bad=$(git ls-files | grep -E '^(\.claude/|CLAUDE\.md$|LISEZMOI-EQUIPE\.md$|KICKOFF\.txt$|_claude-setup/|third_party/)|\.(dll|lib|exe|zip|onnx|engine|plan|trt|mp4|mkv|mov|pfx|pem|key)$' || true)
-          if [ -n "$bad" ]; then echo "Fichiers interdits :"; echo "$bad"; exit 1; fi
-      # TODO(secdevops) : check-no-network.ps1 sur un build ci, licences.ps1, gitleaks, audit.
+          $url = 'https://github.com/danmar/cppcheck/releases/download/2.22.0/cppcheck-2.22.0-x64-Setup.msi'
+          $sha = '3929162bab7e71d1b9b18708ec054fb0188bfc8ea1660979ed95837f5a9f547b'
+          Invoke-WebRequest $url -OutFile "$env:RUNNER_TEMP\cppcheck.msi"
+          if ((Get-FileHash "$env:RUNNER_TEMP\cppcheck.msi" -Algorithm SHA256).Hash.ToLower() -ne $sha) { throw 'SHA-256 cppcheck differente.' }
+          Start-Process msiexec.exe -Wait -ArgumentList '/i', "$env:RUNNER_TEMP\cppcheck.msi", '/qn', '/norestart'
+      - name: cppcheck (src/)
+        shell: pwsh
+        run: |
+          $cpp = "$env:ProgramFiles\Cppcheck\cppcheck.exe"
+          & $cpp --version
+          & $cpp --platform=win64 --std=c++20 --enable=warning,performance,portability --inline-suppr --error-exitcode=1 -I src src
+          if ($LASTEXITCODE -ne 0) { exit 1 }
+      - name: semgrep 1.182.0 (regles locales, sans telemetrie)
+        shell: pwsh
+        run: |
+          if (-not (Test-Path .semgrep)) { Write-Host 'Pas de regles locales (.semgrep/) : etape ignoree (ENH-003, secdevops).'; exit 0 }
+          python -m pip install "semgrep==1.182.0"
+          semgrep scan --config .semgrep --metrics=off --error --quiet src

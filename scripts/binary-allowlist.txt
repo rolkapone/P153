@@ -1,0 +1,3 @@
+# Liste blanche des fichiers binaires versionnes (un chemin relatif par ligne, '#' = commentaire).
+# Toute entree est validee par secdevops (licence + provenance) et accompagnee de sa licence dans
+# docs/security/licences.md. Vide au depart : icones .svg/.png et polices sous src/app/qml/assets/.

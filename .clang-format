@@ -1,4 +1,4 @@
-# Version de reference : voir docs/architecture.md ADR-030 (version exacte a epingler, TODO-PIN-CLANG).
+# Version de reference : voir docs/architecture.md ADR-030 (version epinglee : clang-format 22.1.3 = composant LLVM de VS 2026 ; pip clang-format==22.1.3 en CI).
 BasedOnStyle: LLVM
 Language: Cpp
 Standard: c++20
