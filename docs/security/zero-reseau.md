@@ -8,8 +8,8 @@ Statut : v1.0 du 2026-10-21 (secdevops). Spécification à implémenter par devo
 
 Exceptions explicitement admises (et seulement celles-ci) :
 - **E1 — fichiers sur un partage réseau choisi par l'utilisateur** (lecteur mappé ou chemin UNC) : le trafic SMB est émis par le redirecteur de Windows (processus `System`), à la demande explicite de l'utilisateur, jamais en tâche de fond (SEC-10).
-- **E2 — import de `ws2_32.dll` par `Qt6Core.dll` limité aux fonctions de la boucle d'événements** (`QSocketNotifier` : `WSAAsyncSelect`…) **[H]** à constater sur le build vcpkg ; aucune création de socket possible sans `QtNetwork`.
-- **E3 (temporaire, spike seulement)** — import de `ws2_32.dll` (et bibliothèques TLS du système) par l'`avformat` du build BtbN ; neutralisé à l'exécution (AVIO maison, `io_open` restrictif, `protocol_whitelist=file`) ; **expire avant ENH-030** (build vcpkg `--disable-network`, SEC-06).
+- **E2 — import de `ws2_32.dll` par `Qt6Core.dll` limité à `WSAAsyncSelect`, `WSAStartup`, `WSACleanup`** (constaté le 2026-10-21 sur Qt 6.11.2 vcpkg sans Network : ordinaux #101, #115, #116, rien d'autre) : boucle d'événements (`QSocketNotifier`) et initialisation de Winsock, aucune socket créée sans `QtNetwork` ; revalidation à chaque version de Qt, échéance 2027-04-21 (SEC-22). Avertissements `mpr` / `netapi32` de `Qt6Core` acceptés (chemins réseau choisis par l'utilisateur).
+- **E3, E3c, E3d, E3e (temporaires, `dev-only`)** — imports réseau (`ws2_32`, `dnsapi`, bibliothèques TLS du système) des DLL `avformat`, `avcodec` et `avfilter` du build BtbN 8.1.3 (libsrt, librist, libssh, libzmq compilés dedans) ; neutralisés à l'exécution (AVIO maison, `io_open` restrictif, `protocol_whitelist=file`, aucun filtre `zmq`/`azmq`) ; refusés en mode `-Package` ; échéance 2027-01-21 ; **SEC-06 (FFmpeg vcpkg minimal sans réseau) reste obligatoire avant ENH-030**.
 
 Le comportement du pilote NVIDIA et de ses services hors du processus d'Enhance est hors de notre contrôle (risque résiduel R-2 du threat model), mais **toute activité réseau déclenchée par l'usage d'une API NVIDIA depuis Enhance** (ex. NGX Update Module, SEC-01) entre dans le périmètre et doit être absente ou explicitement acceptée par le PO.
 
@@ -62,7 +62,7 @@ Entrée : un dossier (sortie du build `ci`, ou dossier portable avant zippage). 
       "id": "E2",
       "module": "Qt6Core.dll",
       "import": "ws2_32.dll",
-      "allowedFunctions": ["WSAAsyncSelect", "WSAGetLastError"],
+      "allowedFunctions": ["WSAAsyncSelect", "WSAStartup", "WSACleanup"],
       "justification": "...",
       "owner": "secdevops",
       "reviewed": "2026-10-21",
@@ -74,7 +74,7 @@ Entrée : un dossier (sortie du build `ci`, ou dossier portable avant zippage). 
 }
 ```
 
-La version initiale (exceptions E2 et E3 marquées **[H]**, à confirmer sur les vrais binaires) est fournie dans `scripts/network-allowlist.json`.
+Le fichier de référence est `scripts/network-allowlist.json` (exceptions constatées sur les vrais binaires le 2026-10-21 ; l'extrait ci-dessus est indicatif).
 
 ## 5. C4 — Chaînes dans les binaires
 

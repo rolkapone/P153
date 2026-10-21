@@ -1,5 +1,5 @@
 {
-  "$comment": "Liste blanche du controle zero reseau (ADR-027, docs/security/zero-reseau.md). Fichier de securite : toute modification passe par secdevops. Exceptions marquees [H] : a confirmer sur les binaires reels.",
+  "$comment": "Liste blanche du controle zero reseau (ADR-027, docs/security/zero-reseau.md). Fichier de securite : toute modification passe par secdevops. Exceptions constatees sur les binaires reels le 2026-10-21 (objdump -p).",
   "schemaVersion": 1,
   "forbiddenFiles": [
     "Qt6Network*.dll",
@@ -50,33 +50,72 @@
       "id": "E2",
       "module": "Qt6Core.dll",
       "import": "ws2_32.dll",
-      "allowedFunctions": ["WSAAsyncSelect", "WSAGetLastError", "WSASetLastError"],
-      "justification": "[H] QSocketNotifier dans la boucle d'evenements Windows de QtCore ; aucune creation de socket sans QtNetwork (absent). Liste de fonctions a ajuster au constat sur le build vcpkg, sans jamais y ajouter socket/connect/WSAStartup/getaddrinfo/send/recv.",
+      "allowedFunctions": ["WSAAsyncSelect", "WSAStartup", "WSACleanup"],
+      "justification": "Constat du 2026-10-21 (secdevops, objdump -p) sur Qt6Core.dll 6.11.2 vcpkg sans Network (overlay ports) : 3 imports par ordinal ws2_32 #101 WSAAsyncSelect, #115 WSAStartup, #116 WSACleanup, rien d'autre. QSocketNotifier de la boucle d'evenements Win32 de QtCore + initialisation/liberation de la bibliotheque Winsock : aucune creation de socket, aucune resolution de nom, aucun envoi/reception possible sans socket/WSASocket/connect/getaddrinfo/send/recv, qui restent interdits (tout import supplementaire fait echouer C3). Revalidation obligatoire a chaque changement de version de Qt (le champ qtVersion doit correspondre a vcpkg.json).",
+      "qtVersion": "6.11.2",
       "owner": "secdevops",
       "reviewed": "2026-10-21",
-      "expires": null
+      "expires": "2027-04-21"
     },
     {
       "id": "E3",
       "module": "avformat-*.dll",
       "import": "ws2_32.dll",
       "allowedFunctions": ["*"],
-      "justification": "[H] Build BtbN lgpl-shared du spike (protocoles reseau compiles). Neutralise a l'execution : AVIOContext Win32 maison, io_open restrictif, protocol_whitelist=file. Interdit dans tout livrable.",
+      "justification": "Build de DEVELOPPEMENT BtbN win64-lgpl-shared 8.1.3 (deps/ffmpeg.lock.json) : protocoles reseau compiles (tcp/udp/http/rtmp/srt/rist...). Neutralise a l'execution : AVIOContext Win32 maison, io_open restrictif, protocol_whitelist=file. Jamais livre : echoue en mode -Package. SEC-06 (FFmpeg vcpkg minimal --disable-network) reste OBLIGATOIRE avant ENH-030.",
       "owner": "secdevops",
       "reviewed": "2026-10-21",
-      "expires": "avant ENH-030 (build FFmpeg vcpkg --disable-network, SEC-06)",
+      "expires": "2027-01-21",
+      "until": "ENH-030 au plus tard (SEC-06)",
       "scope": "dev-only"
     },
     {
-      "id": "E3b",
-      "module": "avformat-*.dll",
-      "import": "secur32.dll",
+      "id": "E3c",
+      "module": "avcodec-*.dll",
+      "import": "ws2_32.dll",
       "allowedFunctions": ["*"],
-      "justification": "[H] TLS Schannel du build BtbN (protocole https compile). Memes conditions que E3.",
+      "justification": "Meme build BtbN de developpement que E3 : bibliotheques tierces compilees dans avcodec (constat 2026-10-21 : sockets complets, getaddrinfo, connect, listen). Aucun usage reseau par Enhance ; jamais livre (echoue en -Package) ; SEC-06 obligatoire avant ENH-030.",
       "owner": "secdevops",
       "reviewed": "2026-10-21",
-      "expires": "avant ENH-030 (SEC-06)",
+      "expires": "2027-01-21",
+      "until": "ENH-030 au plus tard (SEC-06)",
       "scope": "dev-only"
+    },
+    {
+      "id": "E3d",
+      "module": "avcodec-*.dll",
+      "import": "dnsapi.dll",
+      "allowedFunctions": ["DnsQuery_UTF8", "DnsFree"],
+      "justification": "Meme build BtbN de developpement que E3 (resolution DNS d'une bibliotheque tierce compilee dans avcodec). Memes conditions que E3c.",
+      "owner": "secdevops",
+      "reviewed": "2026-10-21",
+      "expires": "2027-01-21",
+      "until": "ENH-030 au plus tard (SEC-06)",
+      "scope": "dev-only"
+    },
+    {
+      "id": "E3e",
+      "module": "avfilter-*.dll",
+      "import": "ws2_32.dll",
+      "allowedFunctions": ["*"],
+      "justification": "Meme build BtbN de developpement que E3 : libzmq compilee dans avfilter (filtres zmq/azmq, sockets complets). Enhance ne construit aucun graphe avec zmq/azmq ; jamais livre (echoue en -Package) ; SEC-06 obligatoire avant ENH-030.",
+      "owner": "secdevops",
+      "reviewed": "2026-10-21",
+      "expires": "2027-01-21",
+      "until": "ENH-030 au plus tard (SEC-06)",
+      "scope": "dev-only"
+    }
+  ],
+  "acknowledgedWarnings": [
+    {
+      "module": "Qt6Core.dll",
+      "imports": ["mpr.dll: WNetGetUniversalNameW", "netapi32.dll: NetShareEnum, NetApiBufferFree"],
+      "decision": "Accepte (2026-10-21, secdevops). Resolution des lecteurs reseau mappes et des partages UNC par QFileInfo/QStorageInfo/QDir : n'agit que sur un chemin que l'utilisateur a lui-meme choisi (SMB du systeme, pas de connexion initiee par Enhance). Regle de code : ne jamais enumerer de partages ni lister \\serveur de facon proactive."
+    },
+    {
+      "module": "avformat-*.dll / avcodec-*.dll / avfilter-*.dll (BtbN, dev-only)",
+      "imports": ["secur32.dll", "crypt32.dll", "ncrypt.dll", "iphlpapi.dll", "bcrypt.dll"],
+      "decision": "Accepte en developpement uniquement (TLS Schannel et outils reseau du build BtbN) ; memes conditions que E3. Remplace l'ancienne exception E3b (secur32 est un avertissement, pas un import interdit)."
     }
   ],
   "stringScan": {
