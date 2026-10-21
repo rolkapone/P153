@@ -1,0 +1,27 @@
+{
+  "name": "qtdeclarative",
+  "version": "6.11.2",
+  "description": "Qt Declarative (Quick 2) - overlay Enhance (ADR-024) : sans qtbase[network]",
+  "homepage": "https://www.qt.io/",
+  "license": null,
+  "dependencies": [
+    {
+      "name": "qtbase",
+      "default-features": false,
+      "features": [
+        "testlib"
+      ]
+    },
+    {
+      "name": "qtdeclarative",
+      "host": true,
+      "default-features": false
+    },
+    "qtlanguageserver",
+    {
+      "name": "qtshadertools",
+      "default-features": false
+    },
+    "qtsvg"
+  ]
+}

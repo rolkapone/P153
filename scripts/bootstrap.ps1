@@ -39,7 +39,7 @@ if (-not $Run) {
 
 if (-not (Test-Path (Join-Path $VcpkgRoot '.git'))) {
     New-Item -ItemType Directory -Force -Path (Split-Path $VcpkgRoot) | Out-Null
-    & git clone https://github.com/microsoft/vcpkg $VcpkgRoot
+    & git clone --filter=blob:none https://github.com/microsoft/vcpkg $VcpkgRoot
     if ($LASTEXITCODE -ne 0) { throw 'git clone vcpkg echoue.' }
 }
 & git -C $VcpkgRoot checkout $Baseline
