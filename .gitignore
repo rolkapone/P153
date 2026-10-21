@@ -1,0 +1,66 @@
+# Configuration locale de l'equipe Claude : jamais versionnee (decision du PO)
+.claude/
+CLAUDE.md
+LISEZMOI-EQUIPE.md
+KICKOFF.txt
+_claude-setup/
+
+# SDK et binaires tiers (licences : voir docs/security/licences.md)
+third_party/
+
+# Build, IDE
+build/
+out/
+cmake-build-*/
+.vs/
+.vscode/
+*.user
+CMakeUserPresets.json
+compile_commands.json
+vcpkg_installed/
+.vcpkg-root
+
+# Livrables et binaires
+dist/
+*.zip
+*.msix
+*.exe
+*.dll
+*.lib
+*.pdb
+*.obj
+*.ilk
+*.exp
+
+# Modeles tiers
+*.onnx
+*.engine
+*.plan
+*.trt
+
+# Clips de test et videos produites (jamais commites)
+clips/
+tests/clips/
+tests/**/clips/
+*.mp4
+*.mkv
+*.mov
+*.avi
+*.webm
+*.mxf
+*.y4m
+*.yuv
+
+# Secrets, certificats, journaux, couverture
+.env
+.env.*
+!.env.example
+*.pfx
+*.pem
+*.key
+*.log
+logs/
+.coverage
+coverage/
+Thumbs.db
+.DS_Store

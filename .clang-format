@@ -1,0 +1,29 @@
+# Version de reference : voir docs/architecture.md ADR-030 (version exacte a epingler, TODO-PIN-CLANG).
+BasedOnStyle: LLVM
+Language: Cpp
+Standard: c++20
+ColumnLimit: 100
+IndentWidth: 4
+TabWidth: 4
+UseTab: Never
+AccessModifierOffset: -4
+NamespaceIndentation: None
+PointerAlignment: Left
+SortIncludes: CaseSensitive
+IncludeBlocks: Regroup
+IncludeCategories:
+  - Regex: '^"enh/'
+    Priority: 1
+  - Regex: '^<Q'
+    Priority: 3
+  - Regex: '^<.*\.h(pp)?>'
+    Priority: 4
+  - Regex: '^<[a-z_]+>'
+    Priority: 5
+  - Regex: '.*'
+    Priority: 2
+AllowShortFunctionsOnASingleLine: Inline
+AllowShortIfStatementsOnASingleLine: Never
+AllowShortLoopsOnASingleLine: false
+BreakBeforeBraces: Attach
+InsertBraces: true

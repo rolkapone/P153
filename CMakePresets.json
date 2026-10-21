@@ -1,0 +1,114 @@
+{
+  "version": 6,
+  "cmakeMinimumRequired": { "major": 3, "minor": 30, "patch": 0 },
+  "configurePresets": [
+    {
+      "name": "base",
+      "hidden": true,
+      "generator": "Ninja",
+      "binaryDir": "${sourceDir}/build/${presetName}",
+      "architecture": { "value": "x64", "strategy": "external" },
+      "toolset": { "value": "v145,host=x64", "strategy": "external" },
+      "condition": { "type": "equals", "lhs": "${hostSystemName}", "rhs": "Windows" },
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "RelWithDebInfo",
+        "CMAKE_CXX_COMPILER": "cl",
+        "VCPKG_TARGET_TRIPLET": "x64-windows-enh",
+        "VCPKG_HOST_TRIPLET": "x64-windows-enh",
+        "VCPKG_OVERLAY_TRIPLETS": "${sourceDir}/cmake/triplets",
+        "VCPKG_MANIFEST_FEATURES": ""
+      },
+      "environment": { "VCPKG_DISABLE_METRICS": "1" }
+    },
+    {
+      "name": "dev",
+      "displayName": "Developpement (GPU si SDK presents, UI si Qt present)",
+      "inherits": "base",
+      "cacheVariables": {
+        "ENH_WITH_GPU": "AUTO",
+        "ENH_WITH_UI": "AUTO",
+        "VCPKG_MANIFEST_FEATURES": "ui"
+      }
+    },
+    {
+      "name": "dev-nogpu",
+      "displayName": "Developpement sans GPU (pipeline simule)",
+      "inherits": "base",
+      "cacheVariables": {
+        "ENH_WITH_GPU": "OFF",
+        "ENH_WITH_UI": "AUTO",
+        "VCPKG_MANIFEST_FEATURES": "ui"
+      }
+    },
+    {
+      "name": "local-gpu",
+      "displayName": "Local : GPU obligatoire (RTX, SDK NVIDIA, CUDA)",
+      "inherits": "base",
+      "cacheVariables": {
+        "ENH_WITH_GPU": "ON",
+        "ENH_WITH_UI": "AUTO",
+        "VCPKG_MANIFEST_FEATURES": "ui"
+      }
+    },
+    {
+      "name": "release",
+      "displayName": "Release (GPU obligatoire, /WX)",
+      "inherits": "base",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release",
+        "ENH_WITH_GPU": "ON",
+        "ENH_WITH_UI": "ON",
+        "ENH_WARNINGS_AS_ERRORS": "ON",
+        "VCPKG_MANIFEST_FEATURES": "ui"
+      }
+    },
+    {
+      "name": "ci",
+      "displayName": "CI GitHub : sans GPU, sans UI, /WX, aucun SDK NVIDIA",
+      "inherits": "base",
+      "cacheVariables": {
+        "ENH_WITH_GPU": "OFF",
+        "ENH_WITH_UI": "OFF",
+        "ENH_BUILD_TESTS": "ON",
+        "ENH_WARNINGS_AS_ERRORS": "ON"
+      }
+    },
+    {
+      "name": "ci-ui",
+      "displayName": "CI : tests de l interface (Qt officiel, rendu logiciel)",
+      "inherits": "ci",
+      "cacheVariables": { "ENH_WITH_UI": "ON" }
+    }
+  ],
+  "buildPresets": [
+    { "name": "dev", "configurePreset": "dev" },
+    { "name": "dev-nogpu", "configurePreset": "dev-nogpu" },
+    { "name": "local-gpu", "configurePreset": "local-gpu" },
+    { "name": "release", "configurePreset": "release" },
+    { "name": "ci", "configurePreset": "ci" },
+    { "name": "ci-ui", "configurePreset": "ci-ui" }
+  ],
+  "testPresets": [
+    {
+      "name": "unit",
+      "displayName": "Tests unitaires (sans GPU)",
+      "configurePreset": "ci",
+      "filter": { "include": { "label": "unit" } },
+      "output": { "outputOnFailure": true }
+    },
+    {
+      "name": "unit-dev",
+      "displayName": "Tests unitaires sur le build dev-nogpu",
+      "configurePreset": "dev-nogpu",
+      "filter": { "include": { "label": "unit" } },
+      "output": { "outputOnFailure": true }
+    },
+    {
+      "name": "gpu",
+      "displayName": "Tests GPU (RTX requise, local seulement)",
+      "configurePreset": "local-gpu",
+      "filter": { "include": { "label": "gpu" } },
+      "output": { "outputOnFailure": true }
+    }
+  ]
+}

@@ -1,0 +1,7 @@
+{
+  "minDriver": "617.42",
+  "minComputeCapability": "12.0",
+  "cudaToolkit": "13.4",
+  "maxUsedVramAtStartMiB": 1536,
+  "minFreeDiskGiB": 10
+}

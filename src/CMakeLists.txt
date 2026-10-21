@@ -1,0 +1,16 @@
+# Arborescence : ADR-036. Une cible ne lie que la couche du dessous.
+add_subdirectory(pipeline)
+add_subdirectory(core)
+add_subdirectory(platform/win)
+if(ENH_UI_EFFECTIVE)
+  add_subdirectory(app)
+endif()
+
+add_executable(enhance main.cpp)
+enh_target_defaults(enhance)
+target_link_libraries(enhance PRIVATE enh_core enh_pipeline_impl)
+if(ENH_GPU_EFFECTIVE)
+  target_compile_definitions(enhance PRIVATE ENH_GPU_BACKEND=1)
+else()
+  target_compile_definitions(enhance PRIVATE ENH_GPU_BACKEND=0)
+endif()

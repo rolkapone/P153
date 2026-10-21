@@ -1,0 +1,146 @@
+# CI Enhance (ADR-029). Aucun GPU, aucun SDK NVIDIA, aucun secret, aucune publication.
+# Les tests GPU tournent en LOCAL (scripts/test-gpu.ps1).
+#
+# Marqueurs a resoudre avant la premiere execution (lister : grep -n "TODO-" .github/workflows/ci.yml) :
+#   TODO-SHA          SHA de commit (40 hex) de chaque action, version en commentaire
+#   TODO-PIN-CLANG    version exacte de clang-format (identique a celle du poste, ADR-030)
+#   TODO-QT-VERSION   version de Qt officiel = celle de vcpkg (job ui)
+#   TODO-VCPKG-BASELINE-SHA  dans vcpkg.json (scripts/bootstrap.ps1 le refuse tant que present)
+name: ci
+
+on:
+  push:
+    branches: [main]
+    paths-ignore: ['docs/**', '**/*.md']
+  pull_request:
+    paths-ignore: ['docs/**', '**/*.md']
+  workflow_dispatch:
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+env:
+  VCPKG_DISABLE_METRICS: '1'
+
+jobs:
+  format:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@TODO-SHA # v4
+        with:
+          persist-credentials: false
+      - name: Installer clang-format (version epinglee)
+        run: pip install "clang-format==TODO-PIN-CLANG"
+      - name: clang-format --dry-run
+        run: |
+          clang-format --version
+          files=$(git ls-files 'src/*.cpp' 'src/*.hpp' 'src/*.h' 'tests/*.cpp' 'tests/*.hpp')
+          if [ -n "$files" ]; then echo "$files" | xargs clang-format --dry-run --Werror; fi
+
+  core:
+    runs-on: windows-2025 # TODO: image VS 2026 (toolset v145) a confirmer ; sinon v143 en CI, ecart documente
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@TODO-SHA # v4
+        with:
+          persist-credentials: false
+      - name: Cache binaire vcpkg
+        uses: actions/cache@TODO-SHA # v4
+        with:
+          path: ~\vcpkg-cache
+          key: vcpkg-${{ runner.os }}-${{ hashFiles('vcpkg.json', 'cmake/triplets/**') }}
+      - name: vcpkg (au commit epingle)
+        shell: pwsh
+        run: scripts/bootstrap.ps1 -VcpkgRoot "$env:RUNNER_TEMP\vcpkg" -BinaryCache "$HOME\vcpkg-cache" -Run
+      - name: Variables vcpkg
+        shell: pwsh
+        run: |
+          "VCPKG_ROOT=$env:RUNNER_TEMP\vcpkg" >> $env:GITHUB_ENV
+          "VCPKG_DEFAULT_BINARY_CACHE=$HOME\vcpkg-cache" >> $env:GITHUB_ENV
+      - name: Configure + build (preset ci, ENH_WITH_GPU=OFF)
+        shell: pwsh
+        run: scripts/build.ps1 -Preset ci
+      - name: Tests unitaires (label unit)
+        shell: pwsh
+        run: scripts/test.ps1 -Preset ci -NoBuild
+      # TODO: variante ASan (/fsanitize=address, ADR-030) une fois le coeur en place.
+
+  tidy:
+    runs-on: windows-2025
+    timeout-minutes: 30
+    needs: core
+    steps:
+      - uses: actions/checkout@TODO-SHA # v4
+        with:
+          persist-credentials: false
+      - name: Cache binaire vcpkg
+        uses: actions/cache@TODO-SHA # v4
+        with:
+          path: ~\vcpkg-cache
+          key: vcpkg-${{ runner.os }}-${{ hashFiles('vcpkg.json', 'cmake/triplets/**') }}
+      - name: vcpkg
+        shell: pwsh
+        run: |
+          scripts/bootstrap.ps1 -VcpkgRoot "$env:RUNNER_TEMP\vcpkg" -BinaryCache "$HOME\vcpkg-cache" -Run
+          "VCPKG_ROOT=$env:RUNNER_TEMP\vcpkg" >> $env:GITHUB_ENV
+      - name: Configure (compile_commands.json)
+        shell: pwsh
+        run: scripts/build.ps1 -Preset ci -ConfigureOnly
+      - name: clang-tidy (src/, sans .cu)
+        shell: pwsh
+        run: |
+          . scripts/common.ps1
+          $tidy = Join-Path (Get-VsInstallPath) 'VC\Tools\Llvm\x64\bin\clang-tidy.exe'
+          $files = git ls-files 'src/*.cpp'
+          if ($files) { & $tidy -p build/ci --quiet @files; if ($LASTEXITCODE -ne 0) { exit 1 } }
+
+  ui:
+    # Pull requests et lancement manuel seulement (economie de minutes, ADR-029).
+    if: github.event_name == 'pull_request' || github.event_name == 'workflow_dispatch'
+    runs-on: windows-2025
+    timeout-minutes: 30
+    needs: core
+    env:
+      QT_QPA_PLATFORM: offscreen
+      QT_QUICK_BACKEND: software
+    steps:
+      - uses: actions/checkout@TODO-SHA # v4
+        with:
+          persist-credentials: false
+      - name: Qt officiel (tests seulement ; le Qt livre est celui de vcpkg, ADR-024)
+        uses: jurplel/install-qt-action@TODO-SHA # v4
+        with:
+          version: 'TODO-QT-VERSION'
+          arch: win64_msvc2022_64
+          modules: ''
+      - name: Configure + build (preset ci-ui)
+        shell: pwsh
+        run: scripts/build.ps1 -Preset ci-ui
+      - name: Tests UI (label ui)
+        shell: pwsh
+        run: |
+          . scripts/common.ps1
+          $t = Enter-EnhVsEnv
+          # --no-tests=ignore tant qu'aucun test ui n'existe (ENH-004) ; passer a error ensuite.
+          & $t.Ctest --test-dir build/ci-ui -L ui --output-on-failure --no-tests=ignore
+          if ($LASTEXITCODE -ne 0) { exit 1 }
+
+  security:
+    # Emplacement reserve a secdevops (ADR-029 / ADR-027) : check-no-network.ps1, inventaire des
+    # licences, scan de secrets (gitleaks epingle), audit des dependances. A definir avec lui.
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@TODO-SHA # v4
+        with:
+          persist-credentials: false
+      - name: Aucun fichier interdit suivi par git
+        run: |
+          bad=$(git ls-files | grep -E '^(\.claude/|CLAUDE\.md$|LISEZMOI-EQUIPE\.md$|KICKOFF\.txt$|_claude-setup/|third_party/)|\.(dll|lib|exe|zip|onnx|engine|plan|trt|mp4|mkv|mov|pfx|pem|key)$' || true)
+          if [ -n "$bad" ]; then echo "Fichiers interdits :"; echo "$bad"; exit 1; fi
+      # TODO(secdevops) : check-no-network.ps1 sur un build ci, licences.ps1, gitleaks, audit.
