@@ -164,6 +164,22 @@ Décisions (détail et code au § 6) :
 
 Écartés : `std::unique_ptr<IJob>` + `shared_ptr<IJobObserver>` de la v0.1 (deux propriétés partagées à raisonner, destruction implicite dans un thread du pipeline) ; rappels autorisés à appeler `pause()`/`cancel()` (inutile puisque l'application reposte tout vers son thread, et source d'interblocages subtils) ; progression à 10 Hz (2,5 fois plus de messages pour rien) ; ETA calculée dans le pipeline (doublon avec le cœur). Licence : notre code.
 
+### ADR-052 — Pilote NVIDIA minimal : **R610 (610.00)** pour l'application, **617.42** comme pilote de référence des mesures
+
+| Composant (version épinglée) | Pilote Windows minimal | Source (dans `third_party/nvidia/` ou le Toolkit installé) |
+|---|---|---|
+| **Video Codec SDK 13.1.15** (API NVENC 13.1, `NVENCAPI_MINOR_VERSION 1`) | **610 et plus** — contrainte dominante | `video-codec-sdk/Read_Me.pdf` § 1.3 « System Requirements » (« Driver version 610 and above », Windows et Linux) ; `video-codec-sdk/Interface/nvEncodeAPI.h` l. 114-115 |
+| CUDA 13.4 (`cudart` statique, code `sm_120` natif) | r580 (plancher de compatibilité mineure CUDA 13.x, documentation CUDA en ligne) | **Non vérifiable localement** : le `CUDA_Toolkit_Release_Notes.txt` livré avec la v13.4 contient le texte de la 11.8 (périmé). Sans effet sur la décision : couvert par 610 |
+| RTX Video SDK 1.1.0 | r550.58 (VSR), **r570** pour TrueHDR en CUDA | `rtx-video-sdk/doc/NVIDIA_RTX_Video_SDK_Programming_Guide.pdf` § 2.1 ; `rtx-video-sdk/samples/ReadMe.md` l. 5 (« R570.20 or later ») |
+| TensorRT 11.4.0.106 (CUDA 13.4) | aucune valeur dans `tensorrt/doc/README.txt` ; suit CUDA 13.x | — |
+| Blackwell `sm_120` (RTX 50) | pilotes RTX 50 à partir de la branche r570 | couvert par 610 |
+
+Décision :
+- **Minimum de l'application = 610.00** (branche R610). En dessous, le pilote n'expose pas l'API NVENC 13.1 (ouverture de session refusée, `NV_ENC_ERR_INVALID_VERSION`) : sans encodeur, Enhance ne peut rien produire. C'est la valeur à afficher en P-01 (« pilote NVIDIA 610 ou plus récent ») et à contrôler au démarrage (ENH-031, mode lecture seule si inférieur). Le contrôle porte sur la version du pilote (NVML `nvmlSystemGetDriverVersion`) **et** sur la réponse réelle des API (`NvEncodeAPIGetMaxSupportedVersion` ≥ 13.1 ; indicateur « pilote à mettre à jour » de NGX pour VSR / TrueHDR), pour ne pas dépendre d'un seul chiffre.
+- **Minimum des tests GPU du poste de dev = même plancher 610.00** (`scripts/gpu-requirements.json`, `minDriver`, bloquant) : un poste au minimum doit pouvoir lancer les tests, sinon on ne prouve jamais que ce minimum fonctionne. **Pilote de référence des mesures = 617.42** (`referenceDriver`, informatif) : les comparaisons de vitesse et de qualité entre `main` et une branche (règle des 5 %) ne valent qu'à pilote identique ; un changement de pilote invalide aussi les moteurs TensorRT sérialisés et le cache de timing (ADR-043).
+- Écartés : 580 (P-01 actuel : ne couvre pas NVENC 13.1) ; 550 / 570 (RTX Video SDK seul, même défaut) ; 617.42 comme minimum (pilote du poste du PO, aucune exigence technique ne l'impose : exclurait sans raison les utilisateurs en R610).
+- À vérifier (QA, une fois) : chaîne complète sur un pilote de la branche R610 (seul 617.42 a été testé). Si un composant (TensorRT 11.4 notamment) exige davantage, cet ADR est révisé et la valeur remontée.
+
 ---
 
 ## 3. Conception interne
