@@ -1,0 +1,192 @@
+/* Enhance — tokens CSS (maquettes). Traduction exacte de tokens.json.
+   Copié tel quel en tête de maquettes/*.html (les maquettes restent autonomes).
+   Thème : sombre par défaut ; [data-theme="light"] sur <html> pour le clair ;
+   classe .reduce-motion sur <html> (ou préférence système) pour réduire les animations. */
+
+:root {
+  /* ---- Couleurs : sombre ---- */
+  --c-bg-window: #1B1B1E;
+  --c-window-tint: rgba(27, 27, 30, 0.80);
+  --c-surface-card: #242428;
+  --c-surface-card-hover: #2A2A2F;
+  --c-surface-card-selected: #2C2D44;
+  --c-surface-raised: #2C2C31;
+  --c-surface-sheet: rgba(42, 42, 47, 0.88);
+  --c-surface-sheet-opaque: #2A2A2F;
+  --c-surface-tooltip: #3A3A40;
+  --c-thumb-placeholder: #303036;
+  --c-border-hairline: rgba(255, 255, 255, 0.08);
+  --c-border-card: rgba(255, 255, 255, 0.06);
+  --c-border-control: rgba(255, 255, 255, 0.12);
+  --c-border-strong: rgba(255, 255, 255, 0.24);
+  --c-fill-control: rgba(255, 255, 255, 0.07);
+  --c-fill-control-hover: rgba(255, 255, 255, 0.10);
+  --c-fill-control-pressed: rgba(255, 255, 255, 0.05);
+  --c-segment-thumb: rgba(255, 255, 255, 0.16);
+  --c-segment-selected-text: #F4F4F6;
+  --c-scrim: rgba(0, 0, 0, 0.40);
+  --c-text-primary: #F4F4F6;
+  --c-text-secondary: #A9A9B2;
+  --c-text-tertiary: #9696A0;
+  --c-text-disabled: #5F5F67;
+  --c-text-on-accent: #FFFFFF;
+  --c-accent: #535BE8;
+  --c-accent-hover: #5B63F0;
+  --c-accent-pressed: #4A52D9;
+  --c-accent-text: #9AA0FF;
+  --c-accent-tint: rgba(91, 99, 240, 0.14);
+  --c-progress: #7178FF;
+  --c-focus-ring: #9AA0FF;
+  --c-success: #3DD68C;
+  --c-success-tint: rgba(61, 214, 140, 0.14);
+  --c-on-success: #1B1B1E;
+  --c-warning: #F5B43C;
+  --c-warning-tint: rgba(245, 180, 60, 0.14);
+  --c-danger: #FF6B6B;
+  --c-danger-tint: rgba(255, 107, 107, 0.14);
+  --c-skeleton: rgba(255, 255, 255, 0.07);
+  --c-skeleton-shine: rgba(255, 255, 255, 0.10);
+  --c-shadow1: rgba(0, 0, 0, 0.30);
+  --c-shadow2: rgba(0, 0, 0, 0.32);
+  --c-shadow3: rgba(0, 0, 0, 0.48);
+
+  /* ---- Élévations (y, flou, couleur) ---- */
+  --shadow-e1: 0 1px 2px var(--c-shadow1);
+  --shadow-e2: 0 4px 12px var(--c-shadow2);
+  --shadow-e3: 0 16px 40px var(--c-shadow3);
+
+  /* ---- Typographie ---- */
+  --font-display: "Segoe UI Variable Display", "Segoe UI Variable", "Segoe UI", system-ui, sans-serif;
+  --font-text: "Segoe UI Variable Text", "Segoe UI Variable", "Segoe UI", system-ui, sans-serif;
+  --font-small: "Segoe UI Variable Small", "Segoe UI Variable", "Segoe UI", system-ui, sans-serif;
+  --font-mono: "Cascadia Mono", Consolas, monospace;
+  --fw-regular: 400;
+  --fw-semibold: 600;
+  --t-display: 600 28px/34px var(--font-display);      --ls-display: -0.2px;
+  --t-title1: 600 22px/28px var(--font-display);
+  --t-title2: 600 17px/22px var(--font-text);
+  --t-headline: 600 14px/20px var(--font-text);
+  --t-body: 400 14px/20px var(--font-text);
+  --t-callout: 400 13px/18px var(--font-text);
+  --t-caption: 400 12px/16px var(--font-small);
+  --t-caption-strong: 600 12px/16px var(--font-small);
+  --t-badge: 600 11px/14px var(--font-small);           --ls-badge: 0.2px;
+  --t-mono: 400 12px/18px var(--font-mono);
+
+  /* ---- Espacements (grille 4 px) ---- */
+  --s0_5: 2px; --s1: 4px; --s2: 8px; --s3: 12px; --s4: 16px; --s5: 20px;
+  --s6: 24px; --s8: 32px; --s10: 40px; --s12: 48px; --s16: 64px;
+
+  /* ---- Rayons ---- */
+  --r-xs: 4px; --r-sm: 6px; --r-md: 8px; --r-lg: 12px; --r-xl: 16px; --r-full: 999px;
+
+  /* ---- Tailles ---- */
+  --size-control-sm: 28px; --size-control: 32px; --size-control-lg: 36px; --size-hit-min: 32px;
+  --size-icon-sm: 16px; --size-icon: 20px; --size-icon-lg: 24px; --icon-stroke: 1.75;
+  --size-toolbar-h: 52px; --size-status-bar-h: 32px; --size-title-bar-h: 32px;
+  --size-card-min-h: 80px;
+  --size-thumb-w: 96px; --size-thumb-h: 54px;
+  --size-thumb-active-w: 128px; --size-thumb-active-h: 72px;
+  --size-thumb-narrow-w: 56px; --size-thumb-narrow-h: 32px;
+  --size-progress-h: 4px; --size-progress-h-active: 6px;
+  --size-badge-h: 20px; --size-status-dot: 8px; --size-check-badge: 20px;
+  --size-focus-ring-w: 2px; --size-focus-ring-offset: 2px; --size-border: 1px; --size-drop-zone-border: 1.5px;
+  --size-content-max-w: 880px; --size-sheet-w: 520px; --size-sheet-top: 64px;
+  --size-toast-max-w: 480px; --size-primary-min-w: 148px;
+
+  /* ---- Mouvement : durées ---- */
+  --dur-press: 100ms; --dur-fast: 150ms; --dur-base: 200ms; --dur-medium: 250ms;
+  --dur-slow: 300ms; --dur-slower: 350ms;
+  --dur-stagger: 30ms; --dur-theme-fade: 300ms; --dur-highlight-flash: 400ms;
+  --dur-tooltip-delay: 600ms; --dur-shimmer: 1400ms; --dur-indeterminate: 1600ms;
+  --dur-toast: 5000ms; --dur-refused-message: 6000ms;
+  /* Variantes « mouvement spatial » : passent à 0 ms en mouvement réduit */
+  --move-press: 100ms; --move-fast: 150ms; --move-base: 200ms; --move-medium: 250ms;
+  --move-slow: 300ms; --move-slower: 350ms; --move-stagger: 30ms;
+
+  /* ---- Mouvement : courbes (identiques à Theme.ease.*) ---- */
+  --ease-standard: cubic-bezier(0.4, 0, 0.2, 1);
+  --ease-decelerate: cubic-bezier(0, 0, 0.2, 1);
+  --ease-accelerate: cubic-bezier(0.4, 0, 1, 1);
+  --ease-emphasized: cubic-bezier(0.32, 0.72, 0, 1);
+  --ease-spring: cubic-bezier(0.34, 1.3, 0.64, 1);
+  --ease-linear: linear;
+}
+
+:root[data-theme="light"] {
+  --c-bg-window: #F2F2F5;
+  --c-window-tint: rgba(242, 242, 245, 0.78);
+  --c-surface-card: #FFFFFF;
+  --c-surface-card-hover: #F7F7F9;
+  --c-surface-card-selected: #F2F3FD;
+  --c-surface-raised: #FFFFFF;
+  --c-surface-sheet: rgba(252, 252, 253, 0.88);
+  --c-surface-sheet-opaque: #FCFCFD;
+  --c-surface-tooltip: #FFFFFF;
+  --c-thumb-placeholder: #E4E4E9;
+  --c-border-hairline: rgba(0, 0, 0, 0.08);
+  --c-border-card: rgba(0, 0, 0, 0.06);
+  --c-border-control: rgba(0, 0, 0, 0.12);
+  --c-border-strong: rgba(0, 0, 0, 0.22);
+  --c-fill-control: rgba(0, 0, 0, 0.05);
+  --c-fill-control-hover: rgba(0, 0, 0, 0.08);
+  --c-fill-control-pressed: rgba(0, 0, 0, 0.11);
+  --c-segment-thumb: #FFFFFF;
+  --c-segment-selected-text: #1D1D21;
+  --c-scrim: rgba(0, 0, 0, 0.20);
+  --c-text-primary: #1D1D21;
+  --c-text-secondary: #5E5E66;
+  --c-text-tertiary: #6E6E77;
+  --c-text-disabled: #A6A6AD;
+  --c-text-on-accent: #FFFFFF;
+  --c-accent: #4B53E0;
+  --c-accent-hover: #434BD6;
+  --c-accent-pressed: #3A42C4;
+  --c-accent-text: #4B53E0;
+  --c-accent-tint: rgba(75, 83, 224, 0.08);
+  --c-progress: #4B53E0;
+  --c-focus-ring: #4B53E0;
+  --c-success: #1A7F45;
+  --c-success-tint: rgba(26, 127, 69, 0.10);
+  --c-on-success: #FFFFFF;
+  --c-warning: #9A5A00;
+  --c-warning-tint: rgba(154, 90, 0, 0.10);
+  --c-danger: #C9302C;
+  --c-danger-tint: rgba(201, 48, 44, 0.08);
+  --c-skeleton: rgba(0, 0, 0, 0.06);
+  --c-skeleton-shine: rgba(255, 255, 255, 0.75);
+  --c-shadow1: rgba(0, 0, 0, 0.06);
+  --c-shadow2: rgba(0, 0, 0, 0.10);
+  --c-shadow3: rgba(0, 0, 0, 0.18);
+}
+
+/* Mouvement réduit : plus aucun déplacement, les fondus restent. */
+:root.reduce-motion {
+  --move-press: 0ms; --move-fast: 0ms; --move-base: 0ms; --move-medium: 0ms;
+  --move-slow: 0ms; --move-slower: 0ms; --move-stagger: 0ms;
+}
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --move-press: 0ms; --move-fast: 0ms; --move-base: 0ms; --move-medium: 0ms;
+    --move-slow: 0ms; --move-slower: 0ms; --move-stagger: 0ms;
+  }
+}
+
+/* Contraste élevé (simulation « Aquatique » de Windows 11 dans les maquettes ;
+   dans l'app, ce sont les couleurs système réelles). */
+:root.hc {
+  --c-bg-window: #202020; --c-window-tint: #202020; --c-surface-card: #202020; --c-surface-card-hover: #202020;
+  --c-surface-card-selected: #202020; --c-surface-raised: #202020; --c-surface-sheet: #202020; --c-surface-sheet-opaque: #202020;
+  --c-surface-tooltip: #202020; --c-thumb-placeholder: #202020;
+  --c-border-hairline: #FFFFFF; --c-border-card: #FFFFFF; --c-border-control: #FFFFFF; --c-border-strong: #FFFFFF;
+  --c-fill-control: #202020; --c-fill-control-hover: #202020; --c-fill-control-pressed: #202020;
+  --c-segment-thumb: #8EE3F0; --c-segment-selected-text: #263B50; --c-scrim: transparent;
+  --c-text-primary: #FFFFFF; --c-text-secondary: #FFFFFF; --c-text-tertiary: #FFFFFF; --c-text-disabled: #A6A6A6;
+  --c-text-on-accent: #263B50; --c-accent: #8EE3F0; --c-accent-hover: #8EE3F0; --c-accent-pressed: #8EE3F0;
+  --c-accent-text: #75E9FC; --c-accent-tint: transparent; --c-progress: #8EE3F0; --c-focus-ring: #8EE3F0;
+  --c-success: #FFFFFF; --c-success-tint: transparent; --c-on-success: #202020;
+  --c-warning: #FFFFFF; --c-warning-tint: transparent; --c-danger: #FFFFFF; --c-danger-tint: transparent;
+  --c-skeleton: #A6A6A6; --c-skeleton-shine: #A6A6A6;
+  --c-shadow1: transparent; --c-shadow2: transparent; --c-shadow3: transparent;
+  --size-border: 2px;
+}

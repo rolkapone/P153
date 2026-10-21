@@ -68,7 +68,7 @@ $secretPatterns = @(
     'github_pat_[A-Za-z0-9_]{20,}',
     '(?i)(password|passwd|secret|api[_-]?key|token)\s*[:=]\s*["''][^"'']{8,}["'']'
 )
-$mailPattern = '[A-Za-z0-9._%+\-]+@[A-Za-z0-9\-]+(\.[A-Za-z0-9\-]+)+'
+$mailPattern = '[A-Za-z0-9._%+\-]+@[A-Za-z0-9\-]+(\.[A-Za-z0-9\-]+)*\.[A-Za-z]{2,}\b'   # TLD alphabetique : ecarte color=white@0.12
 $mailAllowed = '(^81617903\+rolkapone@users\.noreply\.github\.com$|@example\.(com|org)|@2x\.)'
 $currentFile = ''
 foreach ($line in (Invoke-Git diff --cached -U0 --no-color)) {
