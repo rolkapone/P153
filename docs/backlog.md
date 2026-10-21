@@ -8,14 +8,14 @@ Clips de référence : `BBB-FAST`, `BBB-PAN`, `TOS-FACE`, `TOS-DARK`, `SYN-TEXT`
 
 | Indicateur | Valeur |
 |---|---|
-| Total points MVP | **171** (126 en v0.2 ; +44 pts de stories nouvelles issues du spike, du threat model et de la revue des licences ; +1 net de ré-estimations, voir « Mouvements v0.3 ») |
+| Total points MVP | **174** (126 en v0.2 ; +44 pts de stories nouvelles issues du spike, du threat model et de la revue des licences ; +1 net de ré-estimations, voir « Mouvements v0.3 » ; **+3 pts : ENH-008b**, redécoupage d'ENH-008 au planning du Sprint 1, voir « Mouvements v0.4 ») |
 | Points livrés (kickoff = « sprint 0 », non compté dans la vitesse) | **23** : ENH-001 (5), ENH-002 (5), ENH-003 (4 sur 5), ENH-005 (3), ENH-006 (3), ENH-007 (3) |
-| Points restants | **148** |
+| Points restants | **151** (dont les 15 du Sprint 1, **démarré le 2026-10-21** : ENH-008 et ENH-004 IN PROGRESS, 0 pt livré) |
 | Vitesse supposée | **15 pts / sprint** (aucun sprint terminé : pas d'historique ; le kickoff n'est pas un sprint) |
-| Sprints restants estimés avant le MVP | **10** (148 / 15 = 9,9) ; fourchette **10 à 12** si deux stories `[UI]` passent à 3 cycles de revue ou si le risque Mica se réalise |
-| Dernière mise à jour | 2026-10-21 (kickoff, avant le sprint 1) |
+| Sprints restants estimés avant le MVP | **11** (151 / 15 = 10,1 ; v0.3 : 10) ; fourchette **11 à 13** si deux stories `[UI]` passent à 3 cycles de revue ou si le risque Mica se réalise |
+| Dernière mise à jour | 2026-10-21 (Sprint 1 validé par le PO et démarré ; aucun sprint terminé) |
 
-Répartition des 148 points restants : Fondations, sécurité et CI 13 (ENH-004, 049, 050), Pipeline GPU 70, File / préréglages / UI / transverse 65.
+Répartition des 151 points restants : Fondations, sécurité et CI 13 (ENH-004, 049, 050), Pipeline GPU 73 (dont ENH-008b), File / préréglages / UI / transverse 65.
 Total « Plus tard » : 52 pts + 8 pts (ENH-051) ; « Avant publication » : 3 pts (hors MVP).
 
 ### Jalons (indicatifs, à recaler à chaque fin de sprint)
@@ -29,7 +29,13 @@ Total « Plus tard » : 52 pts + 8 pts (ENH-051) ; « Avant publication » : 3 p
 | J4 | **L'application complète côté utilisateur** : file, glisser-déposer, préréglages, progression, pause / annulation, thèmes | 7-8 |
 | J5 | **MVP** : robustesse (fuzzing), zéro réseau prouvé, FFmpeg minimal sans réseau, paquet portable, À propos / CLUF | 10 |
 
-Ordre de bataille : voir `docs/sprints/sprint-1.md` (Sprint 1 = 15 pts : ENH-004, ENH-008, ENH-040, ENH-047). Sprint 2 pressenti (15 pts) : ENH-042, ENH-009, ENH-010. Sprints 3-4 : RIFE (ENH-043, ENH-044, ENH-012, ENH-046), AV1, file (ENH-016), journal (ENH-025), NGX hors ligne (ENH-041).
+Ordre de bataille : voir `docs/sprints/sprint-1.md` (Sprint 1 = 15 pts : ENH-004, ENH-008, ENH-040, ENH-047). Sprint 2 pressenti (15 pts) : ENH-042, ENH-009, ENH-010. ENH-008b (3 pts) : avant ENH-048, au plus tard Sprint 3. Sprints 3-4 : RIFE (ENH-043, ENH-044, ENH-012, ENH-046), AV1, file (ENH-016), journal (ENH-025), NGX hors ligne (ENH-041).
+
+### Mouvements v0.4 (planning du Sprint 1, 2026-10-21)
+
+- **ENH-008 reste à 5 pts (Sprint 1)** mais son périmètre de matrice est réduit à la matrice « noyau » (8 combinaisons + ProRes en repli logiciel + clip QA `BBB-FAST`) : estimation du gpu-engineer = 8 pts pour le périmètre complet (`docs/gpu/ENH-008.md` § 8).
+- **ENH-008b créée (3 pts, Must)** : reste de la matrice valide, 8 / 10 bits, VFR, rotation, dimensions impaires. À livrer **avant ENH-048** (qui rejoue la matrice) ; Sprint 2 reste à 15 pts, ENH-008b est placée au plus tard au Sprint 3. **Total MVP +3 pts.**
+- Critères UX et seuils QA du Sprint 1 intégrés à ENH-004, 008, 008b, 040, 047 (`docs/design/ux/ENH-004.md`, `docs/qa/sprint-1-seuils.md`, `docs/qa/checklist-ui.md`).
 
 ### Mouvements v0.3 (traçabilité)
 
@@ -106,6 +112,7 @@ Applicables en plus des critères propres à chaque story ; vérifiés par le ui
 ## Questions pour le PO et points ouverts
 
 **Pour le PO**
+0. **Squelette ENH-004 (UX) — en attente PO** : (a) la barre d'état affiche-t-elle « GeForce RTX 5070 · prête » en dur (y compris sur une autre machine, le temps du développement) ou le texte neutre « Carte graphique · vérification à venir » ? (b) la capsule « Tester le ressort » reste-t-elle visible pendant la démo (avec « Démonstration technique ») ou n'est-elle activée que par Ctrl+Maj+D ? Valeurs par défaut en attendant : texte en dur, capsule visible (à confirmer avant le développement d'ENH-004).
 1. **Composition du Sprint 1** : on privilégie une démo « fenêtre + décodage + super-résolution d'une image » (ENH-004, ENH-008, ENH-040, ENH-047) et on place l'export RIFE (ENH-043) en sprint 3. Si vous préférez sécuriser la licence RIFE tout de suite, ENH-043 (5 pts) remplace ENH-008 (le premier fichier 4K de bout en bout glisse alors d'un sprint). Confirmer.
 2. **Dépôt GitHub** : sans remote (`rolkapone/P153` non créé), la CI GitHub (`ci.yml`, `security.yml`) n'a jamais tourné ; ENH-003 reste à 4/5 et ENH-049 ne peut pas le clore. Créer le dépôt (privé) au sprint 2 ? Aucun push sans votre accord.
 3. **SEC-05 (HIGH, processus)** : la config git **globale** de la machine contient l'adresse professionnelle ; à corriger par vous (noreply, ou `includeIf`), et activer sur GitHub « Keep my email addresses private » + « Block command line pushes that expose my email ». Bloque la fin d'ENH-049.
@@ -204,7 +211,19 @@ Critères d'acceptation :
 - [ ] Tests unitaires du modèle C++ (`enh_core`, GoogleTest) et un test Qt Quick Test s'exécutent sans GPU en CI ; **jamais** de `Qt6Network.dll` dans le dossier de sortie (contrôle C2).
 - [ ] **Durcissement SEC-08** : `SetDefaultDllDirectories` + `SetDllDirectoryW(L"")` en première instruction, `/DEPENDENTLOADFLAG:0xA00`, `qt.conf` + `setLibraryPaths` avant `QGuiApplication`, variables `QT_PLUGIN_PATH` / `QML_IMPORT_PATH` ignorées en release ; test des chemins réels des modules chargés. **SEC-20** : manifeste `asInvoker` + `longPathAware` + PerMonitorV2, bandeau si le jeton est élevé.
 - [ ] Critères UX transverses (section dédiée), en particulier rendu net à 100 / 125 / 150 / 200 % et contrôle design CONFORME.
-Notes : dépend du build Qt déjà produit (overlay ports vcpkg, Qt 6.11.2 sans Network). Prototype borné dans le temps (voir risques du Sprint 1). Licences Qt à jour dans `licences.md` (secdevops).
+- [ ] **Critères UX propres au squelette** (`docs/design/ux/ENH-004.md` §7 ; 9 états en §2) :
+  - [ ] UX-1 premier affichage : la première image visible contient déjà fond, titre « Enhance » et « Déposez vos vidéos ici » (pas d'écran d'accueil, pas de flash blanc ; capture image par image).
+  - [ ] UX-2 contenu strict : barre de titre, état vide, capsule « Tester le ressort » + « Essais : 0 » + « Démonstration technique », barre d'état ; **aucun autre** bouton, menu ou texte ; textes identiques à §5 de la note UX.
+  - [ ] UX-3 dépôt inerte : un fichier glissé n'ajoute rien, aucun message, aucun plantage, curseur « interdit ».
+  - [ ] UX-4 thèmes : sombre / clair suivent Windows, bascule en direct en **< 300 ms** sans clignotement ; contrastes texte >= 4,5:1, capsule et focus >= 3:1.
+  - [ ] UX-5 replis : transparence désactivée = fond et capsule opaques sans déplacement ; contraste élevé = couleurs système + liseré 2 px ; animations réduites = aucune transition de mouvement.
+  - [ ] UX-6 échelle 100 / 125 / 150 / 175 / 200 % : rien de tronqué, texte net ; fenêtre minimale **760 x 520** utilisable ; changement de moniteur net en < 1 s.
+  - [ ] UX-7 clavier seul : Tab atteint la capsule (anneau >= 2 px, >= 3:1), Espace / Entrée l'activent, pas de piège, Ctrl+Q et la croix ferment sans boîte de dialogue.
+  - [ ] UX-8 Narrateur : ordre de lecture et noms de §5, capsule annoncée comme bouton, compteur annoncé une fois par incrément, illustration non lue (**vérification par le PO**, voir seuils QA §6).
+  - [ ] UX-9 fluidité : ressort et fondu à 60 i/s à 100 % et 200 % (aucune image > 20 ms sur 20 activations rapides) ; **0 image rendue** au repos.
+  - [ ] UX-10 démarrage à froid **< 2 s**, sans appel réseau.
+- [ ] **Seuils QA** (`docs/qa/checklist-ui.md`, `docs/qa/sprint-1-seuils.md` §3) : 99e centile du temps d'image <= 16,7 ms (33 ms toléré sur < 0,1 % des images) au repos et sous charge GPU ; temps GPU de l'interface <= 1 ms moyen / <= 2 ms pire ; écart d'i/s du pipeline verre complet vs opaque <= 2 % (7 passes alternées ; séries instables = « non concluant », jamais PASS) ; aucun `Qt6Network.dll`.
+Notes : **décisions PO du 2026-10-21** : (1) barre d'état « GeForce RTX 5070 · prête » en dur (détection réelle : ENH-031) ; (2) capsule « Tester le ressort » visible à la démo ; (3) démo : fenêtre calme d'abord, `--glass-testbed` sur demande ; (4) icône provisoire `docs/design/ui/icones/enhance-app-provisoire.svg` acceptée, définitive plus tard. **Arbitrages** : UX-4 lu « libellé >= 4,5:1 et anneau de focus >= 3:1 » (WCAG 1.4.11) ; mesures du coût du verre pendant un vrai traitement GPU (design-system §12 n° 7 à 9) reportées à ENH-010 ; compléter `maquettes/index.html` (bouton de verre autonome). Branche `feature/ENH-004-squelette-qt`. Références design : `docs/design/ui/maquettes/enh-004-squelette.html`, `docs/design/ui/ENH-004-specs.md` (ui-designer, en cours d'écriture). Dépend du build Qt déjà produit (overlay ports vcpkg, Qt 6.11.2 sans Network). Prototype borné dans le temps (voir risques du Sprint 1). Licences Qt à jour dans `licences.md` (secdevops).
 
 ### ENH-005 — Protocole qualité et clips de référence  [Must | 3 pts]  — **DONE (kickoff)**
 En tant que qa-tester, je veux un protocole de mesure afin que chaque seuil soit vérifiable.
@@ -233,7 +252,8 @@ Critères d'acceptation :
 - [ ] SEC-08 : `nvngx_vsr.dll` du dossier `rel` uniquement (jamais `dev`), chargée **par chemin absolu** (`LOAD_LIBRARY_SEARCH_DLL_LOAD_DIR | SYSTEM32`), signature Authenticode NVIDIA vérifiée en test ; DLL pilote (`nvcuda`, `nvcuvid`, `nvEncodeAPI64`, `nvofapi64`, `nvml`) préchargées depuis System32 ; chargement différé (ADR-048).
 - [ ] Interface `IUpscaler` (faux upscaler pour la CI) ; ressources NGX en classes RAII ; 10 créations / destructions de l'effet : 0 Mio de dérive.
 - [ ] Note `docs/gpu/ENH-040.md` : cause, contournement, **limites** (n'écrit que le préfixe 11.x de `cudaDeviceProp`), à revoir à chaque nouvelle version du SDK ; texte à transmettre à NVIDIA (signalement) prêt pour le PO.
-Notes : dépend de ENH-001 (fait). Relecture attentive par le reviewer (liaison atypique). Ne contient aucun appel à `NVSDK_NGX_UpdateFeature` (voir ENH-041).
+- [ ] **Seuils QA** (`docs/qa/sprint-1-seuils.md` §3, §4.5-4.8) : VSR 720p -> 4K q4, **10 bits**, médiane de 5 : **>= 300 i/s** (spike 335 ; avertissement 240-300, FAIL < 240) ; VRAM de l'effet (pic - avant création) **<= 300 Mio** ; sortie q4 != q0 sur image réelle : **>= 30 %** d'octets différents (spike 59 %) ; `dumpbin /dependents` sans `cudart*.dll` ; 10 cycles création / destruction : dérive **<= 50 Mio**, 0 handle ; qualité d'image VSR (3 images par clip x BBB-FAST, BBB-PAN, SYN-TEXT) : part Équilibré **>= 35 %** de la marge VMAF vs Lanczos sur la moyenne, aucune métrique (VMAF, SSIM, PSNR) sous Lanczos, part VMAF-NEG >= 25 %.
+Notes : pas d'écran : aucun critère UX. Dépend de ENH-001 (fait). Relecture attentive par le reviewer (liaison atypique). Ne contient aucun appel à `NVSDK_NGX_UpdateFeature` (voir ENH-041).
 
 ### ENH-041 — NGX hors ligne : neutraliser la mise à jour et le prouver  [GPU] [Must | 3 pts]
 En tant que PO, je veux la preuve que la super-résolution n'émet rien sur le réseau afin de tenir la promesse « 100 % local » (SEC-01 HIGH, SEC-07 MEDIUM).
@@ -305,14 +325,15 @@ Critères d'acceptation :
 - [ ] Le JSON écrit : `frames_in`, `frames_out`, `wall_s`, `fps_out`, `stages[{name, ms_total, ms_per_frame}]`, `vram_peak_mib`, `vram_rest_mib` (in-process : `cuMemGetInfo` + `QueryVideoMemoryInfo`), `process_private_mib` début / fin, `exit_code`.
 - [ ] Cible CMake `enhance-bench` (avec `ENH_WITH_GPU=ON` seulement), hors livrable ; `Measure-Speed.ps1` la détecte et s'en sert.
 - [ ] Le gpu-engineer et le qa-tester vérifient que les chiffres coïncident avec `nvidia-smi` à < 10 % près.
-Notes : étendu ensuite par les stories de chaîne : `--codec`, `--preset`, `--bits` dans ENH-010 ; `--interp` dans ENH-012 (pas de story séparée).
+- [ ] **Seuils QA** (`docs/qa/sprint-1-seuils.md` §3, §4.7) : tous les champs du JSON présents et cohérents (`fps_out` = `frames_out / wall_s` à 1 %) ; répétabilité de `fps_out` : (max - min) / médiane **<= 3 %** (sinon « instable ») ; écart banc / `nvidia-smi` **< 10 %** ; `Measure-Speed.ps1` s'exécute de bout en bout en modes Speed et Leak ; code de sortie 0 en succès, != 0 avec message clair sur fichier inexistant, 0 octet ou corrompu (aucun plantage).
+Notes : pas d'écran : aucun critère UX. Étendu ensuite par les stories de chaîne : `--codec`, `--preset`, `--bits` dans ENH-010 ; `--interp` dans ENH-012 (pas de story séparée).
 
 ### ENH-048 — FFmpeg minimal sans réseau (port vcpkg)  [GPU] [Must | 5 pts]
 En tant que secdevops, je veux un FFmpeg de livraison réduit au strict nécessaire afin de réduire la surface d'attaque et de tenir « zéro réseau » (SEC-06, porte de release **avant ENH-030**).
 Critères d'acceptation :
 - [ ] Port vcpkg (ou overlay) FFmpeg configuré avec `--disable-network --disable-protocols --disable-avdevice --disable-devices --disable-autodetect --disable-encoders --enable-encoder=mov_text`, **liste blanche** de démuxeurs, décodeurs, analyseurs et muxeurs (à établir avec le gpu-engineer à partir de la matrice d'ENH-008) ; **aucun décodeur audio** ; ni `gpl` ni `nonfree` ; la feature `nvcodec` n'active ni `cuda-nvcc` ni `libnpp`.
 - [ ] `scripts/check-ffmpeg-license.ps1` vert ; **`scripts/check-no-network.ps1 -Package` vert sans les exceptions E3, E3c, E3d, E3e** de `scripts/network-allowlist.json` (échéance du 2027-01-21 respectée).
-- [ ] La matrice de formats d'ENH-008 (MP4, MKV, AVI, MOV, WebM, MPEG-TS x H.264, HEVC, VP9, AV1, MPEG-2) **passe encore** avec ce build.
+- [ ] La matrice de formats d'ENH-008 **et d'ENH-008b** (MP4, MKV, AVI, MOV, WebM, MPEG-TS x H.264, HEVC, VP9, AV1, MPEG-2 ; combinaisons valides) **passe encore** avec ce build.
 - [ ] Sources exactes + configuration (port, overlay, triplet) archivées pour l'offre LGPL ; `NOTICE-SOURCES.txt` prêt (voir ENH-030).
 Notes : devops + gpu-engineer ; le fuzzing d'ENH-015 s'exécute sur **ce** build.
 
@@ -342,13 +363,24 @@ Notes : ux-designer (écran existant dans `ecrans.md`, à compléter) -> ui-desi
 ### ENH-008 — Démuxage FFmpeg et décodage NVDEC  [GPU] [Must | 5 pts]
 En tant qu'utilisateur, je veux ouvrir n'importe quel format vidéo afin de ne jamais convertir au préalable.
 Critères d'acceptation :
-- [ ] Étant donné MP4, MKV, AVI, MOV, WebM, MPEG-TS contenant H.264, HEVC, VP9, AV1, MPEG-2, quand on décode, alors toutes les images arrivent en mémoire GPU avec un nombre d'images égal à celui annoncé par `ffprobe`.
+- [ ] Étant donné la **matrice « noyau »** (`docs/gpu/ENH-008.md` §4) : MP4 x H.264 8 bits, MP4 x HEVC Main10, MKV x AV1 10 bits, WebM x VP9, MPEG-TS x MPEG-2, AVI x H.264, MOV x H.264, **MOV x ProRes 422 HQ (repli logiciel)**, plus `in720/BBB-FAST.mp4`, quand on décode, alors toutes les images arrivent en mémoire GPU (NVDEC : surfaces NV12 / P010 ; AV1 par le décodeur natif, `path() == Nvdec`) avec un nombre d'images **égal** à celui de `ffprobe -count_frames` (même build FFmpeg). Le reste de la matrice est dans **ENH-008b**.
 - [ ] (GPU) décodage 720p **>= 1 000 images/s** (mesuré ~3 100 i/s avec le FFmpeg de mesure ; le plancher de 300 i/s de v0.2 était très pessimiste) ; VRAM **<= 600 Mio**.
 - [ ] Si NVDEC ne supporte pas le codec, repli sur décodage logiciel FFmpeg avec message au journal (mesuré ~1 300 i/s en 720p).
 - [ ] Ouverture par un `AVIOContext` maison sur `CreateFileW` (préfixe `\\?\`, ADR-049) ; **aucun chemin texte donné à FFmpeg** ; ouvertures secondaires refusées (`io_open` restrictif, `protocol_whitelist=file`) ; tests sur chemin > 260 caractères, accents, UNC.
 - [ ] SEC-13 : toutes les tailles en `std::size_t`, multiplications vérifiées (`checked_mul`), dimensions bornées avant allocation.
 - [ ] Les ressources C (FFmpeg, CUDA) sont encapsulées en classes RAII ; aucune fuite sur 10 fichiers ; interface `IDecoder` abstraite (faux décodeur pour la CI).
-Notes : FFmpeg BtbN LGPL de développement (livraison : ENH-048). Si le gpu-engineer estime > 5 pts (AVIO + matrice complète), le scrum-master redécoupe au planning.
+- [ ] **Seuils QA** (`docs/qa/sprint-1-seuils.md` §3, méthode §4, médiane de 5 passes après chauffe, instable si (max - min) / médiane > 3 %) : décodage `BBB-FAST.mp4` **>= 1 000 i/s** (avertissement 800-1 000) ; VRAM (pic - repos) **<= 600 Mio** ; écart `enhance-bench` / `nvidia-smi` **< 10 %** ; boucle de 10 fichiers distincts : dérive VRAM **<= 50 Mio**, mémoire privée <= 100 Mio, 0 handle / thread en fuite ; repli logiciel (FFV1, ProRes) : décode, message de journal présent, 0 plantage ; cas limites (corrompu, tronqué, 0 octet, nom Unicode, chemin > 260) : aucun plantage, erreur claire, VRAM libérée (+/- 50 Mio) ; clips `in720/TOS-*.mkv` (1280x570) exclus de « 720p -> 4K ».
+Notes : FFmpeg BtbN LGPL de développement (livraison : ENH-048). **Redécoupée au planning du Sprint 1** : estimation gpu-engineer 8 pts pour la matrice complète -> matrice étendue sortie en ENH-008b (3 pts). Corpus généré localement (`tests/quality/New-DecodeCorpus.ps1`, rien de commité).
+
+### ENH-008b — Matrice de formats étendue  [GPU] [Must | 3 pts]
+En tant qu'utilisateur, je veux que toutes les variantes courantes de fichiers vidéo s'ouvrent afin de ne jamais convertir au préalable.
+Critères d'acceptation :
+- [ ] Étant donné le **reste de la matrice valide** (MP4 x VP9 / AV1 / MPEG-2, MKV x H.264 / HEVC / VP9 / MPEG-2, MOV x HEVC, MPEG-TS x H.264 / HEVC / AV1 [à vérifier], WebM x AV1, AVI x MPEG-2), quand on décode, alors nombre d'images = `ffprobe -count_frames` et chemin attendu (NVDEC ou repli journalisé).
+- [ ] Variantes 8 / 10 bits (dont H.264 10 bits : repli attendu, à vérifier sur Blackwell), **dimensions impaires**, **fréquence variable (VFR)**, **rotation** (métadonnée), changement de résolution en cours de flux (bascule logicielle au vol journalisée), entrelacé : aucun plantage, comportement documenté.
+- [ ] Aucune régression sur ENH-008 : seuils inchangés (>= 1 000 i/s sur `BBB-FAST.mp4`, VRAM <= 600 Mio, dérive <= 50 Mio sur 10 fichiers) ; **pas de baisse > 5 %** par rapport à la mesure de `main`.
+- [ ] SEC-13 : dimensions impaires, 1x1 et 8192x4320 sans débordement.
+- [ ] **Seuils QA** (`docs/qa/sprint-1-seuils.md` §3-§5) : mêmes règles de mesure que ENH-008 ; une combinaison dont l'encodeur de génération est absent du FFmpeg de mesure est notée « non générée » et le critère « non vérifié » (jamais PASS par défaut).
+Notes : dépend d'ENH-008 ; **doit passer avant ENH-048** (qui rejoue la matrice) ; au plus tard Sprint 3. Corpus généré par `tests/gpu/corpus/make-corpus.ps1`.
 
 ### ENH-009 — Super-résolution RTX Video SDK dans le pipeline  [GPU] [Must | 5 pts]
 En tant qu'utilisateur, je veux agrandir en 4K avec la meilleure qualité afin d'obtenir une image nette.

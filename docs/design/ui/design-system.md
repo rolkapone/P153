@@ -1,6 +1,6 @@
 # Enhance — Design system
 
-Statut : v1.1 (ui-designer), 2026-10-21 — v1.1 : adoption du verre « liquide » (directive PO : « épouser le Liquid Glass 2.0 »). Sources : `docs/design/ux/` (principes, écrans, wireframes, parcours dont P-08 `SourceUnreadable` et P-08b), ADR-001 (Qt 6.8+ / Qt Quick, style Basic, Mica via DWM, `MultiEffect`, D3D11) et ADR-008 (i18n).
+Statut : v1.2 (ui-designer), 2026-10-21 — v1.2 (ENH-004) : bouton de verre autonome (§9.1), biseau effectif (§6.2), `windowAppear` / `themeSwap` instantanés en mouvement réduit (§8), emplacement du module (§10). v1.1 : adoption du verre « liquide » (directive PO : « épouser le Liquid Glass 2.0 »). Sources : `docs/design/ux/` (principes, écrans, wireframes, parcours dont P-08 `SourceUnreadable` et P-08b), ADR-001 (Qt 6.8+ / Qt Quick, style Basic, Mica via DWM, `MultiEffect`, D3D11) et ADR-008 (i18n).
 
 | Fichier | Rôle |
 |---|---|
@@ -9,6 +9,7 @@ Statut : v1.1 (ui-designer), 2026-10-21 — v1.1 : adoption du verre « liquide 
 | `tokens.css` | Les mêmes tokens pour les maquettes (recopiés en tête de chaque maquette pour qu'elle reste autonome) |
 | `maquettes/index.html` | Catalogue animé : tokens, contrastes calculés en direct, composants et leurs états |
 | `maquettes/ecran-principal.html` | Écran principal haute fidélité : 9 états, transitions, feuilles, clavier, glisser-déposer réel |
+| `maquettes/enh-004-squelette.html` + `ENH-004-specs.md` | Squelette (ENH-004) : Mica, état vide inerte, capsule de verre de démonstration, replis, échelles, cotes au pixel ; spécification QML et grille du contrôle design |
 
 Règle : on modifie une valeur dans `tokens.json`, puis dans `Theme.qml` et `tokens.css`, **dans le même commit**. Suggestion pour le developer : un petit test unitaire qui lit `tokens.json` et compare quelques valeurs à celles de `Theme` (couleurs, durées, courbes).
 
@@ -197,7 +198,7 @@ Rayons : barre 22 px (capsule 30 px quand compacte), groupe et pastilles : capsu
 **Règles**
 1. Jamais de verre sur du verre (une feuille cache la barre ; un menu ouvert depuis une feuille est en verre épais opaque à 100 %).
 2. Jamais de verre sur le contenu lui-même : les cartes restent opaques (hiérarchie contenu > contrôles).
-3. Aucun texte dans le biseau : padding intérieur ≥ largeur du biseau.
+3. Aucun texte dans le biseau : padding intérieur ≥ largeur du biseau. Sur une petite surface, le biseau est réduit : biseau effectif = min(biseau du niveau, (hauteur − interligne du contenu) / 2) (`Theme.glassBezelFor()`), soit 12 px pour une capsule de 44 px.
 4. Sur le verre : textPrimary et textSecondary seulement, jamais textTertiary.
 5. Un seul élément plein accent : le bouton principal, posé dans la barre de verre, est un « verre teinté » accent opaque (capsule, reflet interne), pas une teinte translucide.
 6. Toujours une ombre `shadowGlass` (0 8 28 + 0 1 3) pour décoller le verre du contenu.
@@ -276,7 +277,7 @@ Icône d'application (barre de titre, barre des tâches) : à dessiner (carré a
 
 ### 8.1 Durées (ms) et courbes
 
-`press` 100 · `fast` 150 · `base` 200 · `medium` 250 · `slow` 300 · `slower` 350 · `stagger` 30 · `themeFade` 300 · `highlightFlash` 400 · `tooltipDelay` 600 · `shimmer` 1400 · `indeterminate` 1600 · `toast` 5000 · `refusedMessage` 6000.
+`press` 100 · `fast` 150 · `base` 200 · `medium` 250 · `slow` 300 · `slower` 350 · `stagger` 30 · `themeFade` 300 · `highlightFlash` 400 · `tooltipDelay` 600 · `shimmer` 1400 · `indeterminate` 1600 · `toast` 5000 · `refusedMessage` 6000 · `windowAppear` 200 · `themeSwap` 250 (ces deux derniers : 0 en mouvement réduit ; `themeSwap` remplace `themeFade` pour tenir « bascule < 300 ms » capture comprise).
 
 | Courbe | Bézier (x1, y1, x2, y2) | Quand |
 |---|---|---|
@@ -326,14 +327,15 @@ Toutes les transitions passent par des courbes de Bézier + durées pour que maq
 | Pastille de segment « liquide » | medium | emphasized | étirement 1,12 × 0,94 à mi-course |
 | Doublon | highlightFlash | standard | fond accentTint aller-retour |
 | Info-bulle | délai 600, fast | standard | opacité |
-| Changement de thème | themeFade | standard | fondu d'une capture de la fenêtre (`grabToImage`), pas d'animation couleur par couleur |
+| Changement de thème | themeSwap | standard | fondu d'une capture de la fenêtre (`grabToImage`), pas d'animation couleur par couleur ; barre de titre DWM basculée dans la même itération |
+| Ouverture de la fenêtre | windowAppear | decelerate | animation d'ouverture du système (DWM) ; la première image visible est déjà complète (fenêtre masquée par `DWMWA_CLOAK` jusqu'à la première image Qt) |
 
 Interdits : rien ne clignote au-delà de 3 Hz, aucune boucle décorative, le fond Mica ne bouge jamais, aucune animation pendant le traitement à part la barre et ses chiffres.
 
 ### 8.3 Réduction des animations
 
 Si « Effets d'animation » est désactivé dans Windows (`SPI_GETCLIENTAREAANIMATION`) → `Theme.reduceMotion = true` :
-- toutes les durées `Theme.dur.move*` (déplacements, échelles, hauteurs) passent à **0 ms** ; les fondus (`Theme.dur.fast`, `base`…) restent ;
+- toutes les durées `Theme.dur.move*` (déplacements, échelles, hauteurs) passent à **0 ms** ; les fondus (`Theme.dur.fast`, `base`…) restent, **sauf** l'ouverture de la fenêtre et le changement de thème (`Theme.dur.windowAppear`, `Theme.dur.themeSwap` : 0 ms) ;
 - squelette et barre indéterminée deviennent statiques (`Theme.dur.loopsEnabled = false`) ;
 - barre de temps du toast masquée (le délai reste) ;
 - verre : ni morphing, ni fusion animée, ni reflet qui suit le pointeur, ni étirement de pastille (`Theme.glassMotion = false`).
@@ -362,6 +364,7 @@ Animer de préférence `opacity`, `scale`, `x`, `y` avec les *Animators* (`Opaci
 |---|---|---|---|
 | Principal | 36 px, min 148 px, headline ; capsule dans le verre | `accent` opaque, texte blanc, ombre e1 + reflet interne haut 1 px / ombre interne bas | Démarrer (N) · Pause · Reprendre ; OK / Fermer dans une feuille |
 | Dans un groupe de verre | 28 px, capsule | transparent ; survol `fillControlHover` ; pression : échelle 1,03 (gonfle) | Ajouter, Réglages (barre d'outils) |
+| Verre autonome | 44 px (`glassButtonH`), marge 24 px, headline, capsule, min 148 px | verre normal (biseau effectif 12 px), libellé textPrimary ; survol voile `fillControlHover` + reflet qui suit le pointeur ; pression : 1 → 1,03 (press, decelerate) → 1 (medium, spring), reflet × 1,6 ; opaque : `surfaceRaised` + contour `borderControl` + e2 ; contraste élevé : `ButtonFace` + liseré 2 px `ButtonText` | Capsule de démonstration (ENH-004) ; futures actions flottantes isolées |
 | Secondaire | 32 px, body | `fillControl`, texte primaire | Choisir des fichiers…, Comment mettre à jour |
 | Discret | 32 / 28 px | transparent, texte `accentText` (ou secondaire « neutre ») | Rétablir, Modifier, Annuler, Détails, Retirer |
 | Petit (carte) | 28 px, callout, icône 16 | secondaire | Pause, Lire, Afficher dans le dossier, Réessayer |
@@ -423,7 +426,7 @@ Barre d'outils : titre sur le Mica à gauche ; à droite, **groupe de verre** en
 
 ## 10. Pour le developer (Qt Quick)
 
-- Module `Enhance.Design` : `Theme.qml` + `qmldir` ; avec `qt_add_qml_module`, marquer le fichier `QT_QML_SINGLETON_TYPE TRUE`. Branchement unique dans `Main.qml` : `Theme.dark`, `Theme.highContrast`, `Theme.reduceMotion`, `Theme.devicePixelRatio`, `Theme.transparencyEnabled`, `Theme.glassQualityRequested`.
+- Module `Enhance.Design` (dans `src/app/qml/Enhance/Design/`, à côté du module `Enhance.App` de l'ADR-036 ; détail dans `ENH-004-specs.md` §2) : `Theme.qml` + `qmldir` ; avec `qt_add_qml_module`, marquer le fichier `QT_QML_SINGLETON_TYPE TRUE`. Branchement unique dans `Main.qml` : `Theme.dark`, `Theme.highContrast`, `Theme.reduceMotion`, `Theme.devicePixelRatio`, `Theme.transparencyEnabled`, `Theme.glassQualityRequested`.
 - Verre : un composant `GlassSurface.qml` + un shader `glass.frag` (§6.4), une seule `ShaderEffectSource` partagée par fenêtre. `RenderPolicy` (C++, couche présentation) mesure le temps GPU de rendu et fixe la qualité ; ce n'est pas de la logique métier.
 - Contrôles : style **Basic** / **Templates**, chaque contrôle restylé uniquement avec `Theme` ; aucune couleur, taille ou durée en dur dans les fichiers QML de l'app.
 - Liste : `ListView` avec transitions `add` (cascade : `PauseAnimation { duration: index * Theme.dur.moveStagger }`), `remove`, `displaced`, `move` ; tout en courbes `Theme.ease.*`.

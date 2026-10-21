@@ -93,6 +93,7 @@
   --size-focus-ring-w: 2px; --size-focus-ring-offset: 2px; --size-border: 1px; --size-drop-zone-border: 1.5px;
   --size-content-max-w: 880px; --size-sheet-w: 520px; --size-sheet-top: 64px;
   --size-toast-max-w: 480px; --size-primary-min-w: 148px;
+  --size-glass-button-h: 44px; --size-glass-button-pad-x: 24px;
 
   /* ---- Mouvement : durées ---- */
   --dur-press: 100ms; --dur-fast: 150ms; --dur-base: 200ms; --dur-medium: 250ms;
@@ -100,6 +101,8 @@
   --dur-stagger: 30ms; --dur-theme-fade: 300ms; --dur-highlight-flash: 400ms;
   --dur-tooltip-delay: 600ms; --dur-shimmer: 1400ms; --dur-indeterminate: 1600ms;
   --dur-toast: 5000ms; --dur-refused-message: 6000ms;
+  /* Exceptions à « les fondus restent » : 0 ms en mouvement réduit (ENH-004) */
+  --dur-window-appear: 200ms; --dur-theme-swap: 250ms;
   /* Variantes « mouvement spatial » : passent à 0 ms en mouvement réduit */
   --move-press: 100ms; --move-fast: 150ms; --move-base: 200ms; --move-medium: 250ms;
   --move-slow: 300ms; --move-slower: 350ms; --move-stagger: 30ms;
@@ -164,11 +167,13 @@
 :root.reduce-motion {
   --move-press: 0ms; --move-fast: 0ms; --move-base: 0ms; --move-medium: 0ms;
   --move-slow: 0ms; --move-slower: 0ms; --move-stagger: 0ms;
+  --dur-window-appear: 0ms; --dur-theme-swap: 0ms;
 }
 @media (prefers-reduced-motion: reduce) {
   :root {
     --move-press: 0ms; --move-fast: 0ms; --move-base: 0ms; --move-medium: 0ms;
     --move-slow: 0ms; --move-slower: 0ms; --move-stagger: 0ms;
+    --dur-window-appear: 0ms; --dur-theme-swap: 0ms;
   }
 }
 

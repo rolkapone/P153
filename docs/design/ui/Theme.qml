@@ -329,6 +329,12 @@ QtObject {
     }
     readonly property GlassGeometry glassGeo: GlassGeometry {}
 
+    // Biseau effectif d'une surface de verre : jamais de texte dans le biseau.
+    // Ex. capsule 44 px avec un libellé headline (interligne 20) : min(14, 12) = 12.
+    function glassBezelFor(level, height, contentLineHeight) {
+        return Math.max(0, Math.min(level.bezel, Math.floor((height - contentLineHeight) / 2)))
+    }
+
     // ------------------------------------------------------------------ Typographie
     readonly property string familyDisplay: "Segoe UI Variable Display"
     readonly property string familyText: "Segoe UI Variable Text"
@@ -450,6 +456,9 @@ QtObject {
         readonly property int primaryButtonMinW: 148
         readonly property int breakpointNarrow: 900
         readonly property int breakpointShort: 600
+        // Bouton de verre autonome (capsule), ENH-004 : 44 px, marge latérale 24 px.
+        readonly property int glassButtonH: 44
+        readonly property int glassButtonPadX: 24
     }
     readonly property Sizes size: Sizes {}
 
@@ -499,6 +508,9 @@ QtObject {
         readonly property int indeterminate: 1600
         readonly property int toast: 5000
         readonly property int refusedMessage: 6000
+        // Exceptions à « les fondus restent » : instantanés en mouvement réduit (ENH-004).
+        readonly property int windowAppear: reduce ? 0 : 200
+        readonly property int themeSwap: reduce ? 0 : 250   // < 300 ms capture comprise
 
         readonly property int movePress: reduce ? 0 : press
         readonly property int moveFast: reduce ? 0 : fast
