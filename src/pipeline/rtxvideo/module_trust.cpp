@@ -1,6 +1,7 @@
 #include "enh/pipeline/rtxvideo/module_trust.hpp"
 
 #include <algorithm>
+#include <array>
 #include <cstdint>
 #include <fstream>
 #include <memory>
@@ -20,6 +21,7 @@
 #include <softpub.h>
 #include <wincrypt.h>
 #include <wintrust.h>
+#include <mscat.h>
 // clang-format on
 
 namespace enh::pipeline::rtxvideo {
@@ -240,6 +242,39 @@ Result<void> requireNvidiaSignature(const fs::path& file) {
         return enh::Unexpected<PipelineError>(untrusted("Authenticode: signer is not NVIDIA"));
     }
     return {};
+}
+
+Result<std::string> authenticodeSha256(const fs::path& file) {
+    HCATADMIN admin = nullptr;
+    if (CryptCATAdminAcquireContext2(&admin, nullptr, L"SHA256", nullptr, 0) == FALSE) {
+        return fail(PipelineErrorCode::Internal, "CryptCATAdminAcquireContext2 failed",
+                    GetLastError());
+    }
+    struct AdminCloser {
+        void operator()(HCATADMIN h) const noexcept { CryptCATAdminReleaseContext(h, 0); }
+    };
+    const std::unique_ptr<void, AdminCloser> admin_guard(admin);
+    const UniqueHandle h(CreateFileW(file.c_str(), GENERIC_READ, FILE_SHARE_READ, nullptr,
+                                     OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, nullptr));
+    if (h.get() == INVALID_HANDLE_VALUE) {
+        return fail(PipelineErrorCode::SourceUnreadable, "authenticodeSha256: cannot open file",
+                    GetLastError());
+    }
+    std::array<BYTE, 64> hash{};
+    auto size = static_cast<DWORD>(hash.size());
+    if (CryptCATAdminCalcHashFromFileHandle2(admin, h.get(), &size, hash.data(), 0) == FALSE ||
+        size > hash.size()) {
+        return fail(PipelineErrorCode::Internal, "CryptCATAdminCalcHashFromFileHandle2 failed",
+                    GetLastError());
+    }
+    constexpr std::string_view kDigits = "0123456789abcdef";
+    std::string out;
+    out.reserve(std::size_t{size} * 2);
+    for (DWORD i = 0; i < size; ++i) {
+        out += kDigits[hash.at(i) >> 4U];
+        out += kDigits[hash.at(i) & 0xFU];
+    }
+    return out;
 }
 
 } // namespace enh::pipeline::rtxvideo

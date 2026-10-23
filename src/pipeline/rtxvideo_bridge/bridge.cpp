@@ -38,6 +38,8 @@
 #include <cstdint>
 #include <memory>
 #include <mutex>
+#include <shared_mutex>
+#include <string>
 
 struct rvb_runtime {
     NVSDK_NGX_Parameter* params = nullptr; // parametres de capacite (partages par les effets)
@@ -57,20 +59,88 @@ namespace {
 constexpr unsigned int kMaxQuality = NVSDK_NGX_VSR_Quality_Ultra;
 
 // NGX ne transmet pas de pointeur utilisateur a son rappel : etat global (un runtime par
-// processus).
+// processus). La cible du journal est protegee par un verrou lecteurs / redacteur : le rappel le
+// tient en lecture pendant tout l'appel, donc une fois clearLogTarget() revenu, plus aucun appel ne
+// peut utiliser l'ancien pointeur `log_user` (possede par l'application, qui peut le liberer).
 std::atomic<rvb_runtime*> g_runtime{nullptr};
-std::atomic<rvb_log_fn> g_log_fn{nullptr};
-std::atomic<void*> g_log_user{nullptr};
-std::atomic<std::uint32_t> g_log_level{RVB_LOG_OFF};
+std::shared_mutex g_log_mutex;
+rvb_log_fn g_log_fn = nullptr;
+void* g_log_user = nullptr;
+std::uint32_t g_log_level = RVB_LOG_OFF;
+
+void setLogTarget(rvb_log_fn fn, void* user, std::uint32_t level) {
+    const std::unique_lock lock(g_log_mutex);
+    g_log_fn = fn;
+    g_log_user = user;
+    g_log_level = level;
+}
+
+void clearLogTarget() noexcept {
+    try {
+        const std::unique_lock lock(g_log_mutex);
+        g_log_fn = nullptr;
+        g_log_user = nullptr;
+        g_log_level = RVB_LOG_OFF;
+    } catch (...) { // NOLINT(bugprone-empty-catch) : verrou indisponible = etat deja incoherent
+    }
+}
 
 void NVSDK_CONV ngxLog(const char* message, NVSDK_NGX_Logging_Level level,
                        NVSDK_NGX_Feature /*feature*/) {
-    if (g_log_level.load(std::memory_order_relaxed) == RVB_LOG_OFF || message == nullptr) {
-        return; // release : rien n'est ecrit, nulle part
+    if (message == nullptr) {
+        return;
     }
-    rvb_log_fn fn = g_log_fn.load(std::memory_order_acquire);
-    if (fn != nullptr) {
-        fn(g_log_user.load(std::memory_order_acquire), static_cast<std::uint32_t>(level), message);
+    try {
+        const std::shared_lock lock(g_log_mutex);
+        if (g_log_level == RVB_LOG_OFF || g_log_fn == nullptr) {
+            return; // release : rien n'est ecrit, nulle part
+        }
+        g_log_fn(g_log_user, static_cast<std::uint32_t>(level), message);
+    } catch (...) { // NOLINT(bugprone-empty-catch) : une ligne perdue ; rien ne remonte dans NGX
+    }
+}
+
+/// Annule l'enregistrement global d'un rvb_runtime_create (runtime + cible du journal) sur TOUT
+/// chemin de sortie, sauf validation explicite par commit().
+class CreateRollback {
+public:
+    CreateRollback() = default;
+    CreateRollback(const CreateRollback&) = delete;
+    CreateRollback& operator=(const CreateRollback&) = delete;
+    CreateRollback(CreateRollback&&) = delete;
+    CreateRollback& operator=(CreateRollback&&) = delete;
+    ~CreateRollback() {
+        if (!committed_) {
+            clearLogTarget();
+            g_runtime.store(nullptr);
+        }
+    }
+    void commit() noexcept { committed_ = true; }
+
+private:
+    bool committed_ = false;
+};
+
+/// Le dossier de donnees existe et l'on peut y creer un fichier (supprime a la fermeture).
+bool dataDirWritable(const wchar_t* dir) noexcept {
+    try {
+        std::wstring probe(dir);
+        if (probe.empty()) {
+            return false;
+        }
+        if (probe.back() != L'\\' && probe.back() != L'/') {
+            probe += L'\\';
+        }
+        probe += L".enh_write_probe";
+        HANDLE h = CreateFileW(probe.c_str(), GENERIC_WRITE, 0, nullptr, CREATE_ALWAYS,
+                               FILE_ATTRIBUTE_TEMPORARY | FILE_FLAG_DELETE_ON_CLOSE, nullptr);
+        if (h == INVALID_HANDLE_VALUE) {
+            return false;
+        }
+        CloseHandle(h);
+        return true;
+    } catch (...) {
+        return false;
     }
 }
 
@@ -131,14 +201,17 @@ rvb_result RVB_CALL rvb_runtime_create(const rvb_init_params* params, rvb_runtim
         if (!g_runtime.compare_exchange_strong(expected, rt.get())) {
             return RVB_E_ALREADY_INITIALIZED;
         }
+        CreateRollback rollback; // tout chemin d'echec oublie runtime ET cible du journal
         rt->context = static_cast<CUcontext>(params->cu_context);
-        g_log_user.store(params->log_user, std::memory_order_release);
-        g_log_fn.store(params->log_fn, std::memory_order_release);
-        g_log_level.store(params->log_level, std::memory_order_relaxed);
+        setLogTarget(params->log_fn, params->log_user, params->log_level);
+        if (!dataDirWritable(params->data_path)) {
+            // NGX accepte un dossier absent ou en lecture seule (constate) ; le contrat de l'API
+            // l'exige existant et inscriptible : meme code que NGX pour ce cas (-> WriteDenied).
+            return static_cast<rvb_result>(NVSDK_NGX_Result_FAIL_UnableToWriteToAppDataPath);
+        }
 
         const ScopedContext scope(rt->context);
         if (!scope.ok()) {
-            g_runtime.store(nullptr);
             return RVB_E_CUDA;
         }
         NVSDK_NGX_FeatureCommonInfo info{}; // PathListInfo vide : dossier de l'application seul
@@ -152,15 +225,14 @@ rvb_result RVB_CALL rvb_runtime_create(const rvb_init_params* params, rvb_runtim
         constexpr unsigned long long kApplicationId = 0; // SEC-01 : jamais d'identifiant
         NVSDK_NGX_Result r = NVSDK_NGX_CUDA_Init(kApplicationId, params->data_path, &info);
         if (NVSDK_NGX_FAILED(r)) {
-            g_runtime.store(nullptr);
             return static_cast<rvb_result>(r);
         }
         r = NVSDK_NGX_CUDA_GetCapabilityParameters(&rt->params);
         if (NVSDK_NGX_FAILED(r) || rt->params == nullptr) {
             (void)NVSDK_NGX_CUDA_Shutdown();
-            g_runtime.store(nullptr);
             return NVSDK_NGX_FAILED(r) ? static_cast<rvb_result>(r) : RVB_E_INTERNAL;
         }
+        rollback.commit();
         *out = rt.release(); // detruit par rvb_runtime_destroy
         return RVB_OK;
     });
@@ -183,9 +255,7 @@ rvb_result RVB_CALL rvb_runtime_destroy(rvb_runtime* runtime) {
             }
             r = NVSDK_NGX_CUDA_Shutdown();
         }
-        g_log_fn.store(nullptr, std::memory_order_release);
-        g_log_user.store(nullptr, std::memory_order_release);
-        g_log_level.store(RVB_LOG_OFF);
+        clearLogTarget(); // apres le retour, plus aucun appel du rappel avec l'ancien log_user
         g_runtime.store(nullptr);
         return NVSDK_NGX_FAILED(r) ? static_cast<rvb_result>(r) : RVB_OK;
     });

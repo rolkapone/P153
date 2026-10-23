@@ -15,6 +15,12 @@
  * - Chaque structure commence par struct_size (= sizeof vu par l'appelant) : une version future
  *   ajoute des champs a la fin sans casser l'ABI ; le pont refuse une taille inferieure a la v1.
  * - rvb_abi_version() est verifiee avant tout autre appel (RVB_ABI_VERSION).
+ * - Concurrence : rvb_runtime_create / rvb_runtime_destroy / rvb_vsr_create / rvb_effect_destroy
+ *   ne doivent PAS etre appelees en meme temps depuis plusieurs threads (un seul proprietaire, cf.
+ *   RtxVideoUpscaler) ; rvb_vsr_evaluate est serialisee par le pont (verrou par runtime).
+ * - log_user (rvb_init_params) reste la propriete de l appelant : le pont l oublie sur tout echec
+ * de rvb_runtime_create et dans rvb_runtime_destroy ; apres leur retour, le rappel n est plus
+ * appele.
  * - Aucun type CUDA ni NGX : contexte et flux CUDA en void*, CUtexObject / CUsurfObject en
  *   uint64_t (meme representation que dans cuda.h).
  */

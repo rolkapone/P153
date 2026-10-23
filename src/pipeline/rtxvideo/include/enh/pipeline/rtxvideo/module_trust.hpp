@@ -42,4 +42,9 @@ inline constexpr std::wstring_view kNvidiaSigner = L"NVIDIA Corporation";
 /// verifyAuthenticodeOffline + signataire == « NVIDIA Corporation ».
 [[nodiscard]] Result<void> requireNvidiaSignature(const std::filesystem::path& file);
 
+/// Empreinte Authenticode SHA-256 du fichier (hachage PE hors signature, calcule localement par
+/// CryptCATAdminCalcHashFromFileHandle2), en hexadecimal minuscule. Sert a journaliser une DLL
+/// sans son chemin (SEC-14).
+[[nodiscard]] Result<std::string> authenticodeSha256(const std::filesystem::path& file);
+
 } // namespace enh::pipeline::rtxvideo

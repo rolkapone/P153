@@ -245,13 +245,7 @@ protected:
 
     static UpscaleRequest request(const CudaRgbImage& in, const CudaRgbImage& out,
                                   UpscaleQuality q) {
-        UpscaleRequest r;
-        r.input_texture = in.texture();
-        r.input_size_px = in.size();
-        r.output_surface = out.surface();
-        r.output_size_px = out.size();
-        r.quality = q;
-        return r;
+        return gpu::makeUpscaleRequest(in, out, q);
     }
 
     static void* context_;
@@ -426,6 +420,67 @@ TEST_F(ENH040, MiseAJourNgx_ProcessusBloque_Trace) {
     }
 }
 
+/// Rappel de journal instrumente : compte les appels recus APRES le retour de l'echec.
+struct LogProbe {
+    std::atomic<bool> closed{false};
+    std::atomic<int> lines{0};
+    std::atomic<int> after_close{0};
+};
+
+void RVB_CALL probeLog(void* user, std::uint32_t /*level*/, const char* /*message*/) {
+    auto* probe = static_cast<LogProbe*>(user);
+    probe->lines.fetch_add(1);
+    if (probe->closed.load()) {
+        probe->after_close.fetch_add(1);
+    }
+}
+
+TEST_F(ENH040, InitNgxEchouee_PontOublieLeRappel_PuisCreationReussie) {
+    // Revue ENH-040 cycle 1 (bloquant) : un rvb_runtime_create rate ne doit garder ni runtime ni
+    // pointeur de journal (l'application libere son contexte de journal au retour).
+    auto lib = rtxvideo::BridgeLibrary::load(exeDir() / rtxvideo::kBridgeDllName);
+    ASSERT_TRUE(lib) << lib.error().detail;
+    // Echec provoque : dossier de donnees absent (le pont l exige existant et inscriptible).
+    const std::wstring data = (ngxDataDir() / L"absent-enh040").wstring();
+    std::error_code ec;
+    fs::remove_all(ngxDataDir() / L"absent-enh040", ec);
+    LogProbe probe; // vivant pendant tout le test : un defaut se voit sans plantage
+    rvb_init_params params{};
+    params.struct_size = sizeof params;
+    params.log_level = RVB_LOG_VERBOSE;
+    params.data_path = data.c_str();
+    params.cu_context = context_;
+    params.log_fn = probeLog;
+    params.log_user = &probe;
+    rvb_runtime* rt = nullptr;
+    const rvb_result r = lib->api().runtime_create(&params, &rt);
+    probe.closed.store(true);
+    std::cout << "[ENH-040] init NGX sur dossier absent : " << rtxvideo::resultName(r) << '\n';
+    if (rtxvideo::succeeded(r)) {
+        (void)lib->api().runtime_destroy(rt);
+        FAIL() << "l'init aurait du echouer";
+    }
+    EXPECT_EQ(rt, nullptr);
+    EXPECT_EQ(rtxvideo::bridgeFailure(r, "init").code, PipelineErrorCode::WriteDenied);
+    std::this_thread::sleep_for(std::chrono::milliseconds(200));
+    EXPECT_EQ(probe.after_close.load(), 0) << "rappel appele apres l'echec (pointeur pendant)";
+
+    // Le pont n'a garde ni runtime (sinon Busy) ni ancien rappel : creation normale, journal
+    // detaille actif, et la sonde de l'echec n'est plus jamais appelee.
+    rtxvideo::RtxVideoUpscalerConfig cfg;
+    cfg.ngx_data_dir = ngxDataDir();
+    cfg.cu_context = context_;
+    cfg.cu_stream = stream_.get();
+    cfg.log_level = rtxvideo::NgxLogLevel::Verbose;
+    auto up = RtxVideoUpscaler::create(cfg);
+    ASSERT_TRUE(up) << up.error().detail;
+    auto in = CudaRgbImage::create(kIn, RgbFormat::Argb8);
+    auto out = CudaRgbImage::create(kOut, RgbFormat::Argb8);
+    ASSERT_TRUE(in && out);
+    ASSERT_TRUE((*up)->upscale(request(*in, *out, UpscaleQuality::Ultra)));
+    ASSERT_EQ(cudaStreamSynchronize(stream()), cudaSuccess);
+    EXPECT_EQ(probe.after_close.load(), 0);
+}
 /// Fichiers (nom, taille, date) sous un dossier : comparaison avant / apres.
 std::map<std::wstring, std::pair<std::uintmax_t, fs::file_time_type>>
 snapshot(const fs::path& dir) {

@@ -7,16 +7,18 @@
 //   4. capacites VSR (disponible ? pilote assez recent ?) ;
 //   5. effet VSR sur le contexte / flux CUDA du pipeline ;
 //   6. la DLL de fonction que NGX dit executer = nvngx_vsr.dll livree (meme fichier ou copie
-//      identique octet pour octet dans le magasin NGX), sinon refus (require_shipped_snippet).
+//      identique dans le magasin NGX, ou autre DLL signee NVIDIA avec avertissement), sinon refus.
 // Les etapes 3 et 5 se font processus enfants interdits (pas de nvngx_update.exe, ngx_guard.hpp).
 // Tout echec rend une PipelineError (aucune exception, aucun plantage) et libere ce qui a ete cree.
 
 #include "enh/pipeline/rtxvideo/bridge_library.hpp"
+#include "enh/pipeline/rtxvideo/module_trust.hpp"
 #include "enh/pipeline/rtxvideo/ngx_runtime.hpp"
 #include "enh/pipeline/stage/upscaler.hpp"
 
 #include <cstdint>
 #include <filesystem>
+#include <functional>
 #include <memory>
 #include <optional>
 #include <string>
@@ -30,31 +32,42 @@ struct RtxVideoUpscalerConfig {
     void* cu_context = nullptr;         // CUcontext (obligatoire)
     void* cu_stream = nullptr;          // CUstream du traitement
     NgxLogLevel log_level = NgxLogLevel::Off;
-    /// true : refuser (ComponentMissing) si NGX execute une DLL de fonction dont le contenu
-    /// differe de nvngx_vsr.dll livree, ou s'il ne dit pas laquelle il execute (SEC-01).
-    bool require_shipped_snippet = true;
 };
 
-/// Origine de la DLL de fonction VSR reellement executee par NGX.
+/// Origine de la DLL de fonction VSR que NGX dit executer (decision PO du 2026-10-24) :
+/// acceptee si c'est la notre, une copie identique, ou une autre DLL signee « NVIDIA
+/// Corporation » (avertissement au journal) ; refusee sinon. C'est une DETECTION APRES
+/// CHARGEMENT : le refus empeche de traiter des images, pas l'execution deja faite par NGX.
 enum class SnippetSource : std::uint8_t {
-    Unknown,           // NGX ne l'a pas annoncee dans son journal
+    Unknown,           // NGX ne l'a pas annoncee dans son journal : refus
     AppFolder,         // nvngx_vsr.dll du dossier de l'application
     NgxStoreIdentical, // copie rangee par NGX dans %ProgramData%\NVIDIA\NGX, octet pour octet
-    Foreign,           // autre contenu (mise a jour NGX) : refuse par defaut
+    NvidiaSignedOther, // autre DLL (mise a jour NGX) signee NVIDIA : acceptee, avertissement
+    Untrusted,         // autre DLL non signee, signataire autre ou signature invalide : refus
 };
 [[nodiscard]] std::string_view toString(SnippetSource s) noexcept;
 
 struct VsrProvenance {
     SnippetSource source = SnippetSource::Unknown;
     std::string version;                       // version annoncee par NGX (ex. "1.6.0")
+    std::string fingerprint;                   // NvidiaSignedOther : empreinte Authenticode SHA-256
     bool updater_blocked = false;              // processus enfants interdits pendant l'init
     std::uint32_t child_processes_created = 0; // depuis le rattachement au Job Object (0 attendu)
 };
 
+/// Fonctions de controle injectables (tests sans GPU ni fichier signe NVIDIA).
+struct SnippetCheckers {
+    std::function<Result<std::wstring>(const std::filesystem::path&)> signer =
+        verifyAuthenticodeOffline;
+    std::function<Result<std::string>(const std::filesystem::path&)> fingerprint =
+        authenticodeSha256;
+};
+
 /// Etape 6, testable sans GPU : origine de la DLL annoncee par NGX, comparee a `shipped`.
+/// Refus : ComponentMissing{RtxVideoFeatureUntrusted}, detail prefixe « VsrFeatureUntrusted: ».
 [[nodiscard]] Result<VsrProvenance> verifyVsrSnippet(const NgxSnippetInfo& snippet,
                                                      const std::filesystem::path& shipped,
-                                                     bool require_shipped);
+                                                     const SnippetCheckers& checkers = {});
 
 /// %LOCALAPPDATA%\Enhance\ngx (dossier de donnees NGX de l'application).
 [[nodiscard]] Result<std::filesystem::path> defaultNgxDataDir();

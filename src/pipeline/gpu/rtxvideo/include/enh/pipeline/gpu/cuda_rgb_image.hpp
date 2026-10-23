@@ -51,4 +51,19 @@ private:
     RgbFormat format_ = RgbFormat::Argb8;
 };
 
+/// Requete de super-resolution construite A PARTIR des images reelles (tailles et poignees
+/// coherentes par construction : pas de rectangle plus grand que l image, donc pas d ecriture hors
+/// bornes).
+[[nodiscard]] inline UpscaleRequest makeUpscaleRequest(const CudaRgbImage& in,
+                                                       const CudaRgbImage& out,
+                                                       UpscaleQuality quality) noexcept {
+    UpscaleRequest r;
+    r.input_texture = in.texture();
+    r.input_size_px = in.size();
+    r.output_surface = out.surface();
+    r.output_size_px = out.size();
+    r.quality = quality;
+    return r;
+}
+
 } // namespace enh::pipeline::gpu

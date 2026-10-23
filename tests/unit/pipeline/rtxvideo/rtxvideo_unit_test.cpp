@@ -2,6 +2,7 @@
 // erreur, deplacement), traduction des codes NGX, chargement de DLL (vraie DLL factice), controle
 // des modules et des chemins, signature, contrat IUpscaler (faux et vrai upscaler sur faux pont).
 
+#include "enh/pipeline/core/log.hpp"
 #include "enh/pipeline/rtxvideo/bridge_library.hpp"
 #include "enh/pipeline/rtxvideo/module_trust.hpp"
 #include "enh/pipeline/rtxvideo/ngx_runtime.hpp"
@@ -455,7 +456,7 @@ TEST_F(RtxVideoUnit, JournalNgx_LuEnMemoireViaLePont) {
     EXPECT_EQ(rt->vsrSnippet().version, "1.6.0");
 }
 
-TEST(RtxVideoNgxGuard, DllDeFonction_OrigineVerifiee) {
+TEST(RtxVideoNgxGuard, DllDeFonction_OrigineVerifiee_DecisionPo) {
     const fs::path dir = tempDir("snippet");
     const fs::path shipped = dir / L"app" / L"nvngx_vsr.dll";
     const fs::path store_same = dir / L"store" / L"160_E658703.bin";
@@ -466,30 +467,74 @@ TEST(RtxVideoNgxGuard, DllDeFonction_OrigineVerifiee) {
     std::ofstream(store_same, std::ios::binary) << "snippet v1.6.0";
     std::ofstream(store_other, std::ios::binary) << "snippet v1.7.0";
 
-    auto app = rtxvideo::verifyVsrSnippet({.path = shipped, .version = "1.6.0"}, shipped, true);
+    // Signature simulee (aucun fichier signe NVIDIA en CI).
+    const auto signedBy = [](const std::wstring& who) {
+        rtxvideo::SnippetCheckers c;
+        // NOLINTNEXTLINE(bugprone-exception-escape) : faux de test, copie de chaine
+        c.signer = [who](const fs::path&) -> Result<std::wstring> { return who; };
+        c.fingerprint = [](const fs::path&) -> Result<std::string> { return std::string("ab12"); };
+        return c;
+    };
+    rtxvideo::SnippetCheckers unsigned_file;
+    unsigned_file.signer = [](const fs::path&) -> Result<std::wstring> {
+        return fail(PipelineErrorCode::ComponentMissing, "not signed", 0x800B0100);
+    };
+
+    auto app = rtxvideo::verifyVsrSnippet({.path = shipped, .version = "1.6.0"}, shipped);
     ASSERT_TRUE(app);
     EXPECT_EQ(app->source, rtxvideo::SnippetSource::AppFolder);
 
-    auto same = rtxvideo::verifyVsrSnippet({.path = store_same, .version = "1.6.0"}, shipped, true);
+    auto same = rtxvideo::verifyVsrSnippet({.path = store_same, .version = "1.6.0"}, shipped);
     ASSERT_TRUE(same);
     EXPECT_EQ(same->source, rtxvideo::SnippetSource::NgxStoreIdentical);
 
-    auto other =
-        rtxvideo::verifyVsrSnippet({.path = store_other, .version = "1.7.0"}, shipped, true);
-    ASSERT_FALSE(other); // mise a jour NGX : refusee (SEC-01)
-    EXPECT_EQ(other.error().code, PipelineErrorCode::ComponentMissing);
-    EXPECT_EQ(other.error().component, Component::RtxVideoSdk);
-    EXPECT_EQ(other.error().detail.find("store\\"), std::string::npos); // aucun chemin
+    // Autre DLL signee NVIDIA : acceptee, avertissement au journal (version + empreinte, sans
+    // chemin).
+    std::vector<std::string> warnings;
+    // NOLINTNEXTLINE(bugprone-easily-swappable-parameters) : signature imposee par LogSink
+    setLogSink([&](LogLevel level, std::string_view code, std::string_view msg) {
+        if (level == LogLevel::Warn && code == "VsrFeatureNotShipped") {
+            warnings.emplace_back(msg);
+        }
+    });
+    auto nvidia = rtxvideo::verifyVsrSnippet({.path = store_other, .version = "1.7.0"}, shipped,
+                                             signedBy(L"NVIDIA Corporation"));
+    setLogSink({});
+    ASSERT_TRUE(nvidia);
+    EXPECT_EQ(nvidia->source, rtxvideo::SnippetSource::NvidiaSignedOther);
+    EXPECT_EQ(nvidia->fingerprint, "ab12");
+    ASSERT_EQ(warnings.size(), 1U);
+    EXPECT_NE(warnings.front().find("1.7.0"), std::string::npos);
+    EXPECT_NE(warnings.front().find("ab12"), std::string::npos);
+    EXPECT_EQ(warnings.front().find("store"), std::string::npos); // aucun chemin
 
-    auto tolerated =
-        rtxvideo::verifyVsrSnippet({.path = store_other, .version = "1.7.0"}, shipped, false);
-    ASSERT_TRUE(tolerated);
-    EXPECT_EQ(tolerated->source, rtxvideo::SnippetSource::Foreign);
+    // Autre signataire, ou non signee : refus, erreur distincte et stable.
+    for (const auto& checkers : {signedBy(L"Contoso Ltd"), unsigned_file}) {
+        auto r = rtxvideo::verifyVsrSnippet({.path = store_other, .version = "1.7.0"}, shipped,
+                                            checkers);
+        ASSERT_FALSE(r);
+        EXPECT_EQ(r.error().code, PipelineErrorCode::ComponentMissing);
+        EXPECT_EQ(r.error().component, Component::RtxVideoFeatureUntrusted);
+        EXPECT_TRUE(r.error().detail.starts_with("VsrFeatureUntrusted: "));
+        EXPECT_EQ(r.error().detail.find("store"), std::string::npos);
+    }
 
-    EXPECT_FALSE(rtxvideo::verifyVsrSnippet({}, shipped, true)); // NGX muet : refus
-    auto unknown = rtxvideo::verifyVsrSnippet({}, shipped, false);
-    ASSERT_TRUE(unknown);
-    EXPECT_EQ(unknown->source, rtxvideo::SnippetSource::Unknown);
+    // NGX n'annonce pas sa DLL : refus.
+    auto silent = rtxvideo::verifyVsrSnippet({}, shipped, signedBy(L"NVIDIA Corporation"));
+    ASSERT_FALSE(silent);
+    EXPECT_EQ(silent.error().component, Component::RtxVideoFeatureUntrusted);
+}
+
+TEST(RtxVideoModules, EmpreinteAuthenticode_Sha256) {
+    std::array<wchar_t, MAX_PATH> sys{};
+    ASSERT_GT(GetSystemDirectoryW(sys.data(), MAX_PATH), 0U);
+    auto h = rtxvideo::authenticodeSha256(fs::path(sys.data()) / L"version.dll");
+    ASSERT_TRUE(h) << h.error().detail;
+    EXPECT_EQ(h->size(), 64U);
+    auto again = rtxvideo::authenticodeSha256(fs::path(sys.data()) / L"version.dll");
+    ASSERT_TRUE(again);
+    EXPECT_EQ(*h, *again);
+    EXPECT_FALSE(rtxvideo::authenticodeSha256(tempDir("fp") / L"absent.dll"));
 }
 
 /// Lance `cmd.exe /c exit 0` ; true si le processus a pu etre cree.

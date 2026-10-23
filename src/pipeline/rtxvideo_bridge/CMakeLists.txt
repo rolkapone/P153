@@ -13,12 +13,15 @@ set_target_properties(enh_rtxvideo_bridge PROPERTIES
 target_compile_definitions(enh_rtxvideo_bridge PRIVATE NOMINMAX WIN32_LEAN_AND_MEAN)
 target_include_directories(enh_rtxvideo_bridge PRIVATE include)
 target_include_directories(enh_rtxvideo_bridge SYSTEM PRIVATE "${_enh_rtx}/include")
-# cuda.lib (nvcuda.dll) ; nvsdk_ngx_s.lib importe aussi advapi32 / user32 / shell32.
+# cuda.lib de CUDA 13 : bibliotheque statique qui charge nvcuda.dll a l execution (AUCUN import
+# statique de nvcuda.dll : dumpbin = ADVAPI32, USER32, KERNEL32) ; nvcuda.dll est donc trouvee parce
+# qu elle a ete prechargee depuis System32 (preloadNvidiaDriverDlls).
 target_link_libraries(enh_rtxvideo_bridge PRIVATE
   CUDA::cuda_driver
   "${_enh_rtx}/lib/Windows/x64/nvsdk_ngx_s.lib"
   advapi32 user32 shell32)
-# SEC-08 : les imports statiques du pont (nvcuda.dll...) ne sont resolus que dans System32.
+# SEC-08, defense en profondeur : les imports statiques du pont (aujourd hui des DLL connues de
+# Windows seulement) ne seraient resolus que dans System32.
 target_link_options(enh_rtxvideo_bridge PRIVATE /DEPENDENTLOADFLAG:0x800)
 # Garde-fou : aucun cudart ne doit entrer dans le pont (cause du bloquant B4).
 get_target_property(_enh_bridge_libs enh_rtxvideo_bridge LINK_LIBRARIES)

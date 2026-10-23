@@ -151,8 +151,7 @@ RtxVideoUpscaler::create(const RtxVideoUpscalerConfig& config) {
 
     // 6. Le code reellement execute est celui livre (meme fichier, ou copie identique rangee par
     //    NGX dans son magasin), et aucun processus de mise a jour n'a ete lance.
-    auto provenance = verifyVsrSnippet(upscaler->runtime_.vsrSnippet(), feature_dll,
-                                       config.require_shipped_snippet);
+    auto provenance = verifyVsrSnippet(upscaler->runtime_.vsrSnippet(), feature_dll);
     if (!provenance) {
         return enh::Unexpected<PipelineError>(std::move(provenance.error())); // upscaler detruit
     }
@@ -170,32 +169,41 @@ RtxVideoUpscaler::create(const RtxVideoUpscalerConfig& config) {
 }
 
 Result<VsrProvenance> verifyVsrSnippet(const NgxSnippetInfo& snippet, const fs::path& shipped,
-                                       bool require_shipped) {
+                                       const SnippetCheckers& checkers) {
     VsrProvenance p;
     p.version = snippet.version;
-    if (snippet.path.empty()) {
-        p.source = SnippetSource::Unknown;
-    } else if (sameFile(snippet.path, shipped)) {
-        p.source = SnippetSource::AppFolder;
-    } else {
-        auto same = sameContent(snippet.path, shipped);
-        p.source = same && *same ? SnippetSource::NgxStoreIdentical : SnippetSource::Foreign;
-    }
-    const bool trusted =
-        p.source == SnippetSource::AppFolder || p.source == SnippetSource::NgxStoreIdentical;
-    if (!trusted && require_shipped) {
-        PipelineError e = makeError(
-            PipelineErrorCode::ComponentMissing,
-            p.source == SnippetSource::Unknown
-                ? "NGX did not report the VSR feature DLL in use"
-                : "VSR feature DLL in use differs from the shipped one (NGX store, version " +
-                      p.version + ")");
-        e.component = Component::RtxVideoSdk;
+    const auto refuse = [](std::string reason) {
+        PipelineError e = makeError(PipelineErrorCode::ComponentMissing,
+                                    "VsrFeatureUntrusted: " + std::move(reason));
+        e.component = Component::RtxVideoFeatureUntrusted; // distinct de « SDK absent »
         return enh::Unexpected<PipelineError>(std::move(e));
+    };
+    if (snippet.path.empty()) {
+        return refuse("NGX did not report the VSR feature DLL in use");
     }
-    if (!trusted) {
-        logLine(LogLevel::Warn, "VsrSnippetNotShipped", toString(p.source));
+    if (sameFile(snippet.path, shipped)) {
+        p.source = SnippetSource::AppFolder;
+        return p;
     }
+    if (auto same = sameContent(snippet.path, shipped); same && *same) {
+        p.source = SnippetSource::NgxStoreIdentical;
+        return p;
+    }
+    // Autre DLL (mise a jour NGX) : acceptee seulement si signee NVIDIA (decision PO 2026-10-24).
+    auto signer = checkers.signer(snippet.path);
+    if (!signer) {
+        return refuse("feature DLL " + p.version + " has no valid signature (" +
+                      std::to_string(signer.error().native_code) + ")");
+    }
+    if (*signer != kNvidiaSigner) {
+        return refuse("feature DLL " + p.version + " is not signed by NVIDIA");
+    }
+    p.source = SnippetSource::NvidiaSignedOther;
+    auto fingerprint = checkers.fingerprint(snippet.path);
+    p.fingerprint = fingerprint ? *fingerprint : std::string("unavailable");
+    logLine(LogLevel::Warn, "VsrFeatureNotShipped",
+            "NVIDIA-signed VSR feature DLL " + p.version + " (not the shipped one), sha256 " +
+                p.fingerprint);
     return p;
 }
 
@@ -205,8 +213,10 @@ std::string_view toString(SnippetSource s) noexcept {
         return "AppFolder";
     case SnippetSource::NgxStoreIdentical:
         return "NgxStoreIdentical";
-    case SnippetSource::Foreign:
-        return "Foreign";
+    case SnippetSource::NvidiaSignedOther:
+        return "NvidiaSignedOther";
+    case SnippetSource::Untrusted:
+        return "Untrusted";
     case SnippetSource::Unknown:
         break;
     }
