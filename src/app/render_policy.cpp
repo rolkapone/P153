@@ -95,13 +95,14 @@ void RenderPolicy::attachWindow(QQuickWindow* window) {
         return;
     }
     window_ = window;
-    // Le rappel tourne sur le thread de rendu : la mesure est postee au thread de l'interface.
-    // Le contexte `this` annule l'appel si la politique a ete detruite entre-temps.
-    timer_ = std::make_unique<GpuFrameTimer>([this](double ms) {
-        QMetaObject::invokeMethod(
-            this, [this, ms] { reportGpuFrameTime(ms); }, Qt::QueuedConnection);
-    });
-    GpuFrameTimer* timer = timer_.get();
+    // Thread de rendu : les trois connexions directes ci-dessous ; chacune capture le
+    // shared_ptr PAR VALEUR, donc une image en cours garde le minuteur vivant meme si
+    // detachWindow() est appele au meme moment depuis le thread de l'interface. Aucune de ces
+    // fonctions ne touche `this` : la politique peut etre detruite sans risque.
+    // Thread de l'interface : les mesures sont relevees apres chaque image affichee
+    // (connexion en file d'attente, annulee automatiquement si `this` est detruit).
+    timer_ = std::make_shared<GpuFrameTimer>();
+    const std::shared_ptr<GpuFrameTimer> timer = timer_;
     beforeConnection_ = connect(
         window, &QQuickWindow::beforeRendering, window,
         [timer, window] { timer->beginFrame(window); }, Qt::DirectConnection);
@@ -111,13 +112,26 @@ void RenderPolicy::attachWindow(QQuickWindow* window) {
     invalidatedConnection_ = connect(
         window, &QQuickWindow::sceneGraphInvalidated, window, [timer] { timer->release(); },
         Qt::DirectConnection);
+    swappedConnection_ = connect(window, &QQuickWindow::frameSwapped, this,
+                                 &RenderPolicy::collectGpuResults, Qt::QueuedConnection);
+}
+
+void RenderPolicy::collectGpuResults() {
+    if (!timer_) {
+        return;
+    }
+    for (const double ms : timer_->takeResults()) {
+        reportGpuFrameTime(ms);
+    }
 }
 
 void RenderPolicy::detachWindow() {
     disconnect(beforeConnection_);
     disconnect(afterConnection_);
     disconnect(invalidatedConnection_);
+    disconnect(swappedConnection_);
     window_.clear();
+    // Derniere reference cote interface ; une image deja lancee garde la sienne jusqu'a la fin.
     timer_.reset();
 }
 

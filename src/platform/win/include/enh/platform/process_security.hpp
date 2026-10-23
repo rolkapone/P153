@@ -4,6 +4,7 @@
 // Couche Win32 sans Qt.
 
 #include <filesystem>
+#include <optional>
 #include <vector>
 
 namespace enh::platform {
@@ -25,8 +26,9 @@ bool hardenDllSearchPath() noexcept;
 /// Dossier Windows (GetWindowsDirectoryW).
 [[nodiscard]] std::filesystem::path windowsDirectory();
 
-/// Chemins complets de tous les modules (exe et DLL) charges dans le processus courant.
-[[nodiscard]] std::vector<std::filesystem::path> loadedModulePaths();
+/// Chemins complets de tous les modules (exe et DLL) charges dans le processus courant ;
+/// nullopt si la liste n'a pas pu etre etablie completement (jamais de liste partielle).
+[[nodiscard]] std::optional<std::vector<std::filesystem::path>> loadedModulePaths();
 
 /// Dossiers de confiance pour le chargement des modules.
 struct TrustedModuleRoots {
@@ -55,8 +57,8 @@ enum class ModuleOrigin {
 [[nodiscard]] bool isTrustedModulePath(const std::filesystem::path& module,
                                        const TrustedModuleRoots& roots);
 
-/// Modules charges dont l'origine est `origin`.
-[[nodiscard]] std::vector<std::filesystem::path>
+/// Modules charges dont l'origine est `origin` ; nullopt si la liste est incomplete.
+[[nodiscard]] std::optional<std::vector<std::filesystem::path>>
 loadedModulesWithOrigin(const TrustedModuleRoots& roots, ModuleOrigin origin);
 
 /// Dossiers de confiance du processus courant.

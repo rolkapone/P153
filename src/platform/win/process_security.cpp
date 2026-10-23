@@ -8,6 +8,7 @@
 #include <algorithm>
 #include <cwctype>
 #include <memory>
+#include <optional>
 #include <string>
 #include <string_view>
 #include <type_traits>
@@ -110,35 +111,50 @@ std::filesystem::path windowsDirectory() {
     });
 }
 
-std::vector<std::filesystem::path> loadedModulePaths() {
+std::optional<std::vector<std::filesystem::path>> loadedModulePaths() {
     void* const process = ::GetCurrentProcess(); // pseudo-handle HANDLE : rien a fermer
-    std::vector<HMODULE> modules(256);
-    for (int attempt = 0; attempt < 4; ++attempt) {
-        DWORD needed = 0;
-        const auto bytes = static_cast<DWORD>(modules.size() * sizeof(HMODULE));
-        if (::EnumProcessModulesEx(process, modules.data(), bytes, &needed, LIST_MODULES_ALL) ==
-            FALSE) {
-            return {};
+    // Une DLL peut etre chargee ou dechargee pendant l'enumeration : on recommence la liste
+    // entiere (au plus kAttempts fois) plutot que de rendre une liste incomplete.
+    constexpr int kAttempts = 4;
+    for (int attempt = 0; attempt < kAttempts; ++attempt) {
+        std::vector<HMODULE> modules(256);
+        bool listed = false;
+        for (int grow = 0; grow < kAttempts; ++grow) {
+            DWORD needed = 0;
+            const auto bytes = static_cast<DWORD>(modules.size() * sizeof(HMODULE));
+            if (::EnumProcessModulesEx(process, modules.data(), bytes, &needed, LIST_MODULES_ALL) ==
+                FALSE) {
+                return std::nullopt;
+            }
+            const std::size_t count = needed / sizeof(HMODULE);
+            if (count <= modules.size()) {
+                modules.resize(count);
+                listed = true;
+                break;
+            }
+            modules.resize(count + 32); // des DLL ont ete chargees entre deux appels
         }
-        const std::size_t count = needed / sizeof(HMODULE);
-        if (count <= modules.size()) {
-            modules.resize(count);
-            break;
+        if (!listed) {
+            continue;
         }
-        modules.resize(count + 32); // des DLL ont ete chargees entre deux appels
-    }
-
-    std::vector<std::filesystem::path> paths;
-    paths.reserve(modules.size());
-    for (HMODULE m : modules) {
-        std::wstring name = readGrowingString([process, m](wchar_t* buf, DWORD cap) {
-            return ::GetModuleFileNameExW(process, m, buf, cap);
-        });
-        if (!name.empty()) {
+        std::vector<std::filesystem::path> paths;
+        paths.reserve(modules.size());
+        bool complete = true;
+        for (HMODULE m : modules) {
+            std::wstring name = readGrowingString([process, m](wchar_t* buf, DWORD cap) {
+                return ::GetModuleFileNameExW(process, m, buf, cap);
+            });
+            if (name.empty()) {
+                complete = false; // module decharge entre-temps, ou chemin illisible
+                break;
+            }
             paths.emplace_back(std::move(name));
         }
+        if (complete) {
+            return paths;
+        }
     }
-    return paths;
+    return std::nullopt;
 }
 
 ModuleOrigin classifyModulePath(const std::filesystem::path& module,
@@ -167,10 +183,14 @@ bool isTrustedModulePath(const std::filesystem::path& module, const TrustedModul
     return classifyModulePath(module, roots) == ModuleOrigin::Trusted;
 }
 
-std::vector<std::filesystem::path> loadedModulesWithOrigin(const TrustedModuleRoots& roots,
-                                                           ModuleOrigin origin) {
+std::optional<std::vector<std::filesystem::path>>
+loadedModulesWithOrigin(const TrustedModuleRoots& roots, ModuleOrigin origin) {
+    auto all = loadedModulePaths();
+    if (!all) {
+        return std::nullopt;
+    }
     std::vector<std::filesystem::path> result;
-    for (auto& path : loadedModulePaths()) {
+    for (auto& path : *all) {
         if (classifyModulePath(path, roots) == origin) {
             result.push_back(std::move(path));
         }

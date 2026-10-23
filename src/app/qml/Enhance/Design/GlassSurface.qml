@@ -98,6 +98,9 @@ Item {
         property variant source: surface.backdrop
         // Position de la surface dans la capture ; recalculee quand la geometrie change (pas
         // pendant le ressort : l'echelle s'applique au rendu, pas a la zone lue).
+        // mapToItem() n'est pas « observable » par le moteur QML : les lignes `void (a + b)`
+        // lisent les tailles uniquement pour les declarer comme dependances de la liaison (elle
+        // est reevaluee quand l'une d'elles change), sans utiliser la valeur.
         property point origin: {
             void (surface.width + surface.height + glass.dpr);
             if (!surface.backdropItem)

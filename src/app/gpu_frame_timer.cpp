@@ -41,9 +41,22 @@ struct GpuFrameTimer::D3D {
     Slot* open = nullptr; // requete commencee dans beginFrame, a terminer dans endFrame
 };
 
-GpuFrameTimer::GpuFrameTimer(ResultCallback onResult) : onResult_(std::move(onResult)) {}
+GpuFrameTimer::GpuFrameTimer() = default;
 
 GpuFrameTimer::~GpuFrameTimer() = default;
+
+void GpuFrameTimer::pushResult(double milliseconds) {
+    const std::scoped_lock lock(resultsMutex_);
+    if (results_.size() >= kMaxPending) {
+        results_.erase(results_.begin()); // personne ne lit : on garde les plus recentes
+    }
+    results_.push_back(milliseconds);
+}
+
+std::vector<double> GpuFrameTimer::takeResults() {
+    const std::scoped_lock lock(resultsMutex_);
+    return std::exchange(results_, {});
+}
 
 void GpuFrameTimer::beginFrame(QQuickWindow* window) {
     if (unsupported_ || window == nullptr) {
@@ -95,8 +108,8 @@ void GpuFrameTimer::beginFrame(QQuickWindow* window) {
             continue; // pas encore pret : on reessaiera a l'image suivante
         }
         s.pending = false;
-        if (dj.Disjoint == FALSE && dj.Frequency > 0 && t1 >= t0 && onResult_) {
-            onResult_(static_cast<double>(t1 - t0) * 1000.0 / static_cast<double>(dj.Frequency));
+        if (dj.Disjoint == FALSE && dj.Frequency > 0 && t1 >= t0) {
+            pushResult(static_cast<double>(t1 - t0) * 1000.0 / static_cast<double>(dj.Frequency));
         }
     }
 

@@ -6,6 +6,9 @@
 
 #include <QGuiApplication>
 #include <QPalette>
+#include <QQmlComponent>
+#include <QQmlEngine>
+#include <QQuickWindow>
 #include <QSignalSpy>
 #include <QTest>
 
@@ -21,6 +24,10 @@ class PresentationTest : public QObject {
     Q_OBJECT
 
 private slots:
+    // La palette de l'application est globale : chaque test repart de la palette d'origine.
+    void initTestCase() { originalPalette_ = QGuiApplication::palette(); }
+    void cleanup() { QGuiApplication::setPalette(originalPalette_); }
+
     // ------------------------------------------------------------- DemoCounter
     void compteurExposeUnePropriete() {
         DemoCounterModel model;
@@ -171,6 +178,42 @@ private slots:
         policy.setCaptionColor(QColor(0x1B, 0x1B, 0x1E));
         QCOMPARE(spy.count(), 1);
     }
+
+    // B1 (revue cycle 1) : debrancher ou detruire la politique pendant que la fenetre rend des
+    // images en continu ne doit rien casser (minuteur partage par shared_ptr).
+    void fermeturePendantLeRendu() {
+        QQmlEngine engine;
+        QQmlComponent component(&engine);
+        component.setData(R"(
+            import QtQuick
+            Window {
+                width: 200; height: 120; visible: true
+                Rectangle {
+                    width: 40; height: 40; color: "red"
+                    RotationAnimator on rotation { from: 0; to: 360; duration: 300; loops: Animation.Infinite }
+                }
+            })",
+                          QUrl());
+        for (int round = 0; round < 10; ++round) {
+            std::unique_ptr<QObject> root(component.create());
+            auto* window = qobject_cast<QQuickWindow*>(root.get());
+            QVERIFY2(window != nullptr, qPrintable(component.errorString()));
+            QVERIFY(QTest::qWaitForWindowExposed(window));
+            {
+                auto policy = std::make_unique<RenderPolicy>();
+                policy->attachWindow(window);
+                QTest::qWait(20);
+                if (round % 2 == 0) {
+                    policy->detachWindow(); // debranchement explicite, fenetre visible
+                }
+            } // destruction de la politique pendant le rendu
+            QTest::qWait(20);
+            window->hide();
+        }
+    }
+
+private:
+    QPalette originalPalette_;
 };
 
 QTEST_MAIN(PresentationTest)

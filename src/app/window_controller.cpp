@@ -117,11 +117,12 @@ void WindowController::applyChrome() {
 }
 
 void WindowController::reveal() {
+    // Appele par la premiere image ou par le filet de securite : le premier gagne.
     disconnect(firstFrame_); // sans effet si deja deconnecte
-    if (!cloak_ || !cloak_->cloaked()) {
-        return;
+    if (cloak_) {
+        cloak_->reveal(); // sans effet si le masquage avait echoue ou est deja leve
     }
-    cloak_->reveal();
+    // Le rappel part une seule fois, que le masquage ait reussi ou non.
     if (onRevealed_) {
         std::exchange(onRevealed_, {})();
     }

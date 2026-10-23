@@ -49,27 +49,36 @@ void dropPathOverrides() {
 }
 
 // --check-modules : liste sur la sortie d'erreur les modules charges hors des dossiers de
-// confiance (SEC-08). Code de sortie : 0 conforme, 3 sinon. Les modules injectes depuis
+// confiance (SEC-08). Codes de sortie : 0 conforme ; 3 module hors confiance ou liste des modules
+// illisible ; 5 durcissement du chargement des DLL en echec. Les modules injectes depuis
 // Program Files (antivirus...) sont signales sans faire echouer la verification.
-int reportUntrustedModules() {
+int reportUntrustedModules(bool dllSearchHardened) {
     using enh::platform::ModuleOrigin;
+    if (!dllSearchHardened) {
+        std::fwprintf(stderr, L"ECHEC : SetDefaultDllDirectories / SetDllDirectoryW a echoue.\n");
+        return 5;
+    }
     const auto roots = enh::platform::currentTrustedModuleRoots();
     const auto injected =
         enh::platform::loadedModulesWithOrigin(roots, ModuleOrigin::ProtectedThirdParty);
     const auto untrusted = enh::platform::loadedModulesWithOrigin(roots, ModuleOrigin::Untrusted);
-    for (const auto& path : injected) {
+    if (!injected || !untrusted) {
+        std::fwprintf(stderr, L"ECHEC : liste des modules charges incomplete ou illisible.\n");
+        return 3;
+    }
+    for (const auto& path : *injected) {
         std::fwprintf(stderr, L"Note : module injecte par un logiciel installe : %ls\n",
                       path.wstring().c_str());
     }
-    for (const auto& path : untrusted) {
+    for (const auto& path : *untrusted) {
         std::fwprintf(stderr, L"ECHEC : module hors des dossiers de confiance : %ls\n",
                       path.wstring().c_str());
     }
-    std::fwprintf(stderr, L"%zu module(s) hors des dossiers de confiance.\n", untrusted.size());
-    return untrusted.empty() ? 0 : 3;
+    std::fwprintf(stderr, L"%zu module(s) hors des dossiers de confiance.\n", untrusted->size());
+    return untrusted->empty() ? 0 : 3;
 }
 
-int runApplication(int argc, char** argv) {
+int runApplication(int argc, char** argv, bool dllSearchHardened) {
     const std::vector<std::string_view> args(argv + (argc > 0 ? 1 : 0), argv + argc);
     const enh::app::AppOptions options = enh::app::parseAppOptions(args);
 
@@ -114,7 +123,9 @@ int runApplication(int argc, char** argv) {
 
     enh::app::WindowController controller(*window, *appearance, *policy);
     if (options.checkModules) {
-        controller.show([] { QCoreApplication::exit(reportUntrustedModules()); });
+        controller.show([dllSearchHardened] {
+            QCoreApplication::exit(reportUntrustedModules(dllSearchHardened));
+        });
         constexpr int kCheckTimeoutMs = 10'000;
         QTimer::singleShot(kCheckTimeoutMs, &app, [] { QCoreApplication::exit(4); });
     } else {
@@ -122,7 +133,10 @@ int runApplication(int argc, char** argv) {
     }
 
     const int rc = QGuiApplication::exec();
-    policy->detachWindow(); // plus aucune image : on debranche la mesure GPU avant la fenetre
+    // Fermeture : 1) masquer la fenetre arrete son rendu (la boucle threaded attend le thread de
+    // rendu) ; 2) seulement ensuite on debranche la mesure GPU ; 3) le moteur detruit la fenetre.
+    window->hide();
+    policy->detachWindow();
     return rc;
 }
 
@@ -130,10 +144,13 @@ int runApplication(int argc, char** argv) {
 
 int main(int argc, char* argv[]) {
     // SEC-08 : premiere instruction, avant tout chargement dynamique de DLL.
-    (void)enh::platform::hardenDllSearchPath();
+    const bool dllSearchHardened = enh::platform::hardenDllSearchPath();
+    if (!dllSearchHardened) {
+        std::fprintf(stderr, "Enhance : durcissement du chargement des DLL impossible (SEC-08).\n");
+    }
     // Aucune exception ne doit sortir de main (ADR-003) : message clair, code d erreur.
     try {
-        return runApplication(argc, argv);
+        return runApplication(argc, argv, dllSearchHardened);
     } catch (const std::exception& e) {
         std::fprintf(stderr, "Enhance : erreur inattendue au demarrage (%s).\n", e.what());
     } catch (...) {

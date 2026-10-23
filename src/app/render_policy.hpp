@@ -63,7 +63,8 @@ public:
 
     /// Branche la mesure du temps GPU sur la fenetre (Direct3D 11 seulement ; sinon sans effet).
     void attachWindow(QQuickWindow* window);
-    /// Debranche la mesure (avant la destruction de la fenetre).
+    /// Debranche la mesure. Sur : une image en cours garde sa reference au minuteur. Le
+    /// rendu doit tout de meme etre arrete (fenetre masquee) avant de detruire la fenetre.
     void detachWindow();
 
     /// Mesure d'une image (thread de l'interface).
@@ -78,6 +79,7 @@ signals:
 
 private:
     void setGovernedQuality(GlassQuality quality);
+    void collectGpuResults();
 
     AppOptions options_;
     bool micaUnavailable_ = false;
@@ -91,10 +93,11 @@ private:
     GlassQualityGovernor::Clock::time_point windowStart_{};
 
     QPointer<QQuickWindow> window_;
-    std::unique_ptr<GpuFrameTimer> timer_;
+    std::shared_ptr<GpuFrameTimer> timer_; // partage avec les connexions du thread de rendu
     QMetaObject::Connection beforeConnection_;
     QMetaObject::Connection afterConnection_;
     QMetaObject::Connection invalidatedConnection_;
+    QMetaObject::Connection swappedConnection_;
 };
 
 } // namespace enh::app

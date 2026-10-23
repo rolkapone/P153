@@ -82,8 +82,9 @@ TEST(ProcessSecurity, ModulesDuProcessusCourantEnumeres) {
     EXPECT_FALSE(roots.applicationDir.empty());
     EXPECT_FALSE(roots.system32Dir.empty());
     const auto modules = enh::platform::loadedModulePaths();
-    ASSERT_FALSE(modules.empty());
-    const auto trusted = std::ranges::count_if(modules, [&](const auto& m) {
+    ASSERT_TRUE(modules.has_value()) << "liste des modules incomplete";
+    ASSERT_FALSE(modules->empty());
+    const auto trusted = std::ranges::count_if(*modules, [&](const auto& m) {
         return classifyModulePath(m, roots) == ModuleOrigin::Trusted;
     });
     EXPECT_GT(trusted, 0); // au moins l'executable et kernel32

@@ -65,6 +65,10 @@ Window {
         }
         const dpr = Math.max(1, Theme.devicePixelRatio);
         const started = contentRoot.grabToImage(function (result) {
+            // Capture tardive : la bascule a deja ete validee (delai de securite du C++). Montrer
+            // l'ancienne image maintenant ferait un flash de l'ancien theme.
+            if (!SystemAppearance.changePending)
+                return;
             themeSnapshot.source = result.url;
             themeSnapshot.opacity = 1;
             themeSnapshot.visible = true;
