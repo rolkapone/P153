@@ -164,8 +164,12 @@ int main(int argc, char* argv[]) {
 #include <iostream>
 
 int main() {
-    std::cout << "Enhance " << enh::versionString() << " ("
-              << (ENH_GPU_BACKEND != 0 ? "pipeline GPU" : "pipeline simule") << ")\n";
+    try {
+        std::cout << "Enhance " << enh::versionString() << " ("
+                  << (ENH_GPU_BACKEND != 0 ? "pipeline GPU" : "pipeline simule") << ")\n";
+    } catch (...) {
+        return 1;
+    }
     return 0;
 }
 

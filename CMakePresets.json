@@ -13,6 +13,7 @@
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "RelWithDebInfo",
         "CMAKE_CXX_COMPILER": "cl",
+        "CMAKE_CXX_SCAN_FOR_MODULES": "OFF",
         "VCPKG_TARGET_TRIPLET": "x64-windows-enh",
         "VCPKG_HOST_TRIPLET": "x64-windows-enh",
         "VCPKG_OVERLAY_TRIPLETS": "${sourceDir}/cmake/triplets",
