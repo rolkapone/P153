@@ -11,6 +11,7 @@ if(TARGET enh_pipeline_ffmpeg)
   get_property(_enh_ff_bin GLOBAL PROPERTY ENH_FFMPEG_BIN_DIR)
   add_executable(enh_gpu_decode_tests
     decode_nvdec_test.cpp
+    decode_nvdec_qa_test.cpp
     ${PROJECT_SOURCE_DIR}/tests/unit/pipeline/ffmpeg/clip_writer.cpp)
   enh_target_defaults(enh_gpu_decode_tests)
   target_include_directories(enh_gpu_decode_tests PRIVATE ${PROJECT_SOURCE_DIR}/tests/unit/pipeline)
