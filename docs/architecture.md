@@ -770,3 +770,17 @@ Les noms `pipeline/api` et `pipeline/impl` du gpu-engineer sont conservés (`pip
 4. **`enh_rtxvideo_bridge`** (`src/pipeline/rtxvideo_bridge/`, SHARED, seulement si `ENH_GPU_EFFECTIVE`) : DLL séparée avec `.def`, CRT statique `/MT` (`MSVC_RUNTIME_LIBRARY MultiThreaded`, dérogation locale au `/MD` de l'ADR-020), sans cudart, sans dépendance vers `enh_*` ; chargée dynamiquement par `enh_pipeline_gpu` (non liée à la compilation), livrée à côté de `enhance.exe` ; licence à consigner par secdevops.
 
 **Conséquences.** La règle « une cible ne lie que la couche du dessous » est inchangée. **Alternatives écartées.** `expected.hpp` dans `enh_pipeline_api` : force `enh_core` à en dépendre pour un utilitaire hors pipeline ; FFmpeg seulement dans `enh_pipeline_gpu` : démux non testable en CI.
+
+### 15.19 ADR-053 — Mica avec Qt Quick (risque A1) et deploiement local de Qt (ENH-004)
+
+**Contexte.** ENH-004 devait prouver le Mica avec une fenetre Qt Quick transparente (Direct3D 11), ou consigner un repli opaque (risque A1). Le Qt de vcpkg ne fournit pas `windeployqt`.
+
+**Decision.**
+1. **Mica retenu (prototype reussi sur la RTX 5070, Windows 11 build 26200).** Fenetre creee avec `QQuickWindow::setDefaultAlphaBuffer(true)` (Qt passe alors par une surface DirectComposition en alpha premultiplie), `window.color: "transparent"`, `DWMWA_SYSTEMBACKDROP_TYPE = DWMSBT_MAINWINDOW`, `DwmExtendFrameIntoClientArea(-1)`, `DWMWA_USE_IMMERSIVE_DARK_MODE` selon le theme. Point dur trouve : la surface de redirection GDI de la fenetre est blanche par defaut et masque le Mica derriere la surface DirectComposition ; `WM_ERASEBKGND` est donc intercepte (filtre natif de `WindowController`) pour peindre en **noir GDI**, que DWM rend transparent dans un cadre etendu. Encapsule dans `enh_platform` (`applyWindowChrome`, `handleBackdropMessage`, `WindowCloak` RAII).
+2. **Repli opaque automatique** (`RenderPolicy.micaUnavailable`) : Windows < 22H2 (build 22621), refus de DWM (`DwmSetWindowAttribute` en echec), option `--no-mica` ; aussi « Effets de transparence » coupes ou contraste eleve (fond `bgWindow`, `DWMWA_CAPTION_COLOR = bgWindow` sans couture).
+3. **Ouverture sans flash** : fenetre masquee par `DWMWA_CLOAK` jusqu'au premier `frameSwapped` (filet de securite 1,5 s).
+4. **Deploiement de developpement** : `cmake/EnhDeployQt.cmake` (post-build) copie a cote de `enhance.exe` une liste fermee de plugins (`platforms/qwindows`, `iconengines/qsvgicon`, `imageformats/qsvg`), les modules QML trouves par `qmlimportscanner` et leurs DLL (`file(GET_RUNTIME_DEPENDENCIES)`) ; echoue si un `Qt6Network*.dll` apparait. Le paquet livrable reste l'affaire d'ENH-030.
+
+**Alternatives ecartees.** 1. *Repli opaque d'office* : le Mica fonctionne, le repli reste disponible. 2. *Barre de titre dessinee par l'application* : contraire a la note UX (boutons et snap layouts natifs). 3. *Qt officiel pour `windeployqt`* : importe `Qt6Network` (ADR-024).
+
+**Consequences.** Si « Afficher la couleur d'accentuation sur les barres de titre » est active dans Windows, DWM peint la barre de titre a la couleur d'accent (choix de l'utilisateur, hors de notre controle). Licences : aucune nouvelle brique (API Win32/DWM du systeme).

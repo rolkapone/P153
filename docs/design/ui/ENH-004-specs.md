@@ -334,3 +334,20 @@ Verdict : **CONFORME** si aucun bloquant ; **ECARTS** sinon (retour au developer
 
 ## 10. Ressources tierces
 Aucune : Segoe UI Variable et Cascadia Mono sont des polices système de Windows 11 (non livrées) ; illustration, icône provisoire et motif de test sont des créations de l'équipe (`docs/design/ui/icones/enhance-app-provisoire.svg`). Rien à transmettre à secdevops pour ENH-004. Lucide reste à valider avant la première icône (ENH-016).
+
+---
+
+## 11. Implementation (developer) : lancer l'application
+
+- Build : `scripts\build.ps1 -Preset dev` puis `scripts\test.ps1 -Preset dev` (tests `unit` et `ui`).
+- Executable : `build\dev\src\enhance.exe` (runtime Qt deploye a cote : DLL, `plugins\`, `qml\`).
+- Options : `--glass-testbed` (motif sous la capsule), `--glass-quality=0|1|2` (force la qualite du verre), `--no-mica` (repli opaque force), `--check-modules` (SEC-08 : liste les modules charges hors des dossiers de confiance puis quitte ; code 0 / 3).
+- Mesure du temps GPU de l'interface (QA) : `QT_LOGGING_RULES="enh.render.info=true"` et `QT_FORCE_STDERR_LOGGING=1` (une ligne par seconde de rendu).
+- Decision Mica / repli : ADR-053 de `docs/architecture.md`.
+
+## 12. À retenir en C++
+
+- **RAII sur les ressources Win32** : `WindowCloak` masque la fenetre dans son constructeur et la devoile au plus tard dans son destructeur ; `std::unique_ptr<HANDLE, HandleCloser>` ferme un jeton, `unique_ptr<wchar_t, decltype(&CoTaskMemFree)>` libere une chaine du shell. En C, il faudrait un `goto cleanup` a chaque sortie de fonction ; ici la liberation est garantie, meme en cas de retour anticipe.
+- **`Microsoft::WRL::ComPtr`** (requetes D3D11 de `GpuFrameTimer`) : un pointeur intelligent qui appelle `AddRef`/`Release` tout seul, la ou le C compte les references a la main.
+- **`enum class`, `std::optional`, `std::span`, `std::string_view`** (`GlassQualityGovernor`, `parseAppOptions`) : une qualite de verre ne se confond pas avec un `int`, « pas de valeur » s'exprime sans valeur sentinelle (-1), et les arguments se lisent sans copie ni `strcmp`.
+- **`std::chrono` et les tests deterministes** : le gouverneur recoit l'heure en parametre (`time_point`), le test fait avancer une horloge factice de 10 s en une ligne, sans `sleep` ; en C on passerait des `uint64_t` en millisecondes sans que le compilateur verifie les unites.
