@@ -1,3 +1,8 @@
 # Liste blanche des fichiers binaires versionnes (un chemin relatif par ligne, '#' = commentaire).
 # Toute entree est validee par secdevops (licence + provenance) et accompagnee de sa licence dans
 # docs/security/licences.md. Vide au depart : icones .svg/.png et polices sous src/app/qml/assets/.
+docs/qa/resultats/ENH-004/captures/etat_150_sombre.png
+docs/qa/resultats/ENH-004/captures/nomica_testbed_150_sombre.png
+docs/qa/resultats/ENH-004/captures/testbed_q0_150_sombre.png
+docs/qa/resultats/ENH-004/captures/testbed_q1_150_sombre.png
+docs/qa/resultats/ENH-004/captures/testbed_q2_150_sombre.png

@@ -203,6 +203,8 @@ Règle générale : `third_party/` n'est **jamais** commité (aucun SDK, binaire
 - **Interdites dans le livrable** : GPL / AGPL (tout lien), licences « non commerciales » (CC-BY-NC) si une diffusion est envisagée, licences propriétaires sans droit de redistribution écrit, SF Pro / SF Symbols, toute police système copiée.
 - **Icônes** (en attente de l'ui-designer) : candidats compatibles, à vérifier sur le fichier de licence de la version téléchargée — Fluent UI System Icons (MIT), Material Symbols (Apache-2.0), Phosphor (MIT), Lucide (ISC), Tabler (MIT). Un seul jeu (exigence design).
 - Toute nouvelle dépendance : ligne ajoutée ici **avant** le merge (Definition of Done), avec texte de licence lu dans le paquet réellement téléchargé.
+- Captures d'écran `docs/qa/resultats/ENH-004/captures/*.png` : captures produites par l'équipe, pas de licence tierce.
+- vcpkg overlay ports (`vcpkg/overlay-ports/qt*`) : dérivés de microsoft/vcpkg, licence MIT, non livrés (outillage de build seulement).
 
 ## 6. Ce que doit contenir le livrable (ENH-030)
 
