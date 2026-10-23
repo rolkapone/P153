@@ -1,12 +1,17 @@
 # Sprint 1 — « Une fenêtre, un décodeur, une super-résolution »
 
-Statut : **DÉMARRÉ le 2026-10-21, validé par le PO avec les choix par défaut** (état au 2026-10-23 : ENH-008 DONE ; ENH-004 en contrôle design ; ENH-040 IN PROGRESS ; ENH-047 TODO). Rédigé le 2026-10-21 par le scrum-master.
+Statut : **DÉMARRÉ le 2026-10-21, validé par le PO avec les choix par défaut** (état au 2026-10-23 : ENH-008 DONE ; ENH-004 DONE ; ENH-040 en revue, cycle 1 ; ENH-047 TODO). Rédigé le 2026-10-21 par le scrum-master.
 
 ### Décisions du PO (2026-10-21)
 1. Barre d'état « GeForce RTX 5070 · prête » **en dur** dans le squelette (détection réelle plus tard, ENH-031).
 2. Capsule de démonstration « Tester le ressort » **visible** à la démo.
 3. Démo : **fenêtre calme d'abord** ; `--glass-testbed` (motif sous le verre) seulement sur demande.
 4. Icône d'application **provisoire** (`docs/design/ui/icones/enhance-app-provisoire.svg`) acceptée pour ENH-004 ; icône définitive plus tard.
+
+### Décisions du PO (2026-10-23, numérotation continue du backlog)
+17. La barre de titre suit la couleur d'accentuation Windows choisie par l'utilisateur (`ColorPrevalence`).
+18. L'opacité du verre sur fond vif sera réglée à ENH-016 sur du vrai contenu (piste : teinte allégée dans le biseau).
+19. Aucun agent n'envoie de vraies frappes clavier ni de clics sur le poste du PO (incident QA d'ENH-004).
 
 ### Arbitrages techniques (orchestrateur)
 - Critère UX n° 4 d'ENH-004 lu comme **« libellé >= 4,5:1 et anneau de focus >= 3:1 »** (le bord de la capsule n'est pas porteur d'information, WCAG 1.4.11).
@@ -45,7 +50,7 @@ gpu-engineer : ENH-008 ---------> ENH-040 ---> ENH-047
                                    (ENH-047 a besoin du décodeur et du pont)
 ```
 **Priorité d'exécution** : 1. ENH-008, 2. ENH-040, 3. ENH-047 (agents GPU en séquence, un seul gpu-engineer) ; ENH-004 en parallèle par le developer. Les étapes reviewer / qa-tester / secdevops / devops de chaque story s'intercalent sans bloquer l'implémentation de la suivante (l'orchestrateur lance les agents indépendants en parallèle). Si le temps manque, l'ordre de sacrifice est : repli ENH-004 (fond opaque) avant tout retard sur 008 / 040.
-Une branche par story : `feature/ENH-004-squelette-qt`, `feature/ENH-008-demux-nvdec`, `feature/ENH-040-pont-rtx-video`, `feature/ENH-047-enhance-bench`. Merge dans `main` (`--no-ff`) dans l'ordre 008, 040, 047 ; ENH-004 indépendante. Aucun push (pas de remote).
+Une branche par story : `feature/ENH-004-squelette-qt`, `feature/ENH-008-demux-nvdec`, `feature/ENH-040-pont-rtxvideo`, `feature/ENH-047-enhance-bench`. Merge dans `main` (`--no-ff`) dans l'ordre 008, 040, 047 ; ENH-004 indépendante. Aucun push (pas de remote).
 
 ## Design et notes techniques au planning (à montrer au PO en une seule fois avant de coder)
 
@@ -91,7 +96,7 @@ Note : `docs/gpu/ENH-008.md` (fait). Seuils : `docs/qa/sprint-1-seuils.md` §3. 
 ### ENH-008b — Matrice de formats étendue  [GPU] — 3 pts — **hors Sprint 1** (avant ENH-048, au plus tard Sprint 3)
 Branche prévue `feature/ENH-008b-matrice-formats`. Tâches à détailler à son planning : corpus étendu, variantes 8 / 10 bits, VFR, rotation, dimensions impaires, changement de résolution en cours de flux ; mêmes étapes de workflow que ENH-008.
 
-### ENH-040 — DLL pont RTX Video  [GPU] — 3 pts (gpu-engineer) — branche `feature/ENH-040-pont-rtx-video`
+### ENH-040 — DLL pont RTX Video  [GPU] — 3 pts (gpu-engineer) — branche `feature/ENH-040-pont-rtxvideo`
 Note : `docs/gpu/ENH-040.md` (fait). Seuils : `docs/qa/sprint-1-seuils.md` §3 (VSR >= 300 i/s, <= 300 Mio, q4 != q0 >= 30 %, imports sans `cudart`, 10 cycles <= 50 Mio, qualité d'image part Équilibré >= 35 %).
 | # | Tâche | Qui |
 |---|---|---|
@@ -128,15 +133,15 @@ Chaque story suit le workflow de `CLAUDE.md` : implémentation -> **reviewer** (
 
 | Story | Statut (TODO / IN PROGRESS / IN REVIEW / QA / SECURITY / DONE / BLOCKED) | Cycles de review | Notes |
 |---|---|---|---|
-| ENH-004 Squelette Qt Quick + Mica [UI] | IN REVIEW (contrôle design / corrections mineures) | à confirmer par l'orchestrateur | Branche `feature/ENH-004-squelette-qt` ; décisions PO prises (barre d'état en dur, capsule visible, icône provisoire) ; risque A1 (Mica) ; SEC-08 / SEC-20 inclus ; écarts mineurs en correction avant QA |
+| ENH-004 Squelette Qt Quick + Mica [UI] | **DONE** (2026-10-23) | 2 / 3 | Merge `79a3e93` (--no-ff) ; revue APPROVE ; contrôle design CONFORME ; QA PASS (vérifications à l'écran par le PO) ; secdevops PASS ; risque A1 (Mica) levé. Suites au backlog : SEC-27, SEC-28, B2, dette design |
 | ENH-008 Démuxage + NVDEC, matrice noyau [GPU] | **DONE** (2026-10-23) | 2 / 3 | Merge `0c2f748` (--no-ff) ; revue APPROVE ; QA PASS : 3 398 i/s (BBB-FAST), 2 541 i/s (BBB-PAN), 58 Mio, dérive 0 ; secdevops PASS. Reports : UNC -> ENH-015 ; SEC-23 + fin SEC-13 + troncature -> ENH-015 ; journal `nvcuvid.dll` -> ENH-008b |
-| ENH-040 Pont RTX Video [GPU] | **IN PROGRESS** | 0 | Branche `feature/ENH-040-pont-rtxvideo` ; priorité 2 ; relecture renforcée |
+| ENH-040 Pont RTX Video [GPU] | **IN REVIEW** | 1 / 3 (en cours) | Branche `feature/ENH-040-pont-rtxvideo` ; priorité 2 ; relecture renforcée |
 | ENH-047 `enhance-bench` v1 [GPU] | TODO | 0 | Priorité 3 ; dépend d'ENH-040 (ENH-008 mergée) |
 | *ENH-008b Matrice de formats étendue [GPU]* | *hors sprint* | - | 3 pts, avant ENH-048, au plus tard Sprint 3 ; + petite tâche : journaliser l'échec de préchargement de `nvcuvid.dll` |
 
-Points livrés dans ce sprint : **5 / 15** (ENH-008).
+Points livrés dans ce sprint : **10 / 15** (ENH-008, ENH-004).
 
-Suites ajoutées au backlog le 2026-10-23 : SEC-23 et fin de SEC-13 + avertissement de fichier tronqué (ENH-015), journal `nvcuvid.dll` (ENH-008b), recoupement PresentMon avant ENH-010.
+Suites ajoutées au backlog le 2026-10-23 : SEC-27 (cache de pipeline Qt : ENH-025 / ENH-030), SEC-28 (`SetSearchPathMode`, avant ENH-016), B2 (pics de rendu à rejouer machine calme), dette design (pointillés du cadre depuis un jeton, illustration en .svg), SEC-23 et fin de SEC-13 + avertissement de fichier tronqué (ENH-015), journal `nvcuvid.dll` (ENH-008b), recoupement PresentMon avant ENH-010.
 
 ## Risques du sprint
 

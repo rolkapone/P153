@@ -9,13 +9,13 @@ Clips de référence : `BBB-FAST`, `BBB-PAN`, `TOS-FACE`, `TOS-DARK`, `SYN-TEXT`
 | Indicateur | Valeur |
 |---|---|
 | Total points MVP | **174** (126 en v0.2 ; +44 pts de stories nouvelles issues du spike, du threat model et de la revue des licences ; +1 net de ré-estimations, voir « Mouvements v0.3 » ; **+3 pts : ENH-008b**, redécoupage d'ENH-008 au planning du Sprint 1, voir « Mouvements v0.4 ») |
-| Points livrés (kickoff = « sprint 0 », non compté dans la vitesse) | **28** : kickoff 23 (ENH-001 (5), ENH-002 (5), ENH-003 (4 sur 5), ENH-005 (3), ENH-006 (3), ENH-007 (3)) + **ENH-008 (5, DONE le 2026-10-23, merge `0c2f748`)** ; Sprint 1 : 5 / 15 |
-| Points restants | **146** (dont 10 pts encore engagés au Sprint 1, **démarré le 2026-10-21** : ENH-004 en contrôle design, ENH-040 IN PROGRESS, ENH-047 TODO) |
+| Points livrés (kickoff = « sprint 0 », non compté dans la vitesse) | **33** : kickoff 23 (ENH-001 (5), ENH-002 (5), ENH-003 (4 sur 5), ENH-005 (3), ENH-006 (3), ENH-007 (3)) + **ENH-008 (5, DONE le 2026-10-23, merge `0c2f748`)** + **ENH-004 (5, DONE, merge `79a3e93`)** ; Sprint 1 : 10 / 15 |
+| Points restants | **141** (dont 5 pts encore engagés au Sprint 1, **démarré le 2026-10-21** : ENH-040 en revue (cycle 1), ENH-047 TODO) |
 | Vitesse supposée | **15 pts / sprint** (aucun sprint terminé : pas d'historique ; le kickoff n'est pas un sprint) |
-| Sprints restants estimés avant le MVP | **10** (146 / 15 = 9,7 ; hors Sprint 1 en cours) ; fourchette **10 à 12** si deux stories `[UI]` passent à 3 cycles de revue ou si le risque Mica se réalise |
-| Dernière mise à jour | 2026-10-23 (ENH-008 DONE ; Sprint 1 en cours, aucun sprint terminé) |
+| Sprints restants estimés avant le MVP | **10** (141 / 15 = 9,4 ; hors Sprint 1 en cours) ; fourchette **10 à 12** si deux stories `[UI]` passent à 3 cycles de revue (le risque Mica est levé : ENH-004 livrée) |
+| Dernière mise à jour | 2026-10-23 (ENH-004 et ENH-008 DONE ; Sprint 1 en cours, aucun sprint terminé) |
 
-Répartition des 146 points restants : Fondations, sécurité et CI 13 (ENH-004, 049, 050), Pipeline GPU 68 (dont ENH-008b), File / préréglages / UI / transverse 65.
+Répartition des 141 points restants : Fondations, sécurité et CI 8 (ENH-049, 050), Pipeline GPU 68 (dont ENH-008b), File / préréglages / UI / transverse 65.
 Total « Plus tard » : 52 pts + 8 pts (ENH-051) ; « Avant publication » : 3 pts (hors MVP).
 
 ### Jalons (indicatifs, à recaler à chaque fin de sprint)
@@ -46,7 +46,7 @@ Ordre de bataille : voir `docs/sprints/sprint-1.md` (Sprint 1 = 15 pts : ENH-004
 
 ## Décisions du PO
 
-Décisions n° 1 à 15 : **2026-10-21** (validation de la vision `vision.md`, de ce backlog v0.2, de la stack ADR-001 Qt 6 / Qt Quick et de la direction visuelle). Décision n° 16 : **2026-10-23**. Numérotation continue, sans doublon ; les renvois « décision n° N » des autres documents restent valables.
+Décisions n° 1 à 15 : **2026-10-21** (validation de la vision `vision.md`, de ce backlog v0.2, de la stack ADR-001 Qt 6 / Qt Quick et de la direction visuelle). Décisions n° 16 à 19 : **2026-10-23**. Numérotation continue, sans doublon ; les renvois « décision n° N » des autres documents restent valables.
 
 1. **Cadence** : on n'interpole jamais au-delà de 60 i/s ; une source >= 50 i/s n'est pas interpolée ; 24 i/s -> vrai 60 i/s interpolé (ENH-012). **Précision** : toute source strictement sous 50 i/s (y compris 31-49 i/s) est interpolée vers 60 i/s.
 2. **Conteneur MVP** : MP4 ; bascule automatique en MKV, avec message, si une piste de sous-titres est incompatible MP4 (ENH-013, ENH-024).
@@ -64,6 +64,9 @@ Décisions n° 1 à 15 : **2026-10-21** (validation de la vision `vision.md`, de
 14. **Seuils de qualité en part de la marge restante** (remplace « +5 VMAF ») : écart VMAF vs Lanczos >= **50 %** de (100 - VMAF Lanczos) en **Qualité max**, >= **35 %** en **Équilibré**, >= **20 %** en **Rapide** (voir « Seuils QA de référence » ci-dessous). Raison : les sources libres sont déjà douces, Lanczos y atteint 92-96 de VMAF (`docs/qa/resultats/2026-10-21_reference-lanczos.md`), +5 y est arithmétiquement impossible.
 15. **Git** : aucune mention de Claude dans les commits ni les PR ; aucun push sans l'accord du PO.
 16. **Test UNC d'ENH-008 reporté à ENH-015** (décision du 2026-10-23) : `Win32File.PartageUnc` (`ENH_TEST_UNC_DIR`), non exécuté faute de partage accessible, est reporté à ENH-015 ; le point UNC du critère AVIO d'ENH-008 est « non vérifié — reporté à ENH-015 ».
+17. **Barre de titre et accentuation Windows** (2026-10-23) : la barre de titre suit la couleur d'accentuation Windows choisie par l'utilisateur (`ColorPrevalence`).
+18. **Opacité du verre sur fond vif** (2026-10-23) : réglée à ENH-016 sur du vrai contenu ; piste : teinte allégée dans le biseau.
+19. **Aucune vraie frappe clavier / clic sur le poste du PO** (2026-10-23) : aucun agent n'envoie de vraies frappes clavier ni de clics sur le poste du PO (incident QA d'ENH-004) ; les tests clavier sont automatisés ou faits par le PO.
 
 ## Faits techniques établis par le kickoff (reflétés dans les stories)
 
@@ -167,6 +170,8 @@ Applicables en plus des critères propres à chaque story ; vérifiés par le ui
 | SEC-21 CLUF d'Enhance | à confirmer | ENH-050 (+ ENH-052) |
 | SEC-22 imports `ws2_32` de Qt6Core | LOW | ENH-028 |
 | SEC-23 liste blanche de décodeurs, `format_whitelist`, `max_pixels` | MEDIUM | ENH-015 (+ liste de ENH-048) |
+| SEC-27 cache de pipeline Qt (doc utilisateur, désinstalleur) | LOW | ENH-025, ENH-030 |
+| SEC-28 `SetSearchPathMode` + test | LOW | Avant ENH-016 |
 
 ---
 
@@ -202,7 +207,8 @@ Critères d'acceptation :
 - [x] Identité git noreply en config locale, hook `commit-msg`, liste d'exclusion respectée. *SEC-05 (config globale) = action PO, suivie dans ENH-049.*
 - [x] `nvcc` 13.4 accepte MSVC v145 sans `-allow-unsupported-compiler`.
 
-### ENH-004 — Squelette de l'application Qt Quick + prototype Mica  [UI] [Must | 5 pts]
+### ENH-004 — Squelette de l'application Qt Quick + prototype Mica  [UI] [Must | 5 pts]  — **DONE (2026-10-23)**
+Livré : revue APPROVE (cycle 2/3), contrôle design CONFORME, QA PASS (vérifications à l'écran faites par le PO), secdevops PASS, merge `79a3e93` (--no-ff). Les cases ci-dessous restent à titre de référence des critères vérifiés. Suites ajoutées : voir « Suites d'ENH-004 » après cette story.
 En tant que PO, je veux une fenêtre Enhance qui s'ouvre, branchée sur le C++ afin de valider la stack et la finition de base.
 Critères d'acceptation :
 - [x] ADR front : Qt Quick comparé à WinUI 3, WebView2 et Dear ImGui (ADR-001), **validé par le PO**.
@@ -226,6 +232,14 @@ Critères d'acceptation :
   - [ ] UX-10 démarrage à froid **< 2 s**, sans appel réseau.
 - [ ] **Seuils QA** (`docs/qa/checklist-ui.md`, `docs/qa/sprint-1-seuils.md` §3) : 99e centile du temps d'image <= 16,7 ms (33 ms toléré sur < 0,1 % des images) au repos et sous charge GPU ; temps GPU de l'interface <= 1 ms moyen / <= 2 ms pire ; écart d'i/s du pipeline verre complet vs opaque <= 2 % (7 passes alternées ; séries instables = « non concluant », jamais PASS) ; aucun `Qt6Network.dll`.
 Notes : **décisions PO du 2026-10-21** : (1) barre d'état « GeForce RTX 5070 · prête » en dur (détection réelle : ENH-031) ; (2) capsule « Tester le ressort » visible à la démo ; (3) démo : fenêtre calme d'abord, `--glass-testbed` sur demande ; (4) icône provisoire `docs/design/ui/icones/enhance-app-provisoire.svg` acceptée, définitive plus tard. **Arbitrages** : UX-4 lu « libellé >= 4,5:1 et anneau de focus >= 3:1 » (WCAG 1.4.11) ; mesures du coût du verre pendant un vrai traitement GPU (design-system §12 n° 7 à 9) reportées à ENH-010 ; compléter `maquettes/index.html` (bouton de verre autonome). Branche `feature/ENH-004-squelette-qt`. Références design : `docs/design/ui/maquettes/enh-004-squelette.html`, `docs/design/ui/ENH-004-specs.md` (ui-designer, en cours d'écriture). Dépend du build Qt déjà produit (overlay ports vcpkg, Qt 6.11.2 sans Network). Prototype borné dans le temps (voir risques du Sprint 1). Licences Qt à jour dans `licences.md` (secdevops).
+
+#### Suites d'ENH-004 (ajoutées le 2026-10-23, hors points)
+- **SEC-27** (cache de pipeline Qt) : documenter l'emplacement du cache dans la doc utilisateur et le faire supprimer par le désinstalleur -> à traiter dans **ENH-025** (journalisation / données locales) et **ENH-030** (version portable / désinstallation).
+- **SEC-28** (`SetSearchPathMode` + test) : à faire **avant ENH-016**.
+- **B2** (pics ponctuels de rendu observés) : à rejouer sur machine calme ; si confirmés, ouvrir une story de correction.
+- **Dette design** : (a) pointillés du cadre de dépôt générés depuis un jeton du design system ; (b) illustration de l'état vide en `.svg`.
+- **Recoupement PresentMon** du coût GPU de l'interface : déjà noté dans les critères d'**ENH-010** (« Avant de démarrer ») ; rien à ajouter, à ne pas oublier.
+- Décisions du PO n° 17 à 19 (voir « Décisions du PO »), dont le réglage de l'opacité du verre à **ENH-016**.
 
 ### ENH-005 — Protocole qualité et clips de référence  [Must | 3 pts]  — **DONE (kickoff)**
 En tant que qa-tester, je veux un protocole de mesure afin que chaque seuil soit vérifiable.
