@@ -76,8 +76,19 @@ target_link_libraries(enh_app
   PUBLIC enh_core enh_platform enh_app_policy Qt6::Core Qt6::Gui Qt6::Qml Qt6::Quick
   PRIVATE enh_design enh_designplugin)
 
-# Le C++ genere par qmlcachegen (QML compile a l'avance) declenche C4702 « code inaccessible »
-# dans les en-tetes de Qt (qmetatype.h, qvariant.h, qjsengine.h) a l'optimisation : avertissement
-# desactive pour ces deux cibles seulement, pour que /WX (presets ci-ui, release) reste utilisable.
-target_compile_options(enh_design PRIVATE /wd4702)
-target_compile_options(enh_app PRIVATE /wd4702)
+# Le C++ genere par qmlcachegen (QML compile a l'avance, fichiers .rcc/qmlcache/*.cpp) declenche
+# C4702 « code inaccessible » dans les en-tetes de Qt (qmetatype.h, qvariant.h, qjsengine.h) :
+# avertissement desactive pour ces seuls fichiers generes, pour que /WX reste utilisable. Les
+# sources qmlcachegen n'existent qu'apres la finalisation des cibles par Qt (appel differe) : on
+# differe donc aussi, apres Qt.
+function(enh_silence_qmlcache_c4702)
+  foreach(_target IN ITEMS enh_design enh_app)
+    get_target_property(_sources ${_target} SOURCES)
+    foreach(_src IN LISTS _sources)
+      if(_src MATCHES "qmlcache/.*\.cpp$")
+        set_property(SOURCE "${_src}" TARGET_DIRECTORY ${_target} APPEND PROPERTY COMPILE_OPTIONS /wd4702)
+      endif()
+    endforeach()
+  endforeach()
+endfunction()
+cmake_language(DEFER CALL enh_silence_qmlcache_c4702)

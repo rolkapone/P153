@@ -133,8 +133,8 @@ jobs:
         run: |
           . scripts/common.ps1
           $t = Enter-EnhVsEnv
-          # --no-tests=ignore tant qu'aucun test ui n'existe (ENH-004) ; passer a error ensuite.
-          & $t.Ctest --test-dir build/ci-ui -L ui --output-on-failure --no-tests=ignore
+          # Tests ui livres par ENH-004 : leur absence est une erreur.
+          & $t.Ctest --test-dir build/ci-ui -L ui --output-on-failure --no-tests=error
           if ($LASTEXITCODE -ne 0) { exit 1 }
 
   sast:
