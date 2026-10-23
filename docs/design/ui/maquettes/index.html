@@ -465,6 +465,51 @@ p, h1, h2, h3 { margin: 0; }
 .seg.liquid .seg-thumb { animation: seg-stretch var(--move-medium) var(--ease-emphasized); }
 @keyframes seg-stretch { 50% { scale: var(--glass-segment-stretch) 0.94; } }
 
+/* Bouton de verre autonome (capsule 44 px, design-system §9.1, ENH-004 specs §6).
+   Le verre (.gbtn-bg) et son voile (.gbtn-fill) gonflent ; le libellé et l'anneau de focus ne sont jamais mis à l'échelle. */
+:root { --size-glass-button-h: 44px; --size-glass-button-pad-x: 24px; }
+.gbtn { position: relative; display: inline-flex; align-items: center; justify-content: center;
+  height: var(--size-glass-button-h); min-width: var(--size-primary-min-w); padding: 0 var(--size-glass-button-pad-x);
+  border: 0; border-radius: var(--r-full); background: transparent; font: var(--t-headline); color: var(--c-text-primary);
+  white-space: nowrap; user-select: none; cursor: default; --mx: 22%; --my: 0%;
+  outline: var(--size-focus-ring-w) solid transparent; outline-offset: 4px;
+  transition: --mx var(--move-fast) var(--ease-decelerate), --my var(--move-fast) var(--ease-decelerate),
+    outline-color var(--dur-fast) var(--ease-decelerate), outline-offset var(--move-fast) var(--ease-decelerate); }
+.gbtn:focus-visible, .gbtn.is-focus { outline-color: var(--c-focus-ring); outline-offset: var(--size-focus-ring-offset); }
+.gbtn-bg, .gbtn-fill { position: absolute; inset: 0; border-radius: inherit; pointer-events: none; transform: scale(1);
+  transition: transform var(--move-medium) var(--ease-spring), background-color var(--dur-fast) var(--ease-standard), box-shadow var(--dur-fast) var(--ease-standard); }
+.gbtn-bg { --g-bezel: 12px; /* biseau effectif = min(14, (44 - 20) / 2) */ z-index: 0; }
+.gbtn-fill { z-index: 1; background: transparent; }
+.gbtn-label { position: relative; z-index: 2; }
+.gbtn-bg.glass::after { background-size: 160px 70px; }
+.gbtn.pressing .gbtn-bg, .gbtn.pressing .gbtn-fill, .gbtn.is-pressed .gbtn-bg, .gbtn.is-pressed .gbtn-fill { transform: scale(var(--glass-press-scale));
+  transition: transform var(--move-press) var(--ease-decelerate), background-color var(--dur-press) var(--ease-standard), box-shadow var(--dur-fast) var(--ease-standard); }
+.reduce-motion .gbtn .gbtn-bg, .reduce-motion .gbtn .gbtn-fill { transform: none !important; }
+@media (prefers-reduced-motion: reduce) { .gbtn .gbtn-bg, .gbtn .gbtn-fill { transform: none !important; } }
+.gbtn:hover .gbtn-fill, .gbtn.is-hover .gbtn-fill { background: var(--c-fill-control-hover); }
+.gbtn.pressing .gbtn-fill, .gbtn.is-pressed .gbtn-fill { background: var(--c-fill-control-pressed); }
+.gbtn.pressing > .glass::after, .gbtn.is-pressed > .glass::after { opacity: calc(var(--g-spec) * 1.6); }
+/* Repli opaque : surfaceRaised + contour borderControl + e2, sans reflet */
+.no-transparency .gbtn-bg { box-shadow: var(--shadow-e2), inset 0 0 0 1px var(--c-border-control); }
+.no-transparency .gbtn-bg::before { display: none; }
+/* Contraste élevé : ButtonFace + liseré 2 px ButtonText ; survol : liseré Highlight ; pression : fond Highlight */
+.hc .gbtn-bg { box-shadow: inset 0 0 0 2px var(--c-border-control); }
+.hc .gbtn-bg::before { display: none; }
+.hc .gbtn:hover .gbtn-bg, .hc .gbtn.is-hover .gbtn-bg, .hc .gbtn.pressing .gbtn-bg, .hc .gbtn.is-pressed .gbtn-bg { box-shadow: inset 0 0 0 2px var(--c-accent); }
+.hc .gbtn:hover .gbtn-fill, .hc .gbtn.is-hover .gbtn-fill { background: transparent; }
+.hc .gbtn.pressing .gbtn-fill, .hc .gbtn.is-pressed .gbtn-fill { background: var(--c-accent); }
+.hc .gbtn.pressing .gbtn-label, .hc .gbtn.is-pressed .gbtn-label { color: var(--c-text-on-accent); }
+/* Plateau d'essai : motif coloré sous les capsules pour rendre le verre visible (catalogue uniquement) */
+.gbtn-stage { position: relative; display: flex; flex-wrap: wrap; align-items: center; gap: var(--s6); padding: var(--s6);
+  border-radius: var(--r-lg); background: var(--c-bg-window); box-shadow: inset 0 0 0 1px var(--c-border-hairline); }
+.gbtn-stage.testbed { background: repeating-linear-gradient(115deg, rgba(255, 255, 255, 0.55) 0 6px, transparent 6px 18px),
+  linear-gradient(90deg, #F2B880 0%, #D9776A 25%, #7C83FF 50%, #3DD68C 75%, #9AD7F5 100%); }
+.hc .gbtn-stage.testbed, .no-transparency .gbtn-stage.testbed { background: var(--c-bg-window); }
+.gbtn-count { font: var(--t-callout); color: var(--c-text-secondary); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.gbtn-count.bump { animation: gb-fade var(--dur-fast) var(--ease-standard), gb-rise var(--move-fast) var(--ease-standard); }
+@keyframes gb-fade { from { opacity: 0; } }
+@keyframes gb-rise { from { transform: translateY(4px); } }
+
 /* =====================================================================
    3. MISE EN PAGE DU CATALOGUE
    ===================================================================== */
@@ -778,6 +823,23 @@ table.t code { font: var(--t-caption); font-family: var(--font-mono); color: var
     <div class="row"><button class="btn btn-primary" id="bumpBtn"><svg class="ic"><use href="#i-play"/></svg><span id="bumpLbl">Démarrer (3)</span></button>
       <button class="btn btn-sm" id="bumpAdd"><svg class="ic"><use href="#i-plus"/></svg>Ajouter une vidéo</button>
       <span class="note" style="padding:0">Échelle 1 → 1,04 (100 ms, decelerate) → 1 (200 ms, spring).</span></div>
+
+    <h3 class="sub">Bouton de verre autonome (capsule 44 px)</h3>
+    <p class="note" style="padding:0 0 12px">Verre normal, biseau effectif 12 px, liseré, ombre verre (0 8 28 + 0 1 3), libellé headline <code>textPrimary</code>, marge 24 px, largeur min 148 px. Pression : le verre gonfle 1 → 1,03 (100 ms, decelerate) puis revient (250 ms, spring) ; le libellé et l'anneau ne bougent pas ; reflet × 1,6. Entrée = impulsion complète ; Espace = appui maintenu. Repli opaque : <code>surfaceRaised</code> + contour + e2. Contraste élevé : liseré 2 px, survol Highlight, pression fond Highlight. Mouvement réduit : aucune échelle, reflet fixe.</p>
+    <div class="gbtn-stage testbed" id="gbtnStage">
+      <button class="gbtn" id="gbtnLive"><span class="gbtn-bg glass" aria-hidden="true"></span><span class="gbtn-fill" aria-hidden="true"></span><span class="gbtn-label">Tester le ressort</span></button>
+      <span class="gbtn-count" id="gbtnCount" aria-live="polite">Essais&nbsp;: 0</span>
+      <button class="chip" id="gbtnBed" aria-pressed="true" title="Motif coloré sous le verre (banc d'essai)">Motif sous le verre</button>
+    </div>
+    <div class="grid-states" style="padding-top:16px">
+      <span></span><span class="h">Repos</span><span class="h">Survol</span><span class="h">Pressé</span><span class="h">Focus clavier</span><span class="h">Désactivé</span>
+      <span class="h">Verre autonome</span>
+      <span><button class="gbtn" tabindex="-1"><span class="gbtn-bg glass" aria-hidden="true"></span><span class="gbtn-fill" aria-hidden="true"></span><span class="gbtn-label">Tester le ressort</span></button></span>
+      <span><button class="gbtn is-hover" tabindex="-1"><span class="gbtn-bg glass" aria-hidden="true"></span><span class="gbtn-fill" aria-hidden="true"></span><span class="gbtn-label">Tester le ressort</span></button></span>
+      <span><button class="gbtn is-pressed" tabindex="-1"><span class="gbtn-bg glass" aria-hidden="true"></span><span class="gbtn-fill" aria-hidden="true"></span><span class="gbtn-label">Tester le ressort</span></button></span>
+      <span><button class="gbtn is-focus" tabindex="-1"><span class="gbtn-bg glass" aria-hidden="true"></span><span class="gbtn-fill" aria-hidden="true"></span><span class="gbtn-label">Tester le ressort</span></button></span>
+      <span class="note" style="padding:0">sans objet (jamais désactivé)</span>
+    </div>
   </div>
 </section>
 
@@ -1207,6 +1269,43 @@ document.addEventListener('pointermove', e => {
 document.addEventListener('pointerdown', e => { const g = e.target.closest && e.target.closest('.glass'); if (g) g.classList.add('pressing'); });
 document.addEventListener('pointerup', () => $$('.glass.pressing').forEach(g => g.classList.remove('pressing')));
 $$('.seg').forEach(seg => seg.addEventListener('click', () => { seg.classList.remove('liquid'); void seg.offsetWidth; seg.classList.add('liquid'); }));
+
+/* ---------- Bouton de verre autonome (ENH-004) ---------- */
+(() => {
+  const btn = $('#gbtnLive'), countEl = $('#gbtnCount');
+  if (!btn) return;
+  let n = 0;
+  const moveMs = name => parseFloat(getComputedStyle(root).getPropertyValue(name)) || 0;
+  const reduced = () => root.classList.contains('reduce-motion') || matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const increment = () => { // dans l'app : DemoCounter.increment() (C++), puis relecture du Q_PROPERTY
+    n++;
+    countEl.textContent = 'Essais : ' + n;
+    countEl.classList.remove('bump'); void countEl.offsetWidth; countEl.classList.add('bump');
+  };
+  const release = () => btn.classList.remove('pressing');
+  btn.addEventListener('pointerdown', e => { if (e.button === 0) btn.classList.add('pressing'); });
+  ['pointerup', 'pointerleave', 'pointercancel'].forEach(t => btn.addEventListener(t, release));
+  btn.addEventListener('keydown', e => {
+    if (e.key === ' ' && !e.repeat) btn.classList.add('pressing');
+    if (e.key === 'Enter' && !e.repeat) { e.preventDefault(); btn.classList.add('pressing'); setTimeout(release, Math.max(16, moveMs('--move-press'))); increment(); }
+  });
+  btn.addEventListener('keyup', e => { if (e.key === ' ') release(); });
+  btn.addEventListener('click', increment); // souris et Espace (au relâchement)
+  let raf = 0, last = null;
+  btn.addEventListener('pointermove', e => {
+    if (reduced() || root.classList.contains('hc') || root.classList.contains('no-transparency')) return;
+    last = e;
+    if (raf) return;
+    raf = requestAnimationFrame(() => {
+      raf = 0;
+      const r = btn.getBoundingClientRect();
+      btn.style.setProperty('--mx', ((last.clientX - r.left) / r.width * 100).toFixed(1) + '%');
+      btn.style.setProperty('--my', ((last.clientY - r.top) / r.height * 100).toFixed(1) + '%');
+    });
+  }, { passive: true });
+  btn.addEventListener('pointerleave', () => { btn.style.removeProperty('--mx'); btn.style.removeProperty('--my'); });
+  $('#gbtnBed').onclick = () => { $('#gbtnBed').setAttribute('aria-pressed', String($('#gbtnStage').classList.toggle('testbed'))); };
+})();
 
 function refresh() { renderSwatches(); renderContrast(); renderAdaptive(); }
 refresh();

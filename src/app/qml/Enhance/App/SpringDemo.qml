@@ -42,31 +42,36 @@ Item {
         Connections {
             target: DemoCounter
             function onCountChanged() {
-                bump.restart();
+                // Clics rapides : si le fondu est deja en cours, on ne relance que le glissement
+                // (pas de retour a l opacite 0, donc aucun clignotement ; design-system §8.2).
+                if (!fade.running)
+                    fade.restart();
+                rise.restart();
                 // Region vive polie : annonce une fois par increment.
                 counter.Accessible.announce(counter.text, Accessible.Polite);
             }
         }
-        ParallelAnimation {
-            id: bump
-            NumberAnimation {
-                target: counter
-                property: "opacity"
-                from: 0
-                to: 1
-                duration: Theme.dur.fast
-                easing.type: Easing.BezierSpline
-                easing.bezierCurve: Theme.ease.standard
-            }
-            NumberAnimation {
-                target: shift
-                property: "y"
-                from: Theme.space.s1
-                to: 0
-                duration: Theme.dur.moveFast
-                easing.type: Easing.BezierSpline
-                easing.bezierCurve: Theme.ease.standard
-            }
+        // Changement de valeur : fondu (fast) + glissement de 4 px (moveFast), deux animations
+        // independantes pour pouvoir relancer le glissement seul.
+        NumberAnimation {
+            id: fade
+            target: counter
+            property: "opacity"
+            from: 0
+            to: 1
+            duration: Theme.dur.fast
+            easing.type: Easing.BezierSpline
+            easing.bezierCurve: Theme.ease.standard
+        }
+        NumberAnimation {
+            id: rise
+            target: shift
+            property: "y"
+            from: Theme.space.s1
+            to: 0
+            duration: Theme.dur.moveFast
+            easing.type: Easing.BezierSpline
+            easing.bezierCurve: Theme.ease.standard
         }
     }
 

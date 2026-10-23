@@ -35,6 +35,7 @@ public:
         case WM_SETTINGCHANGE:
         case WM_THEMECHANGED:
         case WM_SYSCOLORCHANGE:
+        case WM_DWMCOLORIZATIONCOLORCHANGED: // couleur d accentuation, ColorPrevalence
             owner_.scheduleRefresh();
             break;
         default:

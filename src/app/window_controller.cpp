@@ -107,7 +107,10 @@ void WindowController::applyChrome() {
     state.highContrast = appearance_.highContrast();
     state.mica =
         appearance_.transparency() && !appearance_.highContrast() && !policy_.micaUnavailable();
-    if (!state.mica && policy_.captionColor().isValid()) {
+    // Mode opaque : barre de titre a la couleur du fond (aucune couture), sauf si l'utilisateur a
+    // demande la couleur d'accentuation sur les barres de titre (reglage Windows respecte).
+    if (!state.mica && !appearance_.current().accentOnTitleBars &&
+        policy_.captionColor().isValid()) {
         state.captionRgb = policy_.captionColor().rgb() & 0xFFFFFFU;
     }
     const auto hwnd = nativeHandle(window_);

@@ -93,7 +93,7 @@ Ordre impératif (dans `main.cpp` / `WindowChrome`, avant le premier `show()`) :
 2. `window.color` = `"transparent"` (Mica) ou `Theme.color.bgWindow` (opaque / contraste élevé). **Jamais** le blanc par défaut.
 3. `DWMWA_USE_IMMERSIVE_DARK_MODE` (20) = `Theme.dark`.
 4. `DWMWA_SYSTEMBACKDROP_TYPE` (38) = `DWMSBT_MAINWINDOW` (2) si Mica, sinon `DWMSBT_NONE` (1) ; `DwmExtendFrameIntoClientArea` avec marges −1 si Mica.
-5. `DWMWA_CAPTION_COLOR` (35) = `Theme.color.bgWindow` (COLORREF) en mode opaque **pour qu'il n'y ait aucune couture entre la barre de titre et le contenu** ; `DWMWA_COLOR_DEFAULT` en Mica et en contraste élevé.
+5. `DWMWA_CAPTION_COLOR` (35) = `Theme.color.bgWindow` (COLORREF) en mode opaque **pour qu'il n'y ait aucune couture entre la barre de titre et le contenu** ; `DWMWA_COLOR_DEFAULT` en Mica et en contraste élevé. **Exception (contrôle design, 2026-10-23)** : si l'utilisateur a activé « Afficher la couleur d'accentuation sur les barres de titre » (`HKCU\Software\Microsoft\Windows\DWM\ColorPrevalence = 1`), Windows teinte la barre de titre avec l'accent : c'est son choix explicite, on le respecte (comportement système, pas une couture) et on laisse `DWMWA_COLOR_DEFAULT` **aussi en mode opaque**, pour que la barre soit la même dans les deux modes (design-system §6.6).
 6. `DWMWA_CLOAK` (13) = TRUE, `show()`, puis au **premier `QQuickWindow::frameSwapped`** : `DWMWA_CLOAK` = FALSE. La première image visible est donc complète (fond + titre + état vide) ; l'animation d'ouverture est celle de Windows (≈ `Theme.dur.windowAppear`, désactivée automatiquement si « Effets d'animation » est coupé). **Pas** de fondu d'opacité côté Qt (il montrerait un Mica vide avant le contenu).
 7. Contenu de `Main.qml` entièrement synchrone : pas de `Loader { asynchronous: true }`, pas d'image chargée en différé (l'illustration est un `Shape`).
 
@@ -194,7 +194,7 @@ GlassSurface {
 ### 5.2 Rendu par qualité
 | Qualité | Rendu |
 |---|---|
-| 2 — complète | `ShaderEffect` (`glass.frag.qsb`) : réfraction en lentille dans le biseau, flou par mipmaps (niveau ≈ log2(blur × backdropScale)), saturation, teinte adaptative (`Theme.glassTintCurve`, `glassTint`), liseré 1 px physique (`glassRim` côté lumière, `glassRimLow` à l'ombre, angle `glassGeo.lightAngleDeg`), reflet `glassSpecular × level.specular` confiné au biseau ; ombre verre : deux `RectangularShadow` (y 8 / flou 28 et y 1 / flou 3, `glassShadow`) |
+| 2 — complète | `ShaderEffect` (`glass.frag.qsb`) : réfraction en lentille dans le biseau, flou par mipmaps (niveau ≈ log2(blur × backdropScale)), saturation, teinte adaptative (`Theme.glassTintCurve`, `glassTint`), liseré 1 px physique (`glassRim` côté lumière, `glassRimLow` à l'ombre, angle `glassGeo.lightAngleDeg`), reflet `glassSpecular × level.specular` confiné au biseau ; ombre verre : deux `RectangularShadow` (`Theme.elevation.glassFar` y 8 / flou 28 et `Theme.elevation.glassNear` y 1 / flou 3, `glassShadow` ; jetons ajoutés en v1.3) |
 | 1 — allégée | même shader, réfraction = 0 et reflet fixe (pas de suivi du pointeur) |
 | 0 — opaque | `Rectangle` `surfaceRaised`, `border.width: Theme.borderWidth`, `border.color: borderControl` ; ombre e2 (`RectangularShadow` y 4 / flou 12 `shadow2`) ; **aucun** `ShaderEffect` ni lecture de la capture |
 | Contraste élevé | qualité 0 forcée (`materialsEnabled = false`) : fond `fillControl` (= ButtonFace), liseré 2 px `borderControl` (= ButtonText), **ni ombre ni reflet** (les ombres HC sont transparentes : ne pas instancier `RectangularShadow`) |

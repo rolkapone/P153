@@ -41,7 +41,8 @@ Item {
         }
 
         Loader {
-            active: root.testbed && Theme.materialsEnabled
+            // Masque en mode opaque (transparence coupee, contraste eleve, --glass-quality=0).
+            active: root.testbed && Theme.glassQuality !== Theme.glassOpaque
             sourceComponent: GlassTestbed {}
             x: Math.round(demo.x + demo.capsule.x + (demo.capsule.width - width) / 2)
             y: Math.round(demo.y + (demo.capsule.height - height) / 2)

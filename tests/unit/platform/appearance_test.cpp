@@ -17,6 +17,12 @@ TEST(Appearance, TransparenceActiveParDefaut) {
     static_assert(!transparencyFromRegistry(0U));
 }
 
+TEST(Appearance, CouleurAccentuationBarresDeTitre) {
+    static_assert(!accentOnTitleBarsFromRegistry(std::nullopt));
+    static_assert(!accentOnTitleBarsFromRegistry(0U));
+    static_assert(accentOnTitleBarsFromRegistry(1U));
+}
+
 TEST(Appearance, ConversionColorref) {
     static_assert(rgbFromColorref(0x00332211U) == 0x112233U);
     static_assert(colorrefFromRgb(0x1B1B1EU) == 0x1E1B1BU);

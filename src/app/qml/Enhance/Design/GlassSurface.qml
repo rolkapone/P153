@@ -20,14 +20,8 @@ Item {
     readonly property bool glassy: quality !== Theme.glassOpaque && backdrop !== null
                                    && backdropItem !== null
 
-    // Ombre du verre (design-system §6.2 regle 6 ; maquette --shadow-glass : 0 8 28 + 0 1 3).
-    // Pas de jeton dedie dans Theme : valeurs composees a partir de l'echelle d'espacement.
-    readonly property real shadowNearY: Theme.size.border
-    readonly property real shadowNearBlur: Theme.space.s0_5 + Theme.size.border
-    readonly property real shadowFarY: Theme.space.s2
-    readonly property real shadowFarBlur: Theme.space.s6 + Theme.space.s1
-
     // ------------------------------------------------------------------ Ombres
+    // Ombre du verre : jetons elevation.glassFar + glassNear (design-system §6.2 regle 6).
     Item {
         anchors.fill: parent
         opacity: surface.glassy ? 1 : 0
@@ -39,16 +33,16 @@ Item {
         RectangularShadow {
             anchors.fill: parent
             radius: surface.radius
-            offset.y: surface.shadowFarY
-            blur: surface.shadowFarBlur
-            color: Theme.color.glassShadow
+            offset.y: Theme.elevation.glassFar.y
+            blur: Theme.elevation.glassFar.blur
+            color: Theme.elevation.glassFar.color
         }
         RectangularShadow {
             anchors.fill: parent
             radius: surface.radius
-            offset.y: surface.shadowNearY
-            blur: surface.shadowNearBlur
-            color: Theme.color.glassShadow
+            offset.y: Theme.elevation.glassNear.y
+            blur: Theme.elevation.glassNear.blur
+            color: Theme.elevation.glassNear.color
         }
     }
     // Repli opaque : ombre e2 (aucune ombre en contraste eleve).

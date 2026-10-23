@@ -1,6 +1,6 @@
 # Enhance — Design system
 
-Statut : v1.2 (ui-designer), 2026-10-21 — v1.2 (ENH-004) : bouton de verre autonome (§9.1), biseau effectif (§6.2), `windowAppear` / `themeSwap` instantanés en mouvement réduit (§8), emplacement du module (§10). v1.1 : adoption du verre « liquide » (directive PO : « épouser le Liquid Glass 2.0 »). Sources : `docs/design/ux/` (principes, écrans, wireframes, parcours dont P-08 `SourceUnreadable` et P-08b), ADR-001 (Qt 6.8+ / Qt Quick, style Basic, Mica via DWM, `MultiEffect`, D3D11) et ADR-008 (i18n).
+Statut : v1.3 (ui-designer), 2026-10-23 — v1.3 (contrôle design ENH-004) : jetons de l'ombre du verre `elevation.glassFar` / `glassNear` (§5), barre de titre avec la couleur d'accentuation Windows (§6.6), bandeau compact (§9.5). v1.2 (ENH-004) : bouton de verre autonome (§9.1), biseau effectif (§6.2), `windowAppear` / `themeSwap` instantanés en mouvement réduit (§8), emplacement du module (§10). v1.1 : adoption du verre « liquide » (directive PO : « épouser le Liquid Glass 2.0 »). Sources : `docs/design/ux/` (principes, écrans, wireframes, parcours dont P-08 `SourceUnreadable` et P-08b), ADR-001 (Qt 6.8+ / Qt Quick, style Basic, Mica via DWM, `MultiEffect`, D3D11) et ADR-008 (i18n).
 
 | Fichier | Rôle |
 |---|---|
@@ -165,7 +165,7 @@ Rayons : `xs` 4 · `sm` 6 (vignette, pastille de segment, info-bulle) · `md` 8 
 | Niveau | y / flou | Couleur (sombre · clair) | Usage |
 |---|---|---|---|
 | e0 | — | — | Barre d'état, barre d'outils |
-| verre | 8 / 28 + 1 / 3 | glassShadow | Toutes les surfaces de verre |
+| verre | 8 / 28 + 1 / 3 (`Theme.elevation.glassFar` + `glassNear`) | glassShadow | Toutes les surfaces de verre |
 | e1 | 1 / 2 | noir 30 % · 6 % | Carte au repos (+ contour `borderCard`) |
 | e2 | 4 / 12 | noir 32 % · 10 % | Carte en cours, toast, info-bulle |
 | e3 | 16 / 40 | noir 48 % · 18 % | Feuille, menu, carte soulevée pendant un glisser |
@@ -245,6 +245,7 @@ Composant à créer par le developer : `GlassSurface.qml` (propriétés : `level
 | « Effets de transparence » désactivé (`EnableTransparency = 0`) → `Theme.transparencyEnabled = false` | verre **opaque** (`surfaceRaised`), pas de capture, ombre e2 ; Mica remplacé par `bgWindow` |
 | Contraste élevé | verre opaque aux couleurs système, liseré `WindowText` 2 px, ni reflet ni ombre |
 | « Effets d'animation » désactivé | pas de morphing (fondu enchaîné 150 ms), pas de reflet qui suit le pointeur, pas d'étirement de la pastille |
+| « Afficher la couleur d'accentuation sur les barres de titre » activé (`HKCU\Software\Microsoft\Windows\DWM\ColorPrevalence = 1`) | la barre de titre DWM prend la couleur d'accentuation choisie par l'utilisateur, **comme dans toutes les apps Windows** : on respecte ce choix explicite, on ne le force pas. La zone client garde le Mica (ou `bgWindow`). La barre de titre est donc teintée **dans les deux modes** : en mode opaque, ne pas poser `DWMWA_CAPTION_COLOR` (laisser `DWMWA_COLOR_DEFAULT`) quand ce réglage est actif |
 
 Les maquettes simulent les trois réglages (boutons « Transparence », « Contraste élevé », « Réduire les animations ») ; « Réfraction » bascule l'approximation SVG.
 
@@ -399,6 +400,8 @@ Piste `fillControl`, remplissage `progress`, rayon plein. Variantes : en cours (
 
 ### 9.5 Bandeau
 Haut de la liste, r 12, fond `warningTint` (ou `dangerTint`, `accentTint`) + contour de la même teinte à 30 %, icône 20 px, titre headline + texte callout secondaire, une action secondaire à droite. Persistant, jamais bloquant ; entrée 250 ms. Cas : pilote trop ancien, carte non compatible, aucune carte NVIDIA, composant manquant, espace disque, (plus tard) reprise après plantage.
+
+**Bandeau compact** (message système d'une phrase, sans action, quand il n'y a pas encore de liste — ex. SEC-20 « lancé en administrateur ») : capsule de `badgeH + s2` = 28 px, centrée dans la réserve de la barre d'outils (52 px), marge latérale `s4` 16, fond `warningTint`, contour 1 px `warning` à 30 % (2 px `WindowText` en contraste élevé), texte caption `textPrimary` sur une ligne (largeur max = colonne − 32 ; au-delà, retour à la ligne et hauteur `auto`, jamais d'ellipse). Apparition : fondu `fast` / decelerate. Le texte suit la typographie française (espace insécable U+00A0 avant « : »).
 
 ### 9.6 Feuille
 Centrée horizontalement, à 64 px du haut, largeur 520 px (moins 32 px si la fenêtre est étroite), r 20, **verre épais** + ombre verre, voile. Titre title1, sections séparées par un trait, **boutons en bas à droite** (principal à droite). Échap / clic sur le voile ferment et rendent le focus à l'élément d'origine ; focus piégé dans la feuille. Feuilles : Réglages (W5 ; réglages appliqués immédiatement, « OK » ferme), Détails de l'erreur (W6, détail technique en Cascadia Mono, copiable), Comment mettre à jour (texte local, aucun lien ouvert automatiquement), Raccourcis, Quitter pendant un traitement.

@@ -27,6 +27,9 @@ struct Appearance {
     bool transparency = true;  ///< EnableTransparency != 0 (« Effets de transparence »)
     bool highContrast = false; ///< SPI_GETHIGHCONTRAST, HCF_HIGHCONTRASTON
     bool reduceMotion = false; ///< SPI_GETCLIENTAREAANIMATION == FALSE (« Effets d'animation »)
+    /// DWM\ColorPrevalence != 0 : « Afficher la couleur d'accentuation sur les barres de titre ».
+    /// Choix de l'utilisateur, respecte : l'app n'impose alors pas sa couleur de barre de titre.
+    bool accentOnTitleBars = false;
     SystemColors colors{};
 
     friend bool operator==(const Appearance&, const Appearance&) = default;
@@ -45,6 +48,12 @@ darkFromAppsUseLightTheme(std::optional<std::uint32_t> value) noexcept {
 /// EnableTransparency : 0 = desactivee ; valeur absente = activee (defaut de Windows 11).
 [[nodiscard]] constexpr bool transparencyFromRegistry(std::optional<std::uint32_t> value) noexcept {
     return !value.has_value() || *value != 0;
+}
+
+/// DWM\ColorPrevalence : 1 = couleur d'accentuation sur les barres de titre ; absente = non.
+[[nodiscard]] constexpr bool
+accentOnTitleBarsFromRegistry(std::optional<std::uint32_t> value) noexcept {
+    return value.has_value() && *value != 0;
 }
 
 /// COLORREF (0x00BBGGRR) vers 0xRRGGBB.

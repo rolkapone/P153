@@ -59,6 +59,10 @@ TestCase {
         compare(Theme.glass.regular.blur, tokens.glass.levels.regular.blur);
         compare(Theme.glass.regular.bezel, tokens.glass.levels.regular.bezel);
         compare(Theme.glass.regular.refraction, tokens.glass.levels.regular.refraction);
+        compare(Theme.elevation.glassFar.y, tokens.elevation.glassFar.y);
+        compare(Theme.elevation.glassFar.blur, tokens.elevation.glassFar.blur);
+        compare(Theme.elevation.glassNear.y, tokens.elevation.glassNear.y);
+        compare(Theme.elevation.glassNear.blur, tokens.elevation.glassNear.blur);
         // Biseau effectif de la capsule de 44 px (libelle headline 20) : 12 px.
         compare(Theme.glassBezelFor(Theme.glass.regular, Theme.size.glassButtonH,
                                     Theme.typo.headline.lineHeight), 12);

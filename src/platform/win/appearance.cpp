@@ -7,12 +7,13 @@ namespace {
 
 constexpr const wchar_t* kPersonalizeKey =
     L"Software\\Microsoft\\Windows\\CurrentVersion\\Themes\\Personalize";
+constexpr const wchar_t* kDwmKey = L"Software\\Microsoft\\Windows\\DWM";
 
-std::optional<std::uint32_t> readUserDword(const wchar_t* valueName) noexcept {
+std::optional<std::uint32_t> readUserDword(const wchar_t* key, const wchar_t* valueName) noexcept {
     DWORD value = 0;
     DWORD size = sizeof(value);
-    const LSTATUS status = ::RegGetValueW(HKEY_CURRENT_USER, kPersonalizeKey, valueName,
-                                          RRF_RT_REG_DWORD, nullptr, &value, &size);
+    const LSTATUS status =
+        ::RegGetValueW(HKEY_CURRENT_USER, key, valueName, RRF_RT_REG_DWORD, nullptr, &value, &size);
     if (status != ERROR_SUCCESS) {
         return std::nullopt;
     }
@@ -27,8 +28,10 @@ std::uint32_t sysColor(int index) noexcept {
 
 Appearance readAppearance() noexcept {
     Appearance a;
-    a.dark = darkFromAppsUseLightTheme(readUserDword(L"AppsUseLightTheme"));
-    a.transparency = transparencyFromRegistry(readUserDword(L"EnableTransparency"));
+    a.dark = darkFromAppsUseLightTheme(readUserDword(kPersonalizeKey, L"AppsUseLightTheme"));
+    a.transparency =
+        transparencyFromRegistry(readUserDword(kPersonalizeKey, L"EnableTransparency"));
+    a.accentOnTitleBars = accentOnTitleBarsFromRegistry(readUserDword(kDwmKey, L"ColorPrevalence"));
 
     HIGHCONTRASTW hc{};
     hc.cbSize = sizeof(hc);
