@@ -2,6 +2,7 @@
 
 #include <cuda.h>
 
+#include <array>
 #include <mutex>
 #include <string>
 #include <utility>
@@ -18,7 +19,11 @@ namespace enh::pipeline::gpu {
 
 namespace {
 constexpr std::size_t kMiB = std::size_t{1024} * 1024;
-}
+// DLL du pilote chargees par nom par FFmpeg (ffnvcodec), NGX, NVENC, l'Optical Flow SDK et NVML :
+// prechargees depuis System32 pour que ces chargements par nom retrouvent ces modules (SEC-08).
+constexpr std::array<const wchar_t*, 4> kOptionalDriverDlls = {L"nvcuvid.dll", L"nvEncodeAPI64.dll",
+                                                               L"nvofapi64.dll", L"nvml.dll"};
+} // namespace
 
 PipelineError cudaFailure(cudaError_t err, std::string_view what, std::source_location where) {
     PipelineErrorCode code = PipelineErrorCode::Internal;
@@ -149,8 +154,8 @@ Result<VramInfo> queryVram() {
     if (auto r = checkCuda(cudaMemGetInfo(&free_b, &total_b), "cudaMemGetInfo"); !r) {
         return enh::Unexpected<PipelineError>(std::move(r.error()));
     }
-    return VramInfo{static_cast<std::uint32_t>(free_b / kMiB),
-                    static_cast<std::uint32_t>(total_b / kMiB)};
+    return VramInfo{.free_mib = static_cast<std::uint32_t>(free_b / kMiB),
+                    .total_mib = static_cast<std::uint32_t>(total_b / kMiB)};
 }
 
 Result<void> preloadNvidiaDriverDlls() {
@@ -159,7 +164,10 @@ Result<void> preloadNvidiaDriverDlls() {
     std::call_once(once, [] {
         // Handles gardes volontairement jusqu'a la fin du processus (modules du pilote).
         cuda_ok = LoadLibraryExW(L"nvcuda.dll", nullptr, LOAD_LIBRARY_SEARCH_SYSTEM32) != nullptr;
-        (void)LoadLibraryExW(L"nvcuvid.dll", nullptr, LOAD_LIBRARY_SEARCH_SYSTEM32);
+        // Les autres sont facultatives ici (absentes = fonction indisponible, signalee plus tard).
+        for (const wchar_t* name : kOptionalDriverDlls) {
+            (void)LoadLibraryExW(name, nullptr, LOAD_LIBRARY_SEARCH_SYSTEM32);
+        }
     });
     if (!cuda_ok) {
         PipelineError e = makeError(PipelineErrorCode::ComponentMissing,

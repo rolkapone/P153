@@ -89,9 +89,10 @@ struct VramInfo {
 /// VRAM du peripherique courant (cudaMemGetInfo ; tous processus confondus).
 [[nodiscard]] Result<VramInfo> queryVram();
 
-/// Precharge nvcuda.dll et nvcuvid.dll depuis System32 seulement (SEC-08) avant tout appel CUDA ou
-/// FFmpeg : les chargements ulterieurs par nom retrouvent ces modules. ComponentMissing{Driver}
-/// si nvcuda.dll est absente. Idempotent, thread-safe, modules gardes jusqu'a la fin du processus.
+/// Precharge nvcuda, nvcuvid, nvEncodeAPI64, nvofapi64 et nvml depuis System32 seulement (SEC-08,
+/// ENH-040) avant tout appel CUDA ou FFmpeg : les chargements ulterieurs par nom retrouvent ces
+/// modules. ComponentMissing{Driver} si nvcuda.dll est absente. Idempotent, thread-safe, modules
+/// gardes jusqu'a la fin du processus.
 [[nodiscard]] Result<void> preloadNvidiaDriverDlls();
 
 /// Initialise le contexte primaire du peripherique `device` sur le thread courant et le rend

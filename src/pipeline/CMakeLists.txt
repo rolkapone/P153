@@ -29,6 +29,28 @@ add_library(enh_pipeline_fake STATIC fake/fake_pipeline.cpp)
 enh_target_defaults(enh_pipeline_fake)
 target_link_libraries(enh_pipeline_fake PUBLIC enh_pipeline_core)
 
+# API C du pont RTX Video (en-tete C pur, sans CUDA ni NGX) : partagee par la DLL pont et par
+# enh_pipeline_rtxvideo (ADR-037, ENH-040).
+add_library(enh_rtxvideo_bridge_api INTERFACE)
+target_include_directories(enh_rtxvideo_bridge_api INTERFACE rtxvideo_bridge/include)
+
+# enh_pipeline_rtxvideo : chargement du pont, RAII NGX, RtxVideoUpscaler, controle des modules et
+# des signatures. Aucune dependance CUDA : construite et testee en CI avec un faux pont.
+if(ENH_HAVE_EXPECTED)
+  add_library(enh_pipeline_rtxvideo STATIC
+    rtxvideo/bridge_api.cpp
+    rtxvideo/bridge_library.cpp
+    rtxvideo/module_trust.cpp
+    rtxvideo/ngx_guard.cpp
+    rtxvideo/ngx_runtime.cpp
+    rtxvideo/rtxvideo_upscaler.cpp)
+  enh_target_defaults(enh_pipeline_rtxvideo)
+  target_include_directories(enh_pipeline_rtxvideo PUBLIC rtxvideo/include)
+  target_link_libraries(enh_pipeline_rtxvideo
+    PUBLIC enh_pipeline_core enh_rtxvideo_bridge_api
+    PRIVATE wintrust crypt32 shell32 ole32)
+endif()
+
 # enh_pipeline_ffmpeg : demux, AVIO maison, decodage (logiciel ; NVDEC branche par enh_pipeline_gpu).
 include(EnhFfmpeg)
 enh_find_ffmpeg()
@@ -39,6 +61,7 @@ endif()
 # enh_pipeline_impl : le pipeline concret, reel ou simule (ADR-036).
 add_library(enh_pipeline_impl INTERFACE)
 if(ENH_GPU_EFFECTIVE)
+  add_subdirectory(rtxvideo_bridge)
   add_subdirectory(gpu)
   target_link_libraries(enh_pipeline_impl INTERFACE enh_pipeline_gpu)
 else()
