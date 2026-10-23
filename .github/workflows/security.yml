@@ -94,7 +94,7 @@ jobs:
           if ($m.PSObject.Properties['overrides']) { throw 'overrides interdit sans justification revue par secdevops.' }
           if (-not (Test-Path cmake/triplets/x64-windows-enh.cmake)) { throw 'Triplet maison absent.' }
           # TODO(secdevops) : scripts/licences.ps1 -Check (registre des licences) ; cve-watch hebdomadaire.
-      - name: osv-scanner 2.7.0 (SHA-256 verifiee, informatif : vcpkg non gere)
+      - name: "osv-scanner 2.7.0 (SHA-256 verifiee ; informatif, vcpkg non gere)"
         continue-on-error: true
         run: |
           curl -sSLo "$RUNNER_TEMP/osv" https://github.com/google/osv-scanner/releases/download/v2.7.0/osv-scanner_linux_amd64
