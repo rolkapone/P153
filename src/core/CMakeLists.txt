@@ -1,4 +1,4 @@
-add_library(enh_core STATIC src/version.cpp)
+add_library(enh_core STATIC src/version.cpp src/demo_counter.cpp)
 add_library(enh::core ALIAS enh_core)
 enh_target_defaults(enh_core)
 target_include_directories(enh_core PUBLIC include)
