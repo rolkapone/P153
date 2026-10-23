@@ -104,11 +104,11 @@ void RenderPolicy::attachWindow(QQuickWindow* window) {
     timer_ = std::make_shared<GpuFrameTimer>();
     const std::shared_ptr<GpuFrameTimer> timer = timer_;
     beforeConnection_ = connect(
-        window, &QQuickWindow::beforeRendering, window,
+        window, &QQuickWindow::beforeRenderPassRecording, window,
         [timer, window] { timer->beginFrame(window); }, Qt::DirectConnection);
     afterConnection_ = connect(
-        window, &QQuickWindow::afterRendering, window, [timer, window] { timer->endFrame(window); },
-        Qt::DirectConnection);
+        window, &QQuickWindow::afterRenderPassRecording, window,
+        [timer, window] { timer->endFrame(window); }, Qt::DirectConnection);
     invalidatedConnection_ = connect(
         window, &QQuickWindow::sceneGraphInvalidated, window, [timer] { timer->release(); },
         Qt::DirectConnection);

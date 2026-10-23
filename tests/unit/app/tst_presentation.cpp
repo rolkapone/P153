@@ -181,6 +181,10 @@ private slots:
 
     // B1 (revue cycle 1) : debrancher ou detruire la politique pendant que la fenetre rend des
     // images en continu ne doit rien casser (minuteur partage par shared_ptr).
+    // Attention : en CI (offscreen + rendu logiciel) la boucle de rendu n'est pas threaded et
+    // la mesure D3D11 est inactive ; le test n'y verifie que la duree de vie des connexions. La
+    // preuve de l'absence de course n'est apportee qu'en local, plateforme windows + D3D11 :
+    //   QT_QPA_PLATFORM=windows enh_presentation_tests fermeturePendantLeRendu
     void fermeturePendantLeRendu() {
         QQmlEngine engine;
         QQmlComponent component(&engine);

@@ -119,8 +119,11 @@ void GpuFrameTimer::beginFrame(QQuickWindow* window) {
         d3d_->open = nullptr;
         return;
     }
-    // beginExternalCommands vide les commandes deja enregistrees par Qt : nos requetes sont
-    // ordonnees avec le rendu de l'image.
+    // Appele dans la passe principale (beforeRenderPassRecording / afterRenderPassRecording) :
+    // la mesure couvre le dessin de la scene, et non l'attente de l'image libre du swapchain
+    // (mode flip) ni le delai de soumission, qui faisaient suivre la valeur au vsync quand elle
+    // etait prise dans beforeRendering / afterRendering. beginExternalCommands vide les commandes
+    // deja enregistrees par Qt : nos requetes sont ordonnees avec celles de la passe.
     window->beginExternalCommands();
     d3d_->context->Begin(slot.disjoint.Get());
     d3d_->context->End(slot.start.Get());

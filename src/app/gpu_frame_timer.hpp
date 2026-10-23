@@ -29,8 +29,8 @@ public:
     GpuFrameTimer(GpuFrameTimer&&) = delete;
     GpuFrameTimer& operator=(GpuFrameTimer&&) = delete;
 
-    void beginFrame(QQuickWindow* window); ///< QQuickWindow::beforeRendering
-    void endFrame(QQuickWindow* window);   ///< QQuickWindow::afterRendering
+    void beginFrame(QQuickWindow* window); ///< QQuickWindow::beforeRenderPassRecording
+    void endFrame(QQuickWindow* window);   ///< QQuickWindow::afterRenderPassRecording
     void release();                        ///< QQuickWindow::sceneGraphInvalidated
 
     /// Mesures terminees depuis le dernier appel (ms), dans l'ordre.
