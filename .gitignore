@@ -64,3 +64,12 @@ logs/
 coverage/
 Thumbs.db
 .DS_Store
+
+.agents/
+.codex/
+AGENTS.md
+*.pkl
+*.pth
+*.pt
+*.ckpt
+*.safetensors
