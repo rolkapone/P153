@@ -146,6 +146,7 @@ Points livrés dans ce sprint : 0 / 15.
 | S1-4 | Le pont (ENH-040) repose sur le préfixe 11.x de `cudaDeviceProp` : fragile si le SDK change | Test d'import + test de fumée GPU à chaque changement de SDK ; signalement à NVIDIA |
 | S1-5 | Mesures faussées par la VRAM déjà occupée au repos (2 à 3,8 Gio : Docker, iCUE, navigateur) | Mesure en différence, applications graphiques fermées pendant les mesures officielles (QA) |
 | S1-6 | FFmpeg BtbN (dev) n'a pas la configuration minimale de livraison | Accepté en développement (exceptions datées 2027-01-21) ; ENH-048 avant ENH-030 |
+| S1-8 | ENH-008 : test d'ouverture UNC (`Win32File.PartageUnc`, `ENH_TEST_UNC_DIR`) non exécuté faute de partage accessible | **Décision PO 2026-10-23** : point « non vérifié — reporté à ENH-015 » (critère « test UNC exécuté sur un vrai partage » ajouté à ENH-015) |
 | S1-7 | Pas de remote : la CI GitHub n'est pas vérifiée | Tests unitaires et GPU locaux obligatoires ; création du dépôt à discuter au Sprint 2 |
 
 ## Définition de la démo de fin de sprint (à faire au PO, ~10 minutes)

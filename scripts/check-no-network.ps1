@@ -135,14 +135,18 @@ function Invoke-SourceScan {
             }
         }
     }
-    # Exigence positive : protocol_whitelist des que le pipeline FFmpeg existe.
-    $ff = Join-Path $repo 'src/pipeline/gpu/ffmpeg'
-    if ((Test-Path $ff) -and @(Get-ChildItem $ff -Filter *.cpp -Recurse).Count -gt 0) {
-        $all = (Get-ChildItem $ff -Recurse -File | ForEach-Object { Get-Content -LiteralPath $_.FullName -Raw }) -join "`n"
-        if ($all -notmatch 'protocol_whitelist') { $violations.Add('C1 src/pipeline/gpu/ffmpeg : protocol_whitelist absent') }
-        if ($all -notmatch 'io_open') { $violations.Add('C1 src/pipeline/gpu/ffmpeg : remplacement de io_open absent') }
+    # Exigence positive : le module qui appelle avformat_open_input doit imposer protocol_whitelist,
+    # remplacer io_open et filtrer les demuxeurs (isAllowedDemuxer). Echec si absent ou introuvable.
+    $ff = Join-Path $repo 'src/pipeline/ffmpeg'
+    $ffSources = @()
+    if (Test-Path $ff) { $ffSources = @(Get-ChildItem $ff -Recurse -File | Where-Object { $_.Extension -in '.cpp', '.hpp', '.h' }) }
+    $allFf = ($ffSources | ForEach-Object { Get-Content -LiteralPath $_.FullName -Raw }) -join "`n"
+    if ($allFf -match 'avformat_open_input') {
+        foreach ($req in 'protocol_whitelist', 'io_open', 'isAllowedDemuxer') {
+            if ($allFf -notmatch [regex]::Escape($req)) { $violations.Add("C1 src/pipeline/ffmpeg : $req absent") }
+        }
     } else {
-        $notes.Add('C1 : pipeline FFmpeg absent, exigences positives (protocol_whitelist, io_open) non evaluees.')
+        $violations.Add('C1 src/pipeline/ffmpeg : appel a avformat_open_input introuvable, exigences protocol_whitelist / io_open / isAllowedDemuxer non verifiables')
     }
     $notes.Add("C1 : $n fichier(s) de sources analyses.")
 }
