@@ -1,6 +1,6 @@
 <#
 .SYNOPSIS
-  Build puis tests unitaires (label "unit", sans GPU).
+  Build puis tests unitaires (label "unit", sans GPU) et tests de l interface (label "ui", si Qt).
 .EXAMPLE
   scripts\test.ps1                  # preset dev-nogpu
   scripts\test.ps1 -Preset ci
@@ -8,7 +8,7 @@
 #>
 [CmdletBinding()]
 param(
-    [ValidateSet('dev-nogpu', 'ci')]
+    [ValidateSet('dev-nogpu', 'dev', 'ci')]
     [string]$Preset = 'dev-nogpu',
     [switch]$NoBuild,
     [switch]$Coverage
@@ -23,6 +23,11 @@ $tools = Enter-EnhVsEnv
 & $tools.Ctest --test-dir (Join-Path $script:RepoRoot "build\$Preset") -L unit --output-on-failure --no-tests=error
 if ($LASTEXITCODE -ne 0) { throw "Tests unitaires en echec (ou aucun test : GoogleTest absent, voir scripts\bootstrap.ps1)." }
 Write-Host 'Tests unitaires OK' -ForegroundColor Green
+
+# Tests de l'interface (label ui, ADR-028) : presents seulement si Qt est compile (presets dev*).
+& $tools.Ctest --test-dir (Join-Path $script:RepoRoot "build\$Preset") -L ui --output-on-failure --no-tests=ignore
+if ($LASTEXITCODE -ne 0) { throw 'Tests de l interface (label ui) en echec.' }
+Write-Host 'Tests de l interface OK' -ForegroundColor Green
 
 if ($Coverage) {
     $occ = Get-Command OpenCppCoverage -ErrorAction SilentlyContinue

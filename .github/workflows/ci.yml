@@ -124,7 +124,7 @@ jobs:
         with:
           version: '6.11.2'
           arch: win64_msvc2022_64
-          modules: ''
+          modules: 'qtshadertools'
       - name: Configure + build (preset ci-ui)
         shell: pwsh
         run: scripts/build.ps1 -Preset ci-ui
