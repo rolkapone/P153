@@ -9,13 +9,13 @@ Clips de référence : `BBB-FAST`, `BBB-PAN`, `TOS-FACE`, `TOS-DARK`, `SYN-TEXT`
 | Indicateur | Valeur |
 |---|---|
 | Total points MVP | **174** (126 en v0.2 ; +44 pts de stories nouvelles issues du spike, du threat model et de la revue des licences ; +1 net de ré-estimations, voir « Mouvements v0.3 » ; **+3 pts : ENH-008b**, redécoupage d'ENH-008 au planning du Sprint 1, voir « Mouvements v0.4 ») |
-| Points livrés (kickoff = « sprint 0 », non compté dans la vitesse) | **23** : ENH-001 (5), ENH-002 (5), ENH-003 (4 sur 5), ENH-005 (3), ENH-006 (3), ENH-007 (3) |
-| Points restants | **151** (dont les 15 du Sprint 1, **démarré le 2026-10-21** : ENH-008 et ENH-004 IN PROGRESS, 0 pt livré) |
+| Points livrés (kickoff = « sprint 0 », non compté dans la vitesse) | **28** : kickoff 23 (ENH-001 (5), ENH-002 (5), ENH-003 (4 sur 5), ENH-005 (3), ENH-006 (3), ENH-007 (3)) + **ENH-008 (5, DONE le 2026-10-23, merge `0c2f748`)** ; Sprint 1 : 5 / 15 |
+| Points restants | **146** (dont 10 pts encore engagés au Sprint 1, **démarré le 2026-10-21** : ENH-004 en contrôle design, ENH-040 IN PROGRESS, ENH-047 TODO) |
 | Vitesse supposée | **15 pts / sprint** (aucun sprint terminé : pas d'historique ; le kickoff n'est pas un sprint) |
-| Sprints restants estimés avant le MVP | **11** (151 / 15 = 10,1 ; v0.3 : 10) ; fourchette **11 à 13** si deux stories `[UI]` passent à 3 cycles de revue ou si le risque Mica se réalise |
-| Dernière mise à jour | 2026-10-21 (Sprint 1 validé par le PO et démarré ; aucun sprint terminé) |
+| Sprints restants estimés avant le MVP | **10** (146 / 15 = 9,7 ; hors Sprint 1 en cours) ; fourchette **10 à 12** si deux stories `[UI]` passent à 3 cycles de revue ou si le risque Mica se réalise |
+| Dernière mise à jour | 2026-10-23 (ENH-008 DONE ; Sprint 1 en cours, aucun sprint terminé) |
 
-Répartition des 151 points restants : Fondations, sécurité et CI 13 (ENH-004, 049, 050), Pipeline GPU 73 (dont ENH-008b), File / préréglages / UI / transverse 65.
+Répartition des 146 points restants : Fondations, sécurité et CI 13 (ENH-004, 049, 050), Pipeline GPU 68 (dont ENH-008b), File / préréglages / UI / transverse 65.
 Total « Plus tard » : 52 pts + 8 pts (ENH-051) ; « Avant publication » : 3 pts (hors MVP).
 
 ### Jalons (indicatifs, à recaler à chaque fin de sprint)
@@ -44,9 +44,9 @@ Ordre de bataille : voir `docs/sprints/sprint-1.md` (Sprint 1 = 15 pts : ENH-004
 - ENH-003 5 -> 4 pts : le reliquat (CI GitHub non exécutée, durcissements devops) est porté par ENH-049.
 - ENH-001, ENH-002, ENH-005, ENH-006, ENH-007 : DONE ; leurs critères non remplis sont **transférés** à une story nommée (aucun critère perdu).
 
-## Décisions du PO (2026-10-21)
+## Décisions du PO
 
-Validés ce jour par le PO : la vision (`vision.md`), ce backlog (v0.2), la stack (ADR-001 Qt 6 / Qt Quick), la direction visuelle.
+Décisions n° 1 à 15 : **2026-10-21** (validation de la vision `vision.md`, de ce backlog v0.2, de la stack ADR-001 Qt 6 / Qt Quick et de la direction visuelle). Décision n° 16 : **2026-10-23**. Numérotation continue, sans doublon ; les renvois « décision n° N » des autres documents restent valables.
 
 1. **Cadence** : on n'interpole jamais au-delà de 60 i/s ; une source >= 50 i/s n'est pas interpolée ; 24 i/s -> vrai 60 i/s interpolé (ENH-012). **Précision** : toute source strictement sous 50 i/s (y compris 31-49 i/s) est interpolée vers 60 i/s.
 2. **Conteneur MVP** : MP4 ; bascule automatique en MKV, avec message, si une piste de sous-titres est incompatible MP4 (ENH-013, ENH-024).
@@ -57,13 +57,13 @@ Validés ce jour par le PO : la vision (`vision.md`), ce backlog (v0.2), la stac
 7. **Toolchain** : Visual Studio 2026 (MSVC v145) remplace VS 2022 ; CUDA Toolkit 13.4 accepte ce compilateur hôte **sans** `-allow-unsupported-compiler` (confirmé par le spike).
 8. **Pause** : la VRAM reste réservée pendant une pause pour une reprise instantanée (MVP) ; libérer la carte pendant une pause viendra avec la reprise après plantage (ENH-021, ENH-038).
 9. **Sous-titres** : SRT/WebVTT convertis en `mov_text` pour rester en MP4 ; bascule MKV seulement pour ASS/PGS/VobSub, pièces jointes ou audio non MP4 (ENH-013).
-11. **Test UNC d'ENH-008 reporté à ENH-015** (2026-10-23) : `Win32File.PartageUnc` (`ENH_TEST_UNC_DIR`), non exécuté faute de partage accessible, est reporté à ENH-015 ; le point UNC du critère AVIO d'ENH-008 est « non vérifié — reporté à ENH-015 ».
 10. **Préparation des modèles d'interpolation** (construction du moteur TensorRT) : au premier traitement, avec un message affiché à l'utilisateur, pas à l'installation ; mis en cache ensuite (ENH-044). *Mesuré : ~85 s à vide, jusqu'à 2,5 min si le PC est chargé.*
 11. **Direction visuelle validée** : maquettes `docs/design/ui/maquettes/`, accent **Iris**, fond **Mica + verre**, police **Segoe UI Variable** (système, non livrée), icônes **Lucide (ISC)** (`design-system.md`). La ligne « Jeu d'icônes » du registre des licences est à passer de « À CONFIRMER » à « OK » par secdevops (tâche du Sprint 1).
 12. **Outil local Python** : **Python 3.12 + PyTorch (roues CPU suffisantes)** approuvé **comme outil local** pour exporter RIFE en ONNX depuis les poids **MIT** de Practical-RIFE. **Export maison obligatoire** ; l'ONNX de vs-mlrt (dépôt GPL-3.0) est **écarté de la livraison** (reste local, comparaison). Le PO a relu la licence MIT des poids et **accepte le risque résiduel Vimeo-90K** (SEC-03, `licences.md` §7.2). Rien de Python n'est livré (ENH-043).
 13. **Comparaison des modèles d'interpolation** : RIFE 4.25 comparé à FILM, IFRNet et EMA-VFI (qualité, vitesse 720p TensorRT, licence des poids) pour départager « Qualité max » et disposer d'un repli licence (ENH-045).
 14. **Seuils de qualité en part de la marge restante** (remplace « +5 VMAF ») : écart VMAF vs Lanczos >= **50 %** de (100 - VMAF Lanczos) en **Qualité max**, >= **35 %** en **Équilibré**, >= **20 %** en **Rapide** (voir « Seuils QA de référence » ci-dessous). Raison : les sources libres sont déjà douces, Lanczos y atteint 92-96 de VMAF (`docs/qa/resultats/2026-10-21_reference-lanczos.md`), +5 y est arithmétiquement impossible.
 15. **Git** : aucune mention de Claude dans les commits ni les PR ; aucun push sans l'accord du PO.
+16. **Test UNC d'ENH-008 reporté à ENH-015** (décision du 2026-10-23) : `Win32File.PartageUnc` (`ENH_TEST_UNC_DIR`), non exécuté faute de partage accessible, est reporté à ENH-015 ; le point UNC du critère AVIO d'ENH-008 est « non vérifié — reporté à ENH-015 ».
 
 ## Faits techniques établis par le kickoff (reflétés dans les stories)
 
@@ -156,7 +156,7 @@ Applicables en plus des critères propres à chaque story ; vérifiés par le ui
 | SEC-10 chemins UNC au redémarrage | MEDIUM | ENH-022 |
 | SEC-11 suppression de temporaires | MEDIUM | ENH-022, ENH-024 |
 | SEC-12 cache de moteurs TensorRT | MEDIUM | ENH-044 |
-| SEC-13 dépassements d'entiers | MEDIUM | ENH-008, ENH-015 |
+| SEC-13 dépassements d'entiers | MEDIUM | ENH-008 (décodeur, **fait**), ENH-015 (fin) |
 | SEC-14 journaux tiers / WER | MEDIUM | ENH-025 |
 | SEC-15 glisser-déposer, `ShellExecute` | LOW | ENH-017, ENH-023 |
 | SEC-16 chemins de build dans les binaires | LOW | ENH-030 |
@@ -166,6 +166,7 @@ Applicables en plus des critères propres à chaque story ; vérifiés par le ui
 | SEC-20 exécution en administrateur | LOW | ENH-004 |
 | SEC-21 CLUF d'Enhance | à confirmer | ENH-050 (+ ENH-052) |
 | SEC-22 imports `ws2_32` de Qt6Core | LOW | ENH-028 |
+| SEC-23 liste blanche de décodeurs, `format_whitelist`, `max_pixels` | MEDIUM | ENH-015 (+ liste de ENH-048) |
 
 ---
 
@@ -361,7 +362,9 @@ Notes : ux-designer (écran existant dans `ecrans.md`, à compléter) -> ui-desi
 
 ## Epic B — Pipeline vidéo GPU
 
-### ENH-008 — Démuxage FFmpeg et décodage NVDEC  [GPU] [Must | 5 pts]
+### ENH-008 — Démuxage FFmpeg et décodage NVDEC  [GPU] [Must | 5 pts]  — **DONE (2026-10-23)**
+Livré : revue APPROVE (cycle 2/3), QA PASS (3 398 i/s sur BBB-FAST, 2 541 i/s sur BBB-PAN, 58 Mio de VRAM, dérive 0), secdevops PASS, merge `0c2f748` (--no-ff). Reports : test UNC -> ENH-015 ; suites SEC-23 et SEC-13 (fin) -> ENH-015 ; tâche `nvcuvid.dll` -> ENH-008b (voir ci-dessous). Les cases ci-dessous restent à titre de référence des critères vérifiés.
+
 En tant qu'utilisateur, je veux ouvrir n'importe quel format vidéo afin de ne jamais convertir au préalable.
 Critères d'acceptation :
 - [ ] Étant donné la **matrice « noyau »** (`docs/gpu/ENH-008.md` §4) : MP4 x H.264 8 bits, MP4 x HEVC Main10, MKV x AV1 10 bits, WebM x VP9, MPEG-TS x MPEG-2, AVI x H.264, MOV x H.264, **MOV x ProRes 422 HQ (repli logiciel)**, plus `in720/BBB-FAST.mp4`, quand on décode, alors toutes les images arrivent en mémoire GPU (NVDEC : surfaces NV12 / P010 ; AV1 par le décodeur natif, `path() == Nvdec`) avec un nombre d'images **égal** à celui de `ffprobe -count_frames` (même build FFmpeg). Le reste de la matrice est dans **ENH-008b**.
@@ -381,6 +384,7 @@ Critères d'acceptation :
 - [ ] Aucune régression sur ENH-008 : seuils inchangés (>= 1 000 i/s sur `BBB-FAST.mp4`, VRAM <= 600 Mio, dérive <= 50 Mio sur 10 fichiers) ; **pas de baisse > 5 %** par rapport à la mesure de `main`.
 - [ ] SEC-13 : dimensions impaires, 1x1 et 8192x4320 sans débordement.
 - [ ] **Seuils QA** (`docs/qa/sprint-1-seuils.md` §3-§5) : mêmes règles de mesure que ENH-008 ; une combinaison dont l'encodeur de génération est absent du FFmpeg de mesure est notée « non générée » et le critère « non vérifié » (jamais PASS par défaut).
+- [ ] **Petite tâche (suite d'ENH-008)** : l'échec du préchargement de `nvcuvid.dll` est **journalisé** (niveau avertissement, code d'erreur Windows, sans chemin personnel) ; test unitaire avec un chargeur factice (sans GPU).
 Notes : dépend d'ENH-008 ; **doit passer avant ENH-048** (qui rejoue la matrice) ; au plus tard Sprint 3. Corpus généré par `tests/gpu/corpus/make-corpus.ps1`.
 
 ### ENH-009 — Super-résolution RTX Video SDK dans le pipeline  [GPU] [Must | 5 pts]
@@ -403,6 +407,7 @@ Critères d'acceptation :
 - [ ] Débit cible par préréglage en données (HEVC : 25 000 / 40 000 / 60 000 kbit/s [H]) ; débit réel à +/- 15 % de la cible (mesuré +/- 12 %).
 - [ ] Le fichier est lisible dans VLC et Films et TV de Windows ; zéro erreur de décodage `ffmpeg -v error`.
 - [ ] Exposé dans `enhance-bench` (`--codec`, `--preset`, `--bits`).
+- [ ] **Avant de démarrer** : recouper le coût GPU de l'interface (verre, animations) avec **PresentMon** pendant un encodage ; le coût mesuré par `enhance-bench` / `nvidia-smi` et celui de PresentMon doivent concorder à 10 % près, sinon l'écart est consigné dans `docs/gpu/` (reporté d'ENH-004 / design-system §12 n° 7 à 9).
 Notes : un seul moteur NVENC (c'est le goulot de la chaîne) ; **UHQ HEVC (29 i/s) est sous le budget de Qualité max** : ne pas le retenir sans décision du PO. Dépend d'ENH-042.
 
 ### ENH-011 — Encodage NVENC AV1  [GPU] [Must | 3 pts]
@@ -456,6 +461,9 @@ Critères d'acceptation :
 - [ ] `av_dump_format` interdit, aucune métadonnée du fichier dans le journal (SEC-14).
 - [ ] Cas limites du protocole §8 (1 à 10) exécutés par la QA.
 - [ ] **Test UNC exécuté sur un vrai partage** (reporté d'ENH-008, décision PO 2026-10-23) : `Win32File.PartageUnc` avec `ENH_TEST_UNC_DIR` pointant sur un partage réel, ouverture par chemin UNC réussie (aucun « non exécuté »).
+- [ ] **SEC-23 (suite d'ENH-008)** : liste blanche de décodeurs côté application (seuls les codecs de la matrice sont ouverts ; tout autre -> `UnsupportedFormat`), `format_whitelist` des démuxeurs positionnée à l'ouverture, `max_pixels` borné sur le contexte FFmpeg ; tests unitaires avec fichiers forgés (codec hors liste, démuxeur hors liste, image > 8192x4320).
+- [ ] **Fin de SEC-13** : tous les autres calculs de tailles du sondage et du pipeline (hors décodeur, déjà couvert par ENH-008) utilisent `checked_mul` / `std::size_t` ; revue ciblée par le reviewer.
+- [ ] **Fichier tronqué décodé en partie** : si le décodage s'arrête avant la fin annoncée (images décodées < images attendues), le job se termine avec un **avertissement visible** à l'utilisateur (« le fichier semble tronqué : N images sur M traitées », texte P-08), jamais en succès silencieux ; test avec un clip tronqué de la matrice.
 Notes : dépend d'ENH-008 ; fuzz du build d'ENH-048 ; isolement du sondage dans un processus restreint : ENH-051 (Plus tard).
 
 ## Epic C — File d'attente et préréglages

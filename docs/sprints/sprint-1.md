@@ -1,6 +1,6 @@
 # Sprint 1 — « Une fenêtre, un décodeur, une super-résolution »
 
-Statut : **DÉMARRÉ le 2026-10-21, validé par le PO avec les choix par défaut** (ENH-008 et ENH-004 IN PROGRESS ; ENH-040 et ENH-047 TODO). Rédigé le 2026-10-21 par le scrum-master.
+Statut : **DÉMARRÉ le 2026-10-21, validé par le PO avec les choix par défaut** (état au 2026-10-23 : ENH-008 DONE ; ENH-004 en contrôle design ; ENH-040 IN PROGRESS ; ENH-047 TODO). Rédigé le 2026-10-21 par le scrum-master.
 
 ### Décisions du PO (2026-10-21)
 1. Barre d'état « GeForce RTX 5070 · prête » **en dur** dans le squelette (détection réelle plus tard, ENH-031).
@@ -128,13 +128,15 @@ Chaque story suit le workflow de `CLAUDE.md` : implémentation -> **reviewer** (
 
 | Story | Statut (TODO / IN PROGRESS / IN REVIEW / QA / SECURITY / DONE / BLOCKED) | Cycles de review | Notes |
 |---|---|---|---|
-| ENH-004 Squelette Qt Quick + Mica [UI] | IN PROGRESS | 0 | Branche `feature/ENH-004-squelette-qt` ; décisions PO prises (barre d'état en dur, capsule visible, icône provisoire) ; risque A1 (Mica) ; SEC-08 / SEC-20 inclus |
-| ENH-008 Démuxage + NVDEC, matrice noyau [GPU] | IN PROGRESS | 0 | Branche `feature/ENH-008-demux-nvdec` ; priorité 1 ; redécoupée (5 pts, matrice étendue = ENH-008b) ; AVIO maison inclus |
-| ENH-040 Pont RTX Video [GPU] | TODO | 0 | Priorité 2 ; relecture renforcée |
-| ENH-047 `enhance-bench` v1 [GPU] | TODO | 0 | Priorité 3 ; dépend d'ENH-008 et d'ENH-040 |
-| *ENH-008b Matrice de formats étendue [GPU]* | *hors sprint* | - | 3 pts, avant ENH-048, au plus tard Sprint 3 |
+| ENH-004 Squelette Qt Quick + Mica [UI] | IN REVIEW (contrôle design / corrections mineures) | à confirmer par l'orchestrateur | Branche `feature/ENH-004-squelette-qt` ; décisions PO prises (barre d'état en dur, capsule visible, icône provisoire) ; risque A1 (Mica) ; SEC-08 / SEC-20 inclus ; écarts mineurs en correction avant QA |
+| ENH-008 Démuxage + NVDEC, matrice noyau [GPU] | **DONE** (2026-10-23) | 2 / 3 | Merge `0c2f748` (--no-ff) ; revue APPROVE ; QA PASS : 3 398 i/s (BBB-FAST), 2 541 i/s (BBB-PAN), 58 Mio, dérive 0 ; secdevops PASS. Reports : UNC -> ENH-015 ; SEC-23 + fin SEC-13 + troncature -> ENH-015 ; journal `nvcuvid.dll` -> ENH-008b |
+| ENH-040 Pont RTX Video [GPU] | **IN PROGRESS** | 0 | Branche `feature/ENH-040-pont-rtxvideo` ; priorité 2 ; relecture renforcée |
+| ENH-047 `enhance-bench` v1 [GPU] | TODO | 0 | Priorité 3 ; dépend d'ENH-040 (ENH-008 mergée) |
+| *ENH-008b Matrice de formats étendue [GPU]* | *hors sprint* | - | 3 pts, avant ENH-048, au plus tard Sprint 3 ; + petite tâche : journaliser l'échec de préchargement de `nvcuvid.dll` |
 
-Points livrés dans ce sprint : 0 / 15.
+Points livrés dans ce sprint : **5 / 15** (ENH-008).
+
+Suites ajoutées au backlog le 2026-10-23 : SEC-23 et fin de SEC-13 + avertissement de fichier tronqué (ENH-015), journal `nvcuvid.dll` (ENH-008b), recoupement PresentMon avant ENH-010.
 
 ## Risques du sprint
 
