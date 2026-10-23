@@ -307,15 +307,23 @@ function Invoke-BinaryScan([string]$dir) {
             $ascii = [Text.Encoding]::GetEncoding(28591).GetString($bytes)
             $u0 = [Text.Encoding]::Unicode.GetString($bytes, 0, $len - ($len % 2))
             $u1 = [Text.Encoding]::Unicode.GetString($bytes, 1, ($len - 1) - (($len - 1) % 2))
+            # Toutes les occurrences sont examinees (pas seulement la premiere) ; une exception ne
+            # couvre qu'une URL COMPLETE identique (egalite exacte, sans joker), cf. SEC-26.
+            $urlOk = @($urlExc | ForEach-Object { if ($_ -is [string]) { $_ } else { $_.url } })
             foreach ($pat in $failPats) {
+                $hit = $false
+                $isUrl = $pat.StartsWith('http')
                 foreach ($txt in $ascii, $u0, $u1) {
-                    $mm = [regex]::Match($txt, $pat)
-                    if ($mm.Success) {
-                        $v = $mm.Value
-                        if ($urlExc | Where-Object { $v -like $_ }) { continue }
-                        $violations.Add("C4 chaine interdite dans $rel (motif $pat)")
+                    foreach ($mm in [regex]::Matches($txt, $pat)) {
+                        $win = $txt.Substring($mm.Index, [Math]::Min(512, $txt.Length - $mm.Index))
+                        $tok = [regex]::Match($win, '^[^\s"''<>\x00]*').Value
+                        if ($isUrl -and ($urlOk -ccontains $tok)) { continue }
+                        $shownTok = if ($isUrl) { $tok } else { '(chemin masque)' }
+                        $violations.Add("C4 chaine interdite dans $rel (motif $pat) : $shownTok")
+                        $hit = $true
                         break
                     }
+                    if ($hit) { break }
                 }
             }
             $emailRe = '[A-Za-z0-9._%+\-]{2,}@[A-Za-z0-9\-]+(\.[A-Za-z0-9\-]+)*\.(com|net|org|fr|io|dev|eu)\b'

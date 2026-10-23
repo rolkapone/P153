@@ -475,11 +475,16 @@ QtObject {
         property Shadow e1
         property Shadow e2
         property Shadow e3
+        property Shadow glassFar
+        property Shadow glassNear
     }
     readonly property Elevations elevation: Elevations {
         e1: Shadow { y: 1;  blur: 2;  color: theme.color.shadow1 }
         e2: Shadow { y: 4;  blur: 12; color: theme.color.shadow2 }
         e3: Shadow { y: 16; blur: 40; color: theme.color.shadow3 }
+        // Ombre du verre (design-system §5 et §6.2 règle 6) : deux couches, toujours ensemble.
+        glassFar:  Shadow { y: 8; blur: 28; color: theme.color.glassShadow }
+        glassNear: Shadow { y: 1; blur: 3;  color: theme.color.glassShadow }
     }
 
     // ------------------------------------------------------------------ Matières

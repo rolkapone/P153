@@ -128,7 +128,32 @@
       "F:\\\\P153",
       "C:\\\\vb\\\\"
     ],
-    "ownBinaryUrlExceptions": []
+    "ownBinaryUrlExceptions": [
+      {
+        "id": "U1",
+        "url": "http://schemas.microsoft.com/SMI/2005/WindowsSettings",
+        "source": "src/enhance.manifest (ressource RT_MANIFEST de enhance.exe, element dpiAware)",
+        "justification": "Identifiant d'espace de noms XML impose par le schema du manifeste Windows (SEC-20) : chaine opaque comparee par le chargeur, jamais resolue ni contactee. Egalite exacte uniquement.",
+        "owner": "secdevops",
+        "reviewed": "2026-10-23"
+      },
+      {
+        "id": "U2",
+        "url": "http://schemas.microsoft.com/SMI/2016/WindowsSettings",
+        "source": "src/enhance.manifest (elements dpiAwareness et longPathAware)",
+        "justification": "Idem U1 (espace de noms XML du manifeste, PerMonitorV2 + longPathAware). Egalite exacte uniquement.",
+        "owner": "secdevops",
+        "reviewed": "2026-10-23"
+      },
+      {
+        "id": "U3",
+        "url": "http://www.w3.org/2000/svg",
+        "source": "src/app/icons/enhance-app.svg (ressource Qt :/icons/enhance-app.svg compilee dans enhance.exe)",
+        "justification": "Espace de noms SVG obligatoire (xmlns) : identifiant opaque, QtSvg ne le resout pas et l'application n'a aucun module reseau. Egalite exacte uniquement ; toute autre URL (xlink:href externe, police distante...) dans une ressource reste une violation.",
+        "owner": "secdevops",
+        "reviewed": "2026-10-23"
+      }
+    ]
   },
   "sourceUrlExceptions": []
 }
