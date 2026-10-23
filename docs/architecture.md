@@ -592,7 +592,7 @@ Principe directeur : **deux mondes de build**.
 Jobs :
 1. `format` (ubuntu, ×1, ≈ 1 min) : `clang-format --dry-run --Werror` sur les fichiers modifiés (version épinglée identique au local, ADR-030).
 2. `core` (windows) : configure `ci` (`ENH_WITH_GPU=OFF`, `ENH_WITH_UI=OFF`), build, CTest label `unit` (GoogleTest, FakePipeline) ; variante ASan. vcpkg avec cache binaire (`actions/cache` sur le dossier du cache) ; ≈ 5–8 min.
-3. `tidy` (windows) : `clang-tidy` sur `src/core`, `src/pipeline/core`, `src/app` modifiés, via `compile_commands.json`.
+3. `tidy` (windows) : `clang-tidy` sur les fichiers de `src/` présents dans `compile_commands.json` du preset `ci` (sans GPU ni UI) ; le reste (FFmpeg, CUDA, Qt) est couvert en local par `scripts/tidy.ps1 -Preset local-gpu` avant merge des stories [GPU]/[UI] (ADR-030).
 4. `ui` (windows) : Qt Quick Test + Qt Test, avec **Qt officiel installé par `install-qt-action` (version identique à celle de vcpkg, MSVC 64 bits)**, **uniquement pour exécuter les tests** (le Qt livré est celui de l'ADR-024) ; `QT_QPA_PLATFORM=offscreen`, ADR-028. Exécuté sur pull request vers `main` et manuellement, pas à chaque push de branche, pour économiser les minutes.
 5. `security` (emplacement pour secdevops, à définir avec lui) : `check-no-network.ps1` sur un build `ci`, inventaire des licences (`scripts/licences.ps1`) comparé à `docs/security/licences.md`, scan de secrets (gitleaks, binaire épinglé), audit des dépendances, interdiction de fichiers binaires/SDK. CodeQL C++ pour un dépôt privé exige GitHub Advanced Security (payant) : non retenu par défaut.
 6. **Aucun job GPU, aucun runner auto-hébergé.**
@@ -613,6 +613,8 @@ Coût visé : ≈ 15–25 min Windows facturées ×2 par exécution complète �
 - **ASan** (`/fsanitize=address`, supporté par MSVC) sur la suite du cœur en CI ; **UBSan non disponible sous MSVC** (noté).
 - Couverture : **OpenCppCoverage** (outil local, GPL-3.0, non redistribué, non lié) via `scripts/test.ps1 -Coverage` ; rapport HTML dans `build/coverage/` ; seuil indicatif (cœur ≥ 80 %, machine à états ≥ 90 %), non bloquant en CI au début.
 - `scripts/format.ps1` (applique) et `scripts/test.ps1` (CTest label `unit`, + `ui` si Qt disponible).
+- **Réglages CI (amendement du 2026-10-24, premier run).** `CMAKE_CXX_SCAN_FOR_MODULES=OFF` dans le preset `base` (Ninja + MSVC générait des commandes `@...modmap` illisibles par clang-tidy ; **à revoir si l'équipe adopte les modules C++20**). `bugprone-easily-swappable-parameters` désactivé (bruit sans valeur sur ce code ; interfaces à paramètres de même type usuels). cppcheck : `--suppress=unknownMacro` (macros Qt `Q_PROPERTY`, `Q_IMPORT_QML_PLUGIN`). Le job `tidy` n'analyse que les fichiers présents dans `build/ci/compile_commands.json` : les fichiers FFmpeg, CUDA et Qt (≈ 10) n'ont pas leurs en-têtes sur le runner.
+- **Filet local** : `scripts/tidy.ps1 -Preset local-gpu` (ou `dev`) analyse tous les fichiers de `src/` du preset choisi ; à lancer **avant le merge des stories [GPU] et [UI]**.
 
 **Alternatives écartées.** 1. *`clang-format` ≠ versions entre poste et CI* : diffs sans fin. 2. *PVS-Studio/Sonar* : payants ou compte requis.
 

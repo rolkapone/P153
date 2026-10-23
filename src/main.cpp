@@ -161,16 +161,23 @@ int main(int argc, char* argv[]) {
 
 #else // sans interface : executable console (CI)
 
+#include <cstdio>
+#include <cstdlib>
+#include <exception>
 #include <iostream>
 
 int main() {
     try {
         std::cout << "Enhance " << enh::versionString() << " ("
                   << (ENH_GPU_BACKEND != 0 ? "pipeline GPU" : "pipeline simule") << ")\n";
+    } catch (const std::exception& e) {
+        std::fprintf(stderr, "Enhance : erreur inattendue (%s).\n", e.what());
+        return EXIT_FAILURE;
     } catch (...) {
-        return 1;
+        std::fprintf(stderr, "Enhance : erreur inattendue.\n");
+        return EXIT_FAILURE;
     }
-    return 0;
+    return EXIT_SUCCESS;
 }
 
 #endif
