@@ -41,8 +41,10 @@ namespace fs = std::filesystem;
 
 fs::path clips() {
     std::array<wchar_t, 4096> buf{};
-    const DWORD n = GetEnvironmentVariableW(L"ENH_CLIPS_DIR", buf.data(), static_cast<DWORD>(buf.size()));
-    return n > 0 && n < buf.size() ? fs::path(std::wstring(buf.data(), n)) : fs::path(ENH_CLIPS_DIR);
+    const DWORD n =
+        GetEnvironmentVariableW(L"ENH_CLIPS_DIR", buf.data(), static_cast<DWORD>(buf.size()));
+    return n > 0 && n < buf.size() ? fs::path(std::wstring(buf.data(), n))
+                                   : fs::path(ENH_CLIPS_DIR);
 }
 
 std::uint32_t usedMib() {
@@ -55,7 +57,8 @@ std::uint32_t usedMib() {
 /// Compte les images ; demande l'arret apres `stop_after` images (0 = jamais).
 class CountingSink final : public IFrameSink {
 public:
-    CountingSink(std::uint64_t stop_after, std::stop_source& src) : stop_after_(stop_after), src_(src) {}
+    CountingSink(std::uint64_t stop_after, std::stop_source& src)
+        : stop_after_(stop_after), src_(src) {}
     Result<void> push(VideoFrame&& /*frame*/, std::stop_token /*st*/) override {
         ++count;
         if (stop_after_ != 0 && count == stop_after_) {
@@ -132,10 +135,13 @@ TEST_F(ENH008Qa, Annulation_DixFois_VramRevenueAuRepos) {
     for (int i = 0; i < 10; ++i) {
         const auto t0 = std::chrono::steady_clock::now();
         auto r = run(p, 40);
-        const auto dt = std::chrono::duration<double, std::milli>(std::chrono::steady_clock::now() - t0).count();
-        // Annule : soit un resultat partiel, soit une erreur Cancelled ; jamais plus d'images que demande + file.
-        std::cout << "[QA] annulation " << i << " : " << (r.stats ? "stats" : "erreur") << ", " << r.frames_seen
-                  << " images vues, " << dt << " ms\n";
+        const auto dt =
+            std::chrono::duration<double, std::milli>(std::chrono::steady_clock::now() - t0)
+                .count();
+        // Annule : soit un resultat partiel, soit une erreur Cancelled ; jamais plus d'images que
+        // demande + file.
+        std::cout << "[QA] annulation " << i << " : " << (r.stats ? "stats" : "erreur") << ", "
+                  << r.frames_seen << " images vues, " << dt << " ms\n";
         EXPECT_LT(r.frames_seen, 300U);
         EXPECT_LE(r.frames_seen, 40U + 8U);
     }
