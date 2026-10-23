@@ -44,8 +44,8 @@ $failed = 0
 foreach ($m in $matrix) {
     $dst = Join-Path $out $m[0]
     if ((Test-Path $dst) -and -not $Force) { Write-Host "[deja la] $($m[0])"; continue }
-    $args = @('-v', 'error', '-y', '-i', $src, '-t', $t, '-an', '-sn') + ($m[1] -split ' ') + @($dst)
-    & $ff @args
+    $ffArgs = @('-v', 'error', '-y', '-i', $src, '-t', $t, '-an', '-sn') + ($m[1] -split ' ') + @($dst)
+    & $ff @ffArgs
     if ($LASTEXITCODE -ne 0 -or -not (Test-Path $dst)) {
         Write-Host "[NON GENERE] $($m[0]) (encodeur absent ou erreur)" -ForegroundColor Red
         $failed++

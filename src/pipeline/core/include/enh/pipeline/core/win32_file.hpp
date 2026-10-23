@@ -36,10 +36,10 @@ public:
     ~Win32File();
 
     /// Lit au plus buffer.size() octets ; 0 = fin du fichier.
-    [[nodiscard]] Result<std::size_t> read(std::span<std::byte> buffer) noexcept;
+    [[nodiscard]] Result<std::size_t> read(std::span<std::byte> buffer);
     /// Nouvelle position absolue.
-    [[nodiscard]] Result<std::int64_t> seek(std::int64_t offset, SeekOrigin origin) noexcept;
-    [[nodiscard]] Result<std::int64_t> size() const noexcept;
+    [[nodiscard]] Result<std::int64_t> seek(std::int64_t offset, SeekOrigin origin);
+    [[nodiscard]] Result<std::int64_t> size() const;
     [[nodiscard]] bool isOpen() const noexcept;
 
 private:

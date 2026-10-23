@@ -83,6 +83,9 @@ std::size_t HostFramePool::inUse() const {
     return slots_.size() - free_.size();
 }
 
+// std::mutex::lock ne leve qu en cas d erreur systeme irrecuperable ; appele depuis un destructeur,
+// std::terminate est alors le comportement voulu.
+// NOLINTNEXTLINE(bugprone-exception-escape)
 void HostFramePool::release(std::size_t slot) noexcept {
     {
         const std::scoped_lock lock(mutex_);

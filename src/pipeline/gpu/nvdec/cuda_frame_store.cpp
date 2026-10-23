@@ -43,6 +43,9 @@ public:
         free_.pop_back();
         return i;
     }
+    // std::mutex::lock ne leve qu en cas d erreur systeme irrecuperable (appel depuis un
+    // destructeur : std::terminate voulu).
+    // NOLINTNEXTLINE(bugprone-exception-escape)
     void release(std::size_t i) noexcept {
         {
             const std::scoped_lock lock(mutex_);
@@ -318,8 +321,10 @@ CudaFrameStore::create(const CudaFrameStoreOptions& options) {
     cuda_ctx->cuda_ctx = static_cast<CUcontext>(self->context_);
     cuda_ctx->stream = self->shared_->stream.get();
     if (const int r = av_hwdevice_ctx_init(ref.get()); r < 0) {
-        return fail(PipelineErrorCode::ComponentMissing,
-                    "av_hwdevice_ctx_init(CUDA) failed (NVDEC unavailable)", r);
+        PipelineError e = makeError(PipelineErrorCode::ComponentMissing,
+                                    "av_hwdevice_ctx_init(CUDA) failed (NVDEC unavailable)", r);
+        e.component = Component::Driver;
+        return enh::Unexpected<PipelineError>(std::move(e));
     }
     self->hw_device_ = std::move(ref);
     return self;
@@ -413,14 +418,13 @@ Result<FrameBufferPtr> CudaFrameStore::commit(FrameBufferPtr staging, std::stop_
                                          reinterpret_cast<const void*>(planes[1].address)};
     const std::array<std::size_t, 2> pitch{planes[0].pitch_bytes, planes[1].pitch_bytes};
     auto out = copyIntoSurface(*pool, src, pitch, cudaMemcpyHostToDevice, st);
-    if (out) {
-        PinnedPool::Slot& s = pinned->slot();
-        if (auto r = checkCuda(cudaEventRecord(s.uploaded.get(), shared_->stream.get()),
-                               "cudaEventRecord(uploaded)");
-            !r) {
-            return enh::Unexpected<PipelineError>(std::move(r.error()));
-        }
-        s.pending = true;
+    // Meme en cas d echec partiel (un plan deja en vol), le tampon epingle ne doit pas etre
+    // reecrit avant la fin de l envoi : on enregistre « envoye » dans tous les cas.
+    PinnedPool::Slot& s = pinned->slot();
+    const cudaError_t rec = cudaEventRecord(s.uploaded.get(), shared_->stream.get());
+    s.pending = rec == cudaSuccess;
+    if (rec != cudaSuccess && out) {
+        return enh::Unexpected<PipelineError>(cudaFailure(rec, "cudaEventRecord(uploaded)"));
     }
     return out; // `staging` revient a son pool ici
 }

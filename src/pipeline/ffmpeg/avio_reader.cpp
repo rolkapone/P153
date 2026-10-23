@@ -38,7 +38,7 @@ AvioReader::~AvioReader() {
     }
 }
 
-int AvioReader::readPacket(void* opaque, std::uint8_t* buf, int buf_size) noexcept {
+int AvioReader::readPacketImpl(void* opaque, std::uint8_t* buf, int buf_size) {
     auto* self = static_cast<AvioReader*>(opaque);
     if (buf_size <= 0) {
         return 0;
@@ -56,7 +56,8 @@ int AvioReader::readPacket(void* opaque, std::uint8_t* buf, int buf_size) noexce
     return static_cast<int>(*got);
 }
 
-std::int64_t AvioReader::seekCallback(void* opaque, std::int64_t offset, int whence) noexcept {
+// NOLINTNEXTLINE(bugprone-easily-swappable-parameters) : signature imposee par avio_alloc_context
+std::int64_t AvioReader::seekImpl(void* opaque, std::int64_t offset, int whence) {
     auto* self = static_cast<AvioReader*>(opaque);
     const int mode = whence & ~AVSEEK_FORCE;
     if (mode == AVSEEK_SIZE) {
@@ -81,6 +82,28 @@ std::int64_t AvioReader::seekCallback(void* opaque, std::int64_t offset, int whe
         return AVERROR(EIO);
     }
     return *pos;
+}
+
+} // namespace enh::pipeline::ffmpeg
+
+namespace enh::pipeline::ffmpeg {
+
+// Frontieres C (rappels appeles par FFmpeg) : aucune exception ne doit les traverser (ADR-047).
+int AvioReader::readPacket(void* opaque, std::uint8_t* buf, int buf_size) noexcept {
+    try {
+        return readPacketImpl(opaque, buf, buf_size);
+    } catch (...) {
+        return AVERROR(ENOMEM);
+    }
+}
+
+// NOLINTNEXTLINE(bugprone-easily-swappable-parameters) : signature imposee par avio_alloc_context
+std::int64_t AvioReader::seekCallback(void* opaque, std::int64_t offset, int whence) noexcept {
+    try {
+        return seekImpl(opaque, offset, whence);
+    } catch (...) {
+        return AVERROR(ENOMEM);
+    }
 }
 
 } // namespace enh::pipeline::ffmpeg

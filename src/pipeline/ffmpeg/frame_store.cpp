@@ -11,7 +11,8 @@ Result<FrameBufferPtr> IFrameStore::importDevice(const AVFrame& /*frame*/,
 }
 
 Result<FrameBufferPtr> HostFrameStore::acquireStaging(const FrameDesc& desc, std::stop_token st) {
-    if (!pool_ || pool_->desc() != desc) {
+    // Taille et format seulement : un changement d etiquette couleur ne recree pas le pool.
+    if (!pool_ || pool_->desc().size_px != desc.size_px || pool_->desc().format != desc.format) {
         auto pool = HostFramePool::create(desc, capacity_);
         if (!pool) {
             return enh::Unexpected<PipelineError>(std::move(pool.error()));

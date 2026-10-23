@@ -5,6 +5,7 @@
 // NV12 / P010 (libswscale) et journal « DecoderFallback ».
 
 #include "enh/pipeline/core/decoder_selection.hpp"
+#include "enh/pipeline/ffmpeg/av_mapping.hpp"
 #include "enh/pipeline/ffmpeg/av_raii.hpp"
 #include "enh/pipeline/ffmpeg/frame_store.hpp"
 #include "enh/pipeline/stage/decoder.hpp"
@@ -44,8 +45,7 @@ private:
     struct PrivateTag {};
 
 public:
-    FfmpegDecoder(PrivateTag /*tag*/, std::shared_ptr<IFrameStore> store,
-                  const VideoStreamInfo& info) noexcept;
+    FfmpegDecoder(PrivateTag /*tag*/, std::shared_ptr<IFrameStore> store, VideoStreamInfo info);
     FfmpegDecoder(const FfmpegDecoder&) = delete;
     FfmpegDecoder& operator=(const FfmpegDecoder&) = delete;
     FfmpegDecoder(FfmpegDecoder&&) = delete;
@@ -53,10 +53,11 @@ public:
     ~FfmpegDecoder() override = default;
 
 private:
-    static AVPixelFormat getFormat(AVCodecContext* ctx, const AVPixelFormat* formats);
+    static AVPixelFormat getFormat(AVCodecContext* ctx, const AVPixelFormat* formats) noexcept;
     Result<void> drain(IFrameSink& out, std::stop_token st, bool flushing);
     Result<void> deliver(AVFrame& frame, IFrameSink& out, const std::stop_token& st);
     Result<FrameBufferPtr> convertSoftware(const AVFrame& frame, const FrameDesc& desc,
+                                           const SoftwareColorPlan& color,
                                            const std::stop_token& st);
     void noteSoftwareFrame();
 
@@ -71,6 +72,7 @@ private:
     int sws_src_h_ = 0;
     int sws_src_fmt_ = -1;
     int sws_dst_fmt_ = -1;
+    SoftwareColorPlan sws_color_{};
     CodecContextPtr ctx_;
     DecoderPath path_ = DecoderPath::Software;
     bool fallback_logged_ = false;

@@ -45,6 +45,8 @@ public:
 private:
     static int readPacket(void* opaque, std::uint8_t* buf, int buf_size) noexcept;
     static std::int64_t seekCallback(void* opaque, std::int64_t offset, int whence) noexcept;
+    static int readPacketImpl(void* opaque, std::uint8_t* buf, int buf_size);
+    static std::int64_t seekImpl(void* opaque, std::int64_t offset, int whence);
 
     Win32File file_;
     AVIOContext* ctx_ = nullptr; // possede (libere dans le destructeur)

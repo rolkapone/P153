@@ -12,6 +12,7 @@
 
 #include <gtest/gtest.h>
 
+#include <algorithm>
 #include <fstream>
 #include <mutex>
 #include <string>
@@ -180,9 +181,13 @@ TEST_F(FfmpegDecode, RechercheTemporelle) {
     ASSERT_TRUE(demux);
     ASSERT_TRUE((*demux)->seek(std::chrono::duration<double>(2.0)));
     auto pkt = (*demux)->read();
-    ASSERT_TRUE(pkt && pkt->has_value());
-    const double t =
-        static_cast<double>((*pkt)->pts) * (*pkt)->time_base.num / (*pkt)->time_base.den;
+    ASSERT_TRUE(pkt);
+    const std::optional<Packet>& maybe = *pkt;
+    if (!maybe.has_value()) {
+        FAIL() << "aucun paquet apres la recherche";
+    }
+    const Packet& first = *maybe;
+    const double t = static_cast<double>(first.pts) * first.time_base.num / first.time_base.den;
     EXPECT_NEAR(t, 2.0, 0.5);
     EXPECT_FALSE((*demux)->seek(std::chrono::duration<double>(-1.0)));
 }
@@ -238,15 +243,113 @@ TEST_F(FfmpegDecode, OuverturesSecondairesRefusees_Concat) {
     EXPECT_TRUE(log.has("DemuxerRefused", LogLevel::Warn));
 }
 
-TEST(FfmpegDemuxerPolicy, DemuxeursRefuses) {
-    for (const char* name : {"concat", "hls", "dash", "imf", "image2", "sdp", "rtsp", "rtp"}) {
-        EXPECT_TRUE(ffmpeg::isRefusedDemuxer(name)) << name;
+TEST(FfmpegDemuxerPolicy, ListeBlancheEtListeNoire) {
+    for (const char* name : {"mov,mp4,m4a,3gp,3g2,mj2", "matroska,webm", "mpegts", "avi", "mpeg",
+                             "asf", "flv", "mxf", "ivf", "obu", "h264", "hevc", "mpegvideo"}) {
+        EXPECT_TRUE(ffmpeg::isAllowedDemuxer(name)) << name;
     }
     for (const char* name :
-         {"mov,mp4,m4a,3gp,3g2,mj2", "matroska,webm", "mpegts", "avi", "image2pipe", "mpeg", ""}) {
-        EXPECT_FALSE(ffmpeg::isRefusedDemuxer(name)) << name;
+         {"concat", "hls", "dash", "imf", "image2", "sdp", "rtsp", "rtp", "sap", "vobsub",
+          "avisynth", "vapoursynth", "dvdvideo", "tee", "ffmetadata"}) {
+        EXPECT_TRUE(ffmpeg::isRefusedDemuxer(name)) << name;
+        EXPECT_FALSE(ffmpeg::isAllowedDemuxer(name)) << name;
     }
-    EXPECT_TRUE(ffmpeg::isRefusedDemuxer("foo,concat"));
+    // Hors liste blanche (meme sans etre dans la liste noire) : refuse.
+    for (const char* name : {"nut", "image2pipe", "wav", "gif", "", ","}) {
+        EXPECT_FALSE(ffmpeg::isAllowedDemuxer(name)) << name;
+    }
+    EXPECT_FALSE(ffmpeg::isAllowedDemuxer("mov,concat")); // la liste noire l'emporte
+}
+
+TEST_F(FfmpegDecode, ConteneurHorsListeBlanche_Refuse) {
+    const fs::path p = clip("x.nut", {"nut", "mpeg4"});
+    LogCapture log;
+    auto r = decodeFile(p);
+    ASSERT_FALSE(r->stats);
+    EXPECT_EQ(r->stats.error().code, PipelineErrorCode::UnsupportedFormat);
+    EXPECT_NE(r->stats.error().detail.find("nut"), std::string::npos);
+    EXPECT_TRUE(log.has("DemuxerRefused", LogLevel::Warn));
+}
+
+/// Premiere image : etiquette couleur et bornes du plan Y (8 bits).
+class LumaRangeSink final : public IFrameSink {
+public:
+    Result<void> push(VideoFrame&& frame, std::stop_token /*st*/) override {
+        if (seen_) {
+            return {};
+        }
+        seen_ = true;
+        color = frame.desc.color;
+        const PlaneView y = frame.buffer->planes()[0];
+        const auto* base = reinterpret_cast<const std::uint8_t*>(y.address);
+        for (std::size_t r = 0; r < y.rows; ++r) {
+            for (std::size_t c = 0; c < y.width_bytes; ++c) {
+                const std::uint8_t v = base[r * y.pitch_bytes + c];
+                min = std::min(min, v);
+                max = std::max(max, v);
+            }
+        }
+        return {};
+    }
+    ColorInfo color;
+    std::uint8_t min = 255;
+    std::uint8_t max = 0;
+
+private:
+    bool seen_ = false;
+};
+
+Result<DecodeStats> decodeInto(const fs::path& p, IFrameSink& sink) {
+    auto demux = FfmpegDemuxer::open(p);
+    if (!demux) {
+        return enh::Unexpected<PipelineError>(demux.error());
+    }
+    auto dec = FfmpegDecoder::create((*demux)->codecParameters(), (*demux)->streamTimeBase(),
+                                     (*demux)->videoStream(), std::make_shared<HostFrameStore>());
+    if (!dec) {
+        return enh::Unexpected<PipelineError>(dec.error());
+    }
+    return runDecodeLoop(**demux, **dec, sink, {});
+}
+
+TEST_F(FfmpegDecode, Couleur_YuvjPleinePlageConservee) {
+    // MJPEG -> yuvj420p (plage pleine) : pas de compression implicite en 16..235.
+    const fs::path p = clip("j.avi", {"avi", "mjpeg", AV_PIX_FMT_YUVJ420P, 160, 90, 3});
+    LumaRangeSink sink;
+    auto r = decodeInto(p, sink);
+    ASSERT_TRUE(r) << r.error().detail;
+    EXPECT_EQ(sink.color.range, ColorRange::Full);
+    EXPECT_LT(sink.min, 10) << "plage pleine compressee";
+    EXPECT_GT(sink.max, 240) << "plage pleine compressee";
+}
+
+TEST_F(FfmpegDecode, Couleur_RvbConvertiEnBt709Limite) {
+    const fs::path p = clip("rgb.mkv", {"matroska", "ffv1", AV_PIX_FMT_BGR0, 160, 90, 3});
+    LumaRangeSink sink;
+    auto r = decodeInto(p, sink);
+    ASSERT_TRUE(r) << r.error().detail;
+    EXPECT_EQ(sink.color.matrix, ColorMatrix::Bt709);
+    EXPECT_EQ(sink.color.range, ColorRange::Limited);
+    EXPECT_GE(sink.min, 16);
+    EXPECT_LE(sink.max, 235);
+}
+
+TEST(SoftwareColorPlan, RegleExplicite) {
+    const ColorInfo untagged{};
+    const auto yuvj =
+        ffmpeg::planSoftwareColor(AV_PIX_FMT_YUVJ420P, AVCOL_SPC_UNSPECIFIED, untagged);
+    EXPECT_TRUE(yuvj.src_full_range && yuvj.dst_full_range);
+    EXPECT_EQ(yuvj.output.range, ColorRange::Full);
+    EXPECT_EQ(yuvj.src_colorspace, yuvj.dst_colorspace);
+    const auto limited = ffmpeg::planSoftwareColor(
+        AV_PIX_FMT_YUV422P10LE, AVCOL_SPC_BT709,
+        ColorInfo{.matrix = ColorMatrix::Bt709, .range = ColorRange::Limited});
+    EXPECT_FALSE(limited.src_full_range || limited.dst_full_range);
+    EXPECT_EQ(limited.output.range, ColorRange::Limited);
+    const auto rgb = ffmpeg::planSoftwareColor(AV_PIX_FMT_GBRP, AVCOL_SPC_RGB, untagged);
+    EXPECT_TRUE(rgb.src_full_range);
+    EXPECT_FALSE(rgb.dst_full_range);
+    EXPECT_EQ(rgb.output.matrix, ColorMatrix::Bt709);
 }
 
 TEST_F(FfmpegDecode, FichiersAbimes_SansPlantage) {
@@ -379,16 +482,18 @@ TEST_F(FfmpegDecode, PaquetsSansObjetNatif_CopiesPourLeDecodeur) {
     for (;;) {
         auto pkt = (*demux)->read();
         ASSERT_TRUE(pkt);
-        if (!pkt->has_value()) {
+        const std::optional<Packet>& maybe = *pkt;
+        if (!maybe.has_value()) {
             break;
         }
-        const auto bytes = (*pkt)->payload->bytes();
+        const Packet& src = *maybe;
+        const auto bytes = src.payload->bytes();
         Packet copy;
         copy.payload = std::make_unique<fakes::BytesPayload>(
             std::vector<std::byte>(bytes.begin(), bytes.end()));
-        copy.pts = (*pkt)->pts;
-        copy.dts = (*pkt)->dts;
-        copy.keyframe = (*pkt)->keyframe;
+        copy.pts = src.pts;
+        copy.dts = src.dts;
+        copy.keyframe = src.keyframe;
         ASSERT_TRUE((*dec)->decode(&copy, sink, {}));
     }
     ASSERT_TRUE((*dec)->decode(nullptr, sink, {}));

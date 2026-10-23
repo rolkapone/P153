@@ -21,6 +21,11 @@ namespace enh::pipeline::ffmpeg {
 /// imf, image2...) ou des flux reseau (sdp, rtp, rtsp). Fonction pure.
 [[nodiscard]] bool isRefusedDemuxer(std::string_view name) noexcept;
 
+/// Liste blanche des demuxeurs acceptes (mov/mp4, matroska/webm, mpegts, avi, mpeg, asf, flv, mxf,
+/// ivf, obu, h264, hevc, mpegvideo, m4v), verifiee apres sondage ; la liste noire reste un second
+/// filet. Fonction pure.
+[[nodiscard]] bool isAllowedDemuxer(std::string_view name) noexcept;
+
 class FfmpegDemuxer final : public IDemuxer {
 public:
     [[nodiscard]] static Result<std::unique_ptr<FfmpegDemuxer>>

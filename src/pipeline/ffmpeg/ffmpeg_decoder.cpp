@@ -33,15 +33,15 @@ bool isHardwareFormat(AVPixelFormat f) noexcept {
 } // namespace
 
 FfmpegDecoder::FfmpegDecoder(PrivateTag /*tag*/, std::shared_ptr<IFrameStore> store,
-                             const VideoStreamInfo& info) noexcept
-    : store_(std::move(store)), info_(info) {}
+                             VideoStreamInfo info)
+    : store_(std::move(store)), info_(std::move(info)) {}
 
 std::string_view FfmpegDecoder::decoderName() const noexcept {
     return (ctx_ && ctx_->codec != nullptr) ? std::string_view{ctx_->codec->name}
                                             : std::string_view{};
 }
 
-AVPixelFormat FfmpegDecoder::getFormat(AVCodecContext* ctx, const AVPixelFormat* formats) {
+AVPixelFormat FfmpegDecoder::getFormat(AVCodecContext* ctx, const AVPixelFormat* formats) noexcept {
     auto* self = static_cast<FfmpegDecoder*>(ctx->opaque);
     bool cuda_offered = false;
     AVPixelFormat first_software = AV_PIX_FMT_NONE;
@@ -178,7 +178,9 @@ Result<void> FfmpegDecoder::decode(const Packet* pkt, IFrameSink& out, std::stop
             continue;
         }
         if (r == AVERROR_INVALIDDATA) {
-            ++corrupt_; // paquet illisible : image masquee, le flux continue
+            if (pkt == nullptr || !pkt->corrupt) {
+                ++corrupt_; // paquet illisible : image masquee, le flux continue (deja compte
+            } // s il etait marque corrompu par le demuxeur)
             break;
         }
         if (r < 0 && r != AVERROR_EOF) {
@@ -272,7 +274,10 @@ Result<void> FfmpegDecoder::deliver(AVFrame& frame, IFrameSink& out, const std::
                                  : "none"));
         }
         desc.format = traits.bit_depth > 8 ? PixelFormat::P010 : PixelFormat::Nv12;
-        buffer = convertSoftware(*software, desc, st);
+        const SoftwareColorPlan color = planSoftwareColor(
+            static_cast<AVPixelFormat>(software->format), software->colorspace, desc.color);
+        desc.color = color.output; // etiquette = ce que contiennent vraiment les pixels
+        buffer = convertSoftware(*software, desc, color, st);
         if (buffer) {
             noteSoftwareFrame();
         }
@@ -291,6 +296,7 @@ Result<void> FfmpegDecoder::deliver(AVFrame& frame, IFrameSink& out, const std::
 }
 
 Result<FrameBufferPtr> FfmpegDecoder::convertSoftware(const AVFrame& frame, const FrameDesc& desc,
+                                                      const SoftwareColorPlan& color,
                                                       const std::stop_token& st) {
     auto staging = store_->acquireStaging(desc, st);
     if (!staging) {
@@ -321,7 +327,7 @@ Result<FrameBufferPtr> FfmpegDecoder::convertSoftware(const AVFrame& frame, cons
         }
     } else {
         if (!sws_ || sws_src_w_ != frame.width || sws_src_h_ != frame.height ||
-            sws_src_fmt_ != frame.format || sws_dst_fmt_ != dst_fmt) {
+            sws_src_fmt_ != frame.format || sws_dst_fmt_ != dst_fmt || sws_color_ != color) {
             sws_.reset(sws_getContext(
                 frame.width, frame.height, static_cast<AVPixelFormat>(frame.format), frame.width,
                 frame.height, dst_fmt, SWS_BILINEAR, nullptr, nullptr, nullptr));
@@ -329,6 +335,16 @@ Result<FrameBufferPtr> FfmpegDecoder::convertSoftware(const AVFrame& frame, cons
                 return fail(PipelineErrorCode::UnsupportedFormat,
                             "sws_getContext failed for this pixel format");
             }
+            // Plage et matrice explicites : pas de conversion implicite yuvj -> plage limitee,
+            // RVB -> YUV en BT.709 (ADR-042).
+            if (sws_setColorspaceDetails(sws_.get(), sws_getCoefficients(color.src_colorspace),
+                                         color.src_full_range ? 1 : 0,
+                                         sws_getCoefficients(color.dst_colorspace),
+                                         color.dst_full_range ? 1 : 0, 0, 1 << 16, 1 << 16) < 0) {
+                return fail(PipelineErrorCode::UnsupportedFormat,
+                            "sws_setColorspaceDetails failed");
+            }
+            sws_color_ = color;
             sws_src_w_ = frame.width;
             sws_src_h_ = frame.height;
             sws_src_fmt_ = frame.format;

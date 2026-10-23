@@ -34,8 +34,11 @@ public:
     TempDir(const TempDir&) = delete;
     TempDir& operator=(const TempDir&) = delete;
     ~TempDir() {
-        std::error_code ec;
-        fs::remove_all(fs::path(toExtendedPath(root_)), ec);
+        try {
+            std::error_code ec;
+            fs::remove_all(fs::path(toExtendedPath(root_)), ec);
+        } catch (...) { // NOLINT(bugprone-empty-catch) : nettoyage best effort en fin de test
+        }
     }
     [[nodiscard]] const fs::path& path() const { return root_; }
 
@@ -176,8 +179,10 @@ TEST(Win32File, PartageUnc) {
     auto f = Win32File::openRead(p);
     ASSERT_TRUE(f) << f.error().detail;
     EXPECT_EQ(readAll(*f), "unc");
-    f = Win32File::openRead(fs::path(unc) / L"absent.bin");
     DeleteFileW(toExtendedPath(p).c_str());
+    auto absent = Win32File::openRead(fs::path(unc) / L"absent.bin");
+    ASSERT_FALSE(absent);
+    EXPECT_EQ(absent.error().code, PipelineErrorCode::SourceMissing);
 }
 
 } // namespace

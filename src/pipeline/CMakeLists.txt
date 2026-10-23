@@ -4,6 +4,12 @@ add_library(enh_pipeline_api INTERFACE)
 target_include_directories(enh_pipeline_api INTERFACE api/include)
 target_link_libraries(enh_pipeline_api INTERFACE enh_common)
 
+# Interfaces d'etage INTERNES au pipeline (IDemuxer, IDecoder, VideoFrame...) : cible separee, que
+# l'application (enh_core, enh_app) ne lie pas (amendement ADR-037, revue ENH-008).
+add_library(enh_pipeline_stage INTERFACE)
+target_include_directories(enh_pipeline_stage INTERFACE stage/include)
+target_link_libraries(enh_pipeline_stage INTERFACE enh_pipeline_api)
+
 set(_enh_core_sources core/pipeline_core.cpp)
 if(ENH_HAVE_EXPECTED)
   list(APPEND _enh_core_sources
@@ -17,7 +23,7 @@ endif()
 add_library(enh_pipeline_core STATIC ${_enh_core_sources})
 enh_target_defaults(enh_pipeline_core)
 target_include_directories(enh_pipeline_core PUBLIC core/include)
-target_link_libraries(enh_pipeline_core PUBLIC enh_pipeline_api)
+target_link_libraries(enh_pipeline_core PUBLIC enh_pipeline_stage)
 
 add_library(enh_pipeline_fake STATIC fake/fake_pipeline.cpp)
 enh_target_defaults(enh_pipeline_fake)

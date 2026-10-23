@@ -64,18 +64,19 @@ Result<void> checkStreamDimensions(const AVCodecParameters& par) {
 
 } // namespace
 
-bool isRefusedDemuxer(std::string_view name) noexcept {
-    // Demuxeurs qui lisent d'autres fichiers ou des flux reseau (noms FFmpeg, liste separee par
-    // des virgules pour certains, ex. "mov,mp4,m4a,...").
-    constexpr std::array<std::string_view, 10> kRefused = {
-        "concat", "hls", "dash", "imf", "sdp", "rtp", "rtsp", "image2", "ffmetadata", "tee"};
+namespace {
+
+/// Vrai si l'un des noms de `name` (liste FFmpeg separee par des virgules, ex.
+/// "mov,mp4,m4a,3gp,3g2,mj2") figure dans `list`.
+template <std::size_t N>
+bool anyNameIn(std::string_view name, const std::array<std::string_view, N>& list) noexcept {
     std::size_t start = 0;
     while (start <= name.size()) {
         const std::size_t comma = name.find(',', start);
         const std::string_view part = name.substr(
             start, comma == std::string_view::npos ? std::string_view::npos : comma - start);
-        for (const std::string_view refused : kRefused) {
-            if (part == refused) {
+        for (const std::string_view entry : list) {
+            if (!part.empty() && part == entry) {
                 return true;
             }
         }
@@ -85,6 +86,26 @@ bool isRefusedDemuxer(std::string_view name) noexcept {
         start = comma + 1;
     }
     return false;
+}
+
+} // namespace
+
+bool isRefusedDemuxer(std::string_view name) noexcept {
+    // Second filet : demuxeurs qui lisent d'autres fichiers (listes, sous-titres VobSub, scripts
+    // AviSynth / VapourSynth, DVD) ou des flux reseau (sdp, rtp, rtsp, sap).
+    constexpr std::array<std::string_view, 15> kRefused = {
+        "concat", "hls",        "dash", "imf",    "sdp",      "rtp",         "rtsp",    "sap",
+        "image2", "ffmetadata", "tee",  "vobsub", "avisynth", "vapoursynth", "dvdvideo"};
+    return anyNameIn(name, kRefused);
+}
+
+bool isAllowedDemuxer(std::string_view name) noexcept {
+    // Liste blanche (ADR-049, revue ENH-008 C1) : conteneurs de la matrice ENH-008 / ENH-008b et
+    // flux video bruts courants. Tout autre demuxeur est refuse (UnsupportedFormat).
+    constexpr std::array<std::string_view, 14> kAllowed = {
+        "mov", "matroska", "mpegts", "avi",  "mpeg", "asf",       "flv",
+        "mxf", "ivf",      "obu",    "h264", "hevc", "mpegvideo", "m4v"};
+    return !isRefusedDemuxer(name) && anyNameIn(name, kAllowed);
 }
 
 SourceCodec toSourceCodec(AVCodecID id) noexcept {
@@ -167,9 +188,9 @@ Result<std::unique_ptr<FfmpegDemuxer>> FfmpegDemuxer::open(const std::filesystem
         return enh::Unexpected<PipelineError>(
             avError(PipelineErrorCode::UnsupportedFormat, "av_probe_input_buffer2", r));
     }
-    if (isRefusedDemuxer(format->name)) {
+    if (!isAllowedDemuxer(format->name)) {
         logLine(LogLevel::Warn, "DemuxerRefused",
-                std::string("demuxer '") + format->name + "' opens other files; refused");
+                std::string("demuxer '") + format->name + "' is not in the allow list");
         return fail(PipelineErrorCode::UnsupportedFormat,
                     std::string("demuxer not allowed: ") + format->name);
     }
@@ -320,7 +341,11 @@ Result<void> FfmpegDemuxer::seek(std::chrono::duration<double> t) {
     if (tb.num <= 0 || tb.den <= 0 || !std::isfinite(t.count()) || t.count() < 0.0) {
         return fail(PipelineErrorCode::InvalidParams, "invalid seek target");
     }
-    const auto ts = static_cast<std::int64_t>(t.count() / av_q2d(tb));
+    const double ticks = t.count() / av_q2d(tb);
+    if (ticks > 9.0e18) { // hors de std::int64_t : conversion indefinie
+        return fail(PipelineErrorCode::InvalidParams, "seek target out of range");
+    }
+    const auto ts = static_cast<std::int64_t>(ticks);
     if (const int r = av_seek_frame(fmt_.get(), info_.stream_index, ts, AVSEEK_FLAG_BACKWARD);
         r < 0) {
         return enh::Unexpected<PipelineError>(readError(r));

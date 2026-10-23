@@ -109,7 +109,7 @@ bool Win32File::isOpen() const noexcept {
     return handle_ != nullptr;
 }
 
-Result<std::size_t> Win32File::read(std::span<std::byte> buffer) noexcept {
+Result<std::size_t> Win32File::read(std::span<std::byte> buffer) {
     if (handle_ == nullptr) {
         return fail(PipelineErrorCode::Internal, "read on closed file");
     }
@@ -128,7 +128,7 @@ Result<std::size_t> Win32File::read(std::span<std::byte> buffer) noexcept {
     return static_cast<std::size_t>(got);
 }
 
-Result<std::int64_t> Win32File::seek(std::int64_t offset, SeekOrigin origin) noexcept {
+Result<std::int64_t> Win32File::seek(std::int64_t offset, SeekOrigin origin) {
     if (handle_ == nullptr) {
         return fail(PipelineErrorCode::Internal, "seek on closed file");
     }
@@ -149,7 +149,7 @@ Result<std::int64_t> Win32File::seek(std::int64_t offset, SeekOrigin origin) noe
     return static_cast<std::int64_t>(pos.QuadPart);
 }
 
-Result<std::int64_t> Win32File::size() const noexcept {
+Result<std::int64_t> Win32File::size() const {
     if (handle_ == nullptr) {
         return fail(PipelineErrorCode::Internal, "size on closed file");
     }

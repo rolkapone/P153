@@ -17,7 +17,7 @@
 namespace enh::pipeline::gpu {
 
 namespace {
-constexpr std::size_t kMiB = 1024 * 1024;
+constexpr std::size_t kMiB = std::size_t{1024} * 1024;
 }
 
 PipelineError cudaFailure(cudaError_t err, std::string_view what, std::source_location where) {
@@ -190,7 +190,10 @@ Result<void*> initPrimaryContext(int device) {
         return enh::Unexpected<PipelineError>(std::move(r.error()));
     }
     if (fn == nullptr || status != cudaDriverEntryPointSuccess) {
-        return fail(PipelineErrorCode::ComponentMissing, "cuCtxGetCurrent unavailable");
+        PipelineError e =
+            makeError(PipelineErrorCode::ComponentMissing, "cuCtxGetCurrent unavailable");
+        e.component = Component::Driver;
+        return enh::Unexpected<PipelineError>(std::move(e));
     }
     using GetCurrentFn = CUresult(CUDAAPI*)(CUcontext*);
     CUcontext ctx = nullptr;

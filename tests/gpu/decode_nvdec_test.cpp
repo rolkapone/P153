@@ -35,7 +35,8 @@
 #ifndef NOMINMAX
 #define NOMINMAX
 #endif
-// clang-format off : <windows.h> doit preceder <psapi.h> et <tlhelp32.h>
+// <windows.h> doit preceder <psapi.h> et <tlhelp32.h> : ordre protege de clang-format.
+// clang-format off
 #include <windows.h>
 #include <psapi.h>
 #include <tlhelp32.h>
@@ -147,7 +148,7 @@ std::uint32_t usedMib() {
     std::size_t free_b = 0;
     std::size_t total_b = 0;
     cudaMemGetInfo(&free_b, &total_b);
-    return static_cast<std::uint32_t>((total_b - free_b) / (1024 * 1024));
+    return static_cast<std::uint32_t>((total_b - free_b) / (std::size_t{1024} * 1024));
 }
 
 /// Echantillonne la VRAM utilisee (cudaMemGetInfo) toutes les 10 ms dans un thread.
@@ -285,6 +286,7 @@ TEST_F(ENH008Nvdec, RepliProRes_JournaliseEtEnvoyeSurGpu) {
     const fs::path p = requireClip("gen/core_mov_prores_hq.mov");
     std::mutex m;
     std::vector<std::string> warn;
+    // NOLINTNEXTLINE(bugprone-easily-swappable-parameters) : signature de LogSink
     setLogSink([&](LogLevel level, std::string_view code, std::string_view msg) {
         if (level == LogLevel::Warn && code == "DecoderFallback") {
             const std::scoped_lock lock(m);

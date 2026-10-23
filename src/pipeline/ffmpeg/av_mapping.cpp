@@ -2,6 +2,7 @@
 
 extern "C" {
 #include <libavutil/pixdesc.h>
+#include <libswscale/swscale.h>
 }
 
 namespace enh::pipeline::ffmpeg {
@@ -99,6 +100,65 @@ PixelFormatTraits pixelFormatTraits(AVPixelFormat format) noexcept {
         t.chroma = ChromaSubsampling::Yuv444;
     }
     return t;
+}
+
+} // namespace enh::pipeline::ffmpeg
+
+namespace enh::pipeline::ffmpeg {
+
+namespace {
+
+bool isJpegRangeFormat(AVPixelFormat f) noexcept {
+    // Formats « J » (plage pleine) encore produits par les decodeurs MJPEG.
+    return f == AV_PIX_FMT_YUVJ420P || f == AV_PIX_FMT_YUVJ422P || f == AV_PIX_FMT_YUVJ444P ||
+           f == AV_PIX_FMT_YUVJ440P || f == AV_PIX_FMT_YUVJ411P;
+}
+
+int swsColorspace(AVColorSpace space) noexcept {
+    switch (space) {
+    case AVCOL_SPC_BT709:
+        return SWS_CS_ITU709;
+    case AVCOL_SPC_BT2020_NCL:
+    case AVCOL_SPC_BT2020_CL:
+        return SWS_CS_BT2020;
+    case AVCOL_SPC_SMPTE240M:
+        return SWS_CS_SMPTE240M;
+    case AVCOL_SPC_FCC:
+        return SWS_CS_FCC;
+    default:
+        return SWS_CS_ITU601; // defaut de libswscale
+    }
+}
+
+} // namespace
+
+SoftwareColorPlan planSoftwareColor(AVPixelFormat source, AVColorSpace space,
+                                    const ColorInfo& tagged) noexcept {
+    SoftwareColorPlan plan;
+    plan.output = tagged;
+    const AVPixFmtDescriptor* d = av_pix_fmt_desc_get(source);
+    const bool rgb = d != nullptr && (d->flags & AV_PIX_FMT_FLAG_RGB) != 0;
+    if (rgb) {
+        plan.src_colorspace = SWS_CS_ITU709;
+        plan.dst_colorspace = SWS_CS_ITU709;
+        plan.src_full_range = true; // le RVB est toujours en plage pleine
+        plan.dst_full_range = false;
+        plan.output.matrix = ColorMatrix::Bt709;
+        plan.output.range = ColorRange::Limited;
+        if (plan.output.primaries == ColorPrimaries::Unspecified) {
+            plan.output.primaries = ColorPrimaries::Bt709;
+        }
+        return plan;
+    }
+    const bool full = isJpegRangeFormat(source) || tagged.range == ColorRange::Full;
+    plan.src_colorspace = swsColorspace(space);
+    plan.dst_colorspace = plan.src_colorspace; // YUV -> YUV : aucune conversion de matrice
+    plan.src_full_range = full;
+    plan.dst_full_range = full;
+    if (full) {
+        plan.output.range = ColorRange::Full;
+    }
+    return plan;
 }
 
 } // namespace enh::pipeline::ffmpeg

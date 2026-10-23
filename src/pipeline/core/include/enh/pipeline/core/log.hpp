@@ -15,7 +15,8 @@ enum class LogLevel : unsigned char { Debug, Info, Warn, Error };
 using LogSink =
     std::function<void(LogLevel level, std::string_view code, std::string_view message)>;
 
-/// Remplace le recepteur (thread-safe). Un recepteur vide retablit celui par defaut.
+/// Remplace le recepteur (thread-safe). Un recepteur vide retablit celui par defaut. Le recepteur
+/// est appele hors verrou : un appel deja commence peut encore utiliser l ancien.
 void setLogSink(LogSink sink);
 
 /// Ecrit une ligne (thread-safe, noexcept : une erreur du recepteur est ignoree).

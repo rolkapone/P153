@@ -1,5 +1,6 @@
 #include "enh/pipeline/core/log.hpp"
 
+#include <memory>
 #include <mutex>
 #include <string>
 #include <utility>
@@ -21,8 +22,8 @@ std::mutex& sinkMutex() {
     return m;
 }
 
-LogSink& currentSink() {
-    static LogSink sink;
+std::shared_ptr<const LogSink>& currentSink() {
+    static std::shared_ptr<const LogSink> sink;
     return sink;
 }
 
@@ -43,15 +44,20 @@ std::string_view levelName(LogLevel level) noexcept {
 } // namespace
 
 void setLogSink(LogSink sink) {
+    auto next = sink ? std::make_shared<const LogSink>(std::move(sink)) : nullptr;
     const std::scoped_lock lock(sinkMutex());
-    currentSink() = std::move(sink);
+    currentSink() = std::move(next);
 }
 
 void logLine(LogLevel level, std::string_view code, std::string_view message) noexcept {
     try {
-        const std::scoped_lock lock(sinkMutex());
-        if (currentSink()) {
-            currentSink()(level, code, message);
+        std::shared_ptr<const LogSink> sink;
+        {
+            const std::scoped_lock lock(sinkMutex());
+            sink = currentSink();
+        }
+        if (sink) {
+            (*sink)(level, code, message); // hors verrou : un recepteur lent ne bloque personne
             return;
         }
         std::string line = "[enhance:pipeline] ";

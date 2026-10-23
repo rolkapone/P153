@@ -147,11 +147,14 @@ ScopedTempDir::ScopedTempDir() {
 }
 
 ScopedTempDir::~ScopedTempDir() {
-    if (GetEnvironmentVariableW(L"ENH_KEEP_TEST_CLIPS", nullptr, 0) != 0) {
-        return; // diagnostic : garder les clips generes
+    try {
+        if (GetEnvironmentVariableW(L"ENH_KEEP_TEST_CLIPS", nullptr, 0) != 0) {
+            return; // diagnostic : garder les clips generes
+        }
+        std::error_code ec;
+        std::filesystem::remove_all(std::filesystem::path(toExtendedPath(path_)), ec);
+    } catch (...) { // NOLINT(bugprone-empty-catch) : nettoyage best effort en fin de test
     }
-    std::error_code ec;
-    std::filesystem::remove_all(std::filesystem::path(toExtendedPath(path_)), ec);
 }
 
 } // namespace enh::pipeline::testing
