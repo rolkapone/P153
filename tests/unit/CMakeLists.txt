@@ -15,6 +15,11 @@ gtest_discover_tests(enh_unit_tests PROPERTIES LABELS unit)
 # Pipeline (ENH-008) : executables separes (tests/unit/pipeline/CMakeLists.txt).
 add_subdirectory(pipeline)
 
+# enhance-bench (ENH-047) : bibliotheque du banc, testee sans GPU.
+if(TARGET enh_bench_lib)
+  add_subdirectory(bench)
+endif()
+
 # Tests de la presentation Qt (label ui) : seulement si Qt est present (ADR-028).
 if(ENH_UI_EFFECTIVE)
   include(EnhQtTests)
