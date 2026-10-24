@@ -39,11 +39,10 @@ struct RtxVideoUpscalerConfig {
 /// Corporation » (avertissement au journal) ; refusee sinon. C'est une DETECTION APRES
 /// CHARGEMENT : le refus empeche de traiter des images, pas l'execution deja faite par NGX.
 enum class SnippetSource : std::uint8_t {
-    Unknown,           // NGX ne l'a pas annoncee dans son journal : refus
+    Unknown,           // NGX ne l'a pas annoncee (seulement transitoire : refus, jamais renvoye)
     AppFolder,         // nvngx_vsr.dll du dossier de l'application
     NgxStoreIdentical, // copie rangee par NGX dans %ProgramData%\NVIDIA\NGX, octet pour octet
     NvidiaSignedOther, // autre DLL (mise a jour NGX) signee NVIDIA : acceptee, avertissement
-    Untrusted,         // autre DLL non signee, signataire autre ou signature invalide : refus
 };
 [[nodiscard]] std::string_view toString(SnippetSource s) noexcept;
 

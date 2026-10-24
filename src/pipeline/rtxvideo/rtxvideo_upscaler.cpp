@@ -215,8 +215,6 @@ std::string_view toString(SnippetSource s) noexcept {
         return "NgxStoreIdentical";
     case SnippetSource::NvidiaSignedOther:
         return "NvidiaSignedOther";
-    case SnippetSource::Untrusted:
-        return "Untrusted";
     case SnippetSource::Unknown:
         break;
     }

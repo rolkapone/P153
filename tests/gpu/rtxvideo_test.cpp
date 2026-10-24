@@ -596,10 +596,18 @@ TEST_P(ENH040Bits, Debit_Q4_720pVers4K) {
               << " i/s (min " << fps.front() << ", max " << fps.back() << ", ecart "
               << spread * 100.0 << " %)" << (spread > 0.03 ? " INSTABLE" : "") << '\n';
     RecordProperty("fps_median", std::to_string(median));
-    if (median < 300.0) {
-        std::cout << "[ENH-040] AVERTISSEMENT : sous le budget de 300 i/s (QA : 240-300)\n";
+    // Decision PO (2026-10-24) : en 8 bits, sous 300 i/s = AVERTISSEMENT (echec seulement sous
+    // 240, seuil QA) ; en 10 bits (format de la chaine), >= 300 i/s reste exige.
+    if (fmt == RgbFormat::Argb8) {
+        if (median < 300.0) {
+            std::cout << "[ENH-040] AVERTISSEMENT : 8 bits sous 300 i/s (" << median
+                      << "), accepte par le PO ; echec seulement sous 240\n";
+            RecordProperty("fps_warning", "8 bits < 300 i/s");
+        }
+        EXPECT_GE(median, 240.0) << "FAIL QA (< 240 i/s)";
+    } else {
+        EXPECT_GE(median, 300.0) << "10 bits : budget de 300 i/s non tenu";
     }
-    EXPECT_GE(median, 240.0) << "FAIL QA (< 240 i/s)";
 }
 
 TEST_F(ENH040, Vram_EffetQ4_SousLeBudget) {

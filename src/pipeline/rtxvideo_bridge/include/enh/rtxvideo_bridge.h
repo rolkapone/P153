@@ -21,6 +21,8 @@
  * - log_user (rvb_init_params) reste la propriete de l appelant : le pont l oublie sur tout echec
  * de rvb_runtime_create et dans rvb_runtime_destroy ; apres leur retour, le rappel n est plus
  * appele.
+ * - Le rappel de journal ne doit JAMAIS appeler une fonction rvb_* : il s execute sous le verrou
+ *   (SRW) qui protege la cible du journal ; un appel au pont depuis le rappel interbloquerait.
  * - Aucun type CUDA ni NGX : contexte et flux CUDA en void*, CUtexObject / CUsurfObject en
  *   uint64_t (meme representation que dans cuda.h).
  */
