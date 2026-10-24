@@ -97,7 +97,7 @@ Note : `docs/gpu/ENH-008.md` (fait). Seuils : `docs/qa/sprint-1-seuils.md` §3. 
 Branche prévue `feature/ENH-008b-matrice-formats`. Tâches à détailler à son planning : corpus étendu, variantes 8 / 10 bits, VFR, rotation, dimensions impaires, changement de résolution en cours de flux ; mêmes étapes de workflow que ENH-008.
 
 ### ENH-040 — DLL pont RTX Video  [GPU] — 3 pts (gpu-engineer) — branche `feature/ENH-040-pont-rtxvideo`
-Note : `docs/gpu/ENH-040.md` (fait). Seuils : `docs/qa/sprint-1-seuils.md` §3 (VSR >= 300 i/s, <= 300 Mio, q4 != q0 >= 30 %, imports sans `cudart`, 10 cycles <= 50 Mio, qualité d'image part Équilibré >= 35 %).
+Note : `docs/gpu/ENH-040.md` (fait). Seuils : `docs/qa/sprint-1-seuils.md` §3 (VSR >= 300 i/s, <= 300 Mio, q4 != q0 >= 30 %, imports sans `cudart`, 10 cycles <= 50 Mio). Décision PO n° 20 (2026-10-24) : le seuil 300 i/s en q4 8 bits devient un avertissement (10 bits >= 300 reste) et le critère de qualité d'image (part Équilibré >= 35 %) est déplacé dans ENH-009.
 | # | Tâche | Qui |
 |---|---|---|
 | T1 | Note `docs/gpu/ENH-040.md` ; partir du pont jetable du spike (`build/spike/bench/rtxvideo_bridge.*`) | gpu-engineer |
@@ -135,11 +135,12 @@ Chaque story suit le workflow de `CLAUDE.md` : implémentation -> **reviewer** (
 |---|---|---|---|
 | ENH-004 Squelette Qt Quick + Mica [UI] | **DONE** (2026-10-23) | 2 / 3 | Merge `79a3e93` (--no-ff) ; revue APPROVE ; contrôle design CONFORME ; QA PASS (vérifications à l'écran par le PO) ; secdevops PASS ; risque A1 (Mica) levé. Suites au backlog : SEC-27, SEC-28, B2, dette design |
 | ENH-008 Démuxage + NVDEC, matrice noyau [GPU] | **DONE** (2026-10-23) | 2 / 3 | Merge `0c2f748` (--no-ff) ; revue APPROVE ; QA PASS : 3 398 i/s (BBB-FAST), 2 541 i/s (BBB-PAN), 58 Mio, dérive 0 ; secdevops PASS. Reports : UNC -> ENH-015 ; SEC-23 + fin SEC-13 + troncature -> ENH-015 ; journal `nvcuvid.dll` -> ENH-008b |
-| ENH-040 Pont RTX Video [GPU] | **IN REVIEW** | 1 / 3 (en cours) | Branche `feature/ENH-040-pont-rtxvideo` ; priorité 2 ; relecture renforcée |
+| ENH-040 Pont RTX Video [GPU] | **SECURITY** | 2 / 3 | Branche `feature/ENH-040-pont-rtxvideo` ; **QA validée sur son périmètre (le pont)** le 2026-10-24, décision PO n° 20 (rapport `docs/qa/resultats/2026-10-24_ENH-040.md`) ; critère de qualité VSR déplacé dans ENH-009 (dépend du spike ENH-053) ; seuil 300 i/s en q4 8 bits = avertissement (290 i/s mesuré, NVENC ~105 i/s est le goulot), 10 bits 305 i/s OK. Prochaine étape : secdevops puis devops. 3 pts comptés à la fin de l'étape devops |
 | ENH-047 `enhance-bench` v1 [GPU] | TODO | 0 | Priorité 3 ; dépend d'ENH-040 (ENH-008 mergée) |
 | *ENH-008b Matrice de formats étendue [GPU]* | *hors sprint* | - | 3 pts, avant ENH-048, au plus tard Sprint 3 ; + petite tâche : journaliser l'échec de préchargement de `nvcuvid.dll` |
 
-Points livrés dans ce sprint : **10 / 15** (ENH-008, ENH-004).
+Points livrés dans ce sprint : **10 / 15** (ENH-008, ENH-004) ; ENH-040 (3 pts) passera à 13 / 15 au merge, ENH-047 (2 pts) à 15 / 15.
+Hors sprint, créée le 2026-10-24 : ENH-053 (spike qualité SR, 5 pts, avant ENH-009), voir `docs/backlog.md` « Mouvements v0.5 ».
 
 Suites ajoutées au backlog le 2026-10-23 : SEC-27 (cache de pipeline Qt : ENH-025 / ENH-030), SEC-28 (`SetSearchPathMode`, avant ENH-016), B2 (pics de rendu à rejouer machine calme), dette design (pointillés du cadre depuis un jeton, illustration en .svg), SEC-23 et fin de SEC-13 + avertissement de fichier tronqué (ENH-015), journal `nvcuvid.dll` (ENH-008b), recoupement PresentMon avant ENH-010.
 

@@ -1,5 +1,6 @@
 # Enhance — Backlog produit
 
+Mise à jour du 2026-10-24 : **décision PO n° 20** (voir « Mouvements v0.5 »).
 Version : v0.3 du 2026-10-21 (scrum-master, étape 7 du kickoff). Statut : v0.2 validée par le PO le 2026-10-21 ; **v0.3 à relire par le PO** (nouvelles stories, seuils QA, statuts du kickoff).
 Les chiffres des critères `[GPU]` sont désormais **ancrés sur les mesures du spike** (`docs/gpu/spike.md`, phases 2 et 3) ; ceux qui restent des hypothèses sont marqués **[H]**.
 Clips de référence : `BBB-FAST`, `BBB-PAN`, `TOS-FACE`, `TOS-DARK`, `SYN-TEXT` (`docs/qa/clips.md`) ; « REF-A » = `BBB-FAST` en jeu A tant que le PO n'a pas désigné un clip unique. « Sur la 5070 » = RTX 5070 12 Gio du PO, pilote 617.42.
@@ -8,14 +9,14 @@ Clips de référence : `BBB-FAST`, `BBB-PAN`, `TOS-FACE`, `TOS-DARK`, `SYN-TEXT`
 
 | Indicateur | Valeur |
 |---|---|
-| Total points MVP | **174** (126 en v0.2 ; +44 pts de stories nouvelles issues du spike, du threat model et de la revue des licences ; +1 net de ré-estimations, voir « Mouvements v0.3 » ; **+3 pts : ENH-008b**, redécoupage d'ENH-008 au planning du Sprint 1, voir « Mouvements v0.4 ») |
+| Total points MVP | **179** (126 en v0.2 ; +44 pts de stories nouvelles issues du spike, du threat model et de la revue des licences ; +1 net de ré-estimations, voir « Mouvements v0.3 » ; **+3 pts : ENH-008b**, redécoupage d'ENH-008 au planning du Sprint 1, voir « Mouvements v0.4 » ; **+5 pts : ENH-053**, spike qualité de la super-résolution, décision PO n° 20, voir « Mouvements v0.5 ») |
 | Points livrés (kickoff = « sprint 0 », non compté dans la vitesse) | **33** : kickoff 23 (ENH-001 (5), ENH-002 (5), ENH-003 (4 sur 5), ENH-005 (3), ENH-006 (3), ENH-007 (3)) + **ENH-008 (5, DONE le 2026-10-23, merge `0c2f748`)** + **ENH-004 (5, DONE, merge `79a3e93`)** ; Sprint 1 : 10 / 15 |
-| Points restants | **141** (dont 5 pts encore engagés au Sprint 1, **démarré le 2026-10-21** : ENH-040 en revue (cycle 1), ENH-047 TODO) |
+| Points restants | **146** (dont 5 pts encore engagés au Sprint 1, **démarré le 2026-10-21** : ENH-040 validée par la QA sur son périmètre, étape sécurité en cours ; ENH-047 TODO) |
 | Vitesse supposée | **15 pts / sprint** (aucun sprint terminé : pas d'historique ; le kickoff n'est pas un sprint) |
-| Sprints restants estimés avant le MVP | **10** (141 / 15 = 9,4 ; hors Sprint 1 en cours) ; fourchette **10 à 12** si deux stories `[UI]` passent à 3 cycles de revue (le risque Mica est levé : ENH-004 livrée) |
-| Dernière mise à jour | 2026-10-23 (ENH-004 et ENH-008 DONE ; Sprint 1 en cours, aucun sprint terminé) |
+| Sprints restants estimés avant le MVP | **10** (146 / 15 = 9,7 ; hors Sprint 1 en cours) ; fourchette **10 à 12** si deux stories `[UI]` passent à 3 cycles de revue (le risque Mica est levé : ENH-004 livrée) |
+| Dernière mise à jour | 2026-10-24 (décision PO n° 20 ; ENH-004 et ENH-008 DONE ; Sprint 1 en cours, aucun sprint terminé) |
 
-Répartition des 141 points restants : Fondations, sécurité et CI 8 (ENH-049, 050), Pipeline GPU 68 (dont ENH-008b), File / préréglages / UI / transverse 65.
+Répartition des 146 points restants : Fondations, sécurité et CI 8 (ENH-049, 050), Pipeline GPU 73 (dont ENH-008b, ENH-053), File / préréglages / UI / transverse 65.
 Total « Plus tard » : 52 pts + 8 pts (ENH-051) ; « Avant publication » : 3 pts (hors MVP).
 
 ### Jalons (indicatifs, à recaler à chaque fin de sprint)
@@ -30,6 +31,12 @@ Total « Plus tard » : 52 pts + 8 pts (ENH-051) ; « Avant publication » : 3 p
 | J5 | **MVP** : robustesse (fuzzing), zéro réseau prouvé, FFmpeg minimal sans réseau, paquet portable, À propos / CLUF | 10 |
 
 Ordre de bataille : voir `docs/sprints/sprint-1.md` (Sprint 1 = 15 pts : ENH-004, ENH-008, ENH-040, ENH-047). Sprint 2 pressenti (15 pts) : ENH-042, ENH-009, ENH-010. ENH-008b (3 pts) : avant ENH-048, au plus tard Sprint 3. Sprints 3-4 : RIFE (ENH-043, ENH-044, ENH-012, ENH-046), AV1, file (ENH-016), journal (ENH-025), NGX hors ligne (ENH-041).
+
+### Mouvements v0.5 (décision PO n° 20, 2026-10-24, après la QA d'ENH-040)
+
+- **ENH-040 validée sur son périmètre (le pont)** : rapport `docs/qa/resultats/2026-10-24_ENH-040.md` conforme ; elle passe à l'étape sécurité. Le critère « qualité d'image VSR >= part Équilibré » est **retiré d'ENH-040 et déplacé dans ENH-009** (mesure q4 vs Lanczos : +13 % de part de marge en moyenne, BBB-FAST sous Lanczos, cible Équilibré 35 %).
+- **ENH-053 créée (5 pts, Must, MVP, `[GPU]`)** : spike qualité de la super-résolution (VSR niveaux 1 à 4 vs Real-ESRGAN via TensorRT sur vidéos compressées). **ENH-009 en dépend** ; ENH-053 se place avant ENH-009 (Sprint 2 à recaler : ENH-053 + ENH-042 + ENH-009 dépassent 15 pts avec ENH-010, qui glisse alors au Sprint 3). **Total MVP +5 pts.**
+- **Seuil de débit 300 i/s en q4 8 bits ramené à un avertissement** (le goulot de la chaîne est NVENC, environ 105 i/s) ; le seuil 10 bits >= 300 i/s reste bloquant (mesuré : 8 bits 290 i/s médiane, 10 bits 305).
 
 ### Mouvements v0.4 (planning du Sprint 1, 2026-10-21)
 
@@ -264,12 +271,13 @@ En tant qu'équipe, nous voulons une DLL pont qui isole la bibliothèque NGX (co
 Critères d'acceptation :
 - [ ] Étant donné `rtxvideo_bridge.dll` (contient `nvsdk_ngx_s.lib`, **ne lie pas `cudart`**, fournit `cudaGetDevice`, `cudaGetDeviceProperties`, `cudaGetErrorString` via l'API driver), quand l'application initialise NGX, alors **aucun** `0xC0000409` : le test `tests/gpu` exécute une super-résolution 1280x720 -> 3840x2160 (q4) d'une image synthétique et vérifie que la sortie diffère de la bicubique (q0).
 - [ ] Un test vérifie par analyse des imports (`dumpbin`) que le pont n'importe **aucun** `cudart*.dll`.
-- [ ] (GPU) super-résolution seule, 720p -> 4K q4, 8 bits : **>= 300 images/s**, VRAM de l'effet **<= 300 Mio** (mesuré 322 i/s, 188 Mio + 48 Mio de tampons).
+- [ ] (GPU) super-résolution seule, 720p -> 4K q4, 8 bits : **>= 300 images/s en avertissement seulement** (décision PO n° 20 : le goulot de la chaîne est NVENC, environ 105 i/s ; mesuré QA 290 i/s médiane), VRAM de l'effet **<= 300 Mio** (mesuré 322 i/s au spike, 188 Mio + 48 Mio de tampons).
 - [ ] SEC-08 : `nvngx_vsr.dll` du dossier `rel` uniquement (jamais `dev`), chargée **par chemin absolu** (`LOAD_LIBRARY_SEARCH_DLL_LOAD_DIR | SYSTEM32`), signature Authenticode NVIDIA vérifiée en test ; DLL pilote (`nvcuda`, `nvcuvid`, `nvEncodeAPI64`, `nvofapi64`, `nvml`) préchargées depuis System32 ; chargement différé (ADR-048).
 - [ ] Interface `IUpscaler` (faux upscaler pour la CI) ; ressources NGX en classes RAII ; 10 créations / destructions de l'effet : 0 Mio de dérive.
 - [ ] Note `docs/gpu/ENH-040.md` : cause, contournement, **limites** (n'écrit que le préfixe 11.x de `cudaDeviceProp`), à revoir à chaque nouvelle version du SDK ; texte à transmettre à NVIDIA (signalement) prêt pour le PO.
-- [ ] **Seuils QA** (`docs/qa/sprint-1-seuils.md` §3, §4.5-4.8) : VSR 720p -> 4K q4, **10 bits**, médiane de 5 : **>= 300 i/s** (spike 335 ; avertissement 240-300, FAIL < 240) ; VRAM de l'effet (pic - avant création) **<= 300 Mio** ; sortie q4 != q0 sur image réelle : **>= 30 %** d'octets différents (spike 59 %) ; `dumpbin /dependents` sans `cudart*.dll` ; 10 cycles création / destruction : dérive **<= 50 Mio**, 0 handle ; qualité d'image VSR (3 images par clip x BBB-FAST, BBB-PAN, SYN-TEXT) : part Équilibré **>= 35 %** de la marge VMAF vs Lanczos sur la moyenne, aucune métrique (VMAF, SSIM, PSNR) sous Lanczos, part VMAF-NEG >= 25 %.
-Notes : pas d'écran : aucun critère UX. Dépend de ENH-001 (fait). Relecture attentive par le reviewer (liaison atypique). Ne contient aucun appel à `NVSDK_NGX_UpdateFeature` (voir ENH-041).
+- [ ] **Seuils QA** (`docs/qa/sprint-1-seuils.md` §3, §4.5-4.8) : VSR 720p -> 4K q4, **10 bits**, médiane de 5 : **>= 300 i/s** (spike 335 ; QA 305 ; avertissement 240-300, FAIL < 240) ; en 8 bits le seuil 300 i/s n'est plus qu'un avertissement (décision n° 20) ; VRAM de l'effet (pic - avant création) **<= 300 Mio** ; sortie q4 != q0 sur image réelle : **>= 30 %** d'octets différents (spike 59 %) ; `dumpbin /dependents` sans `cudart*.dll` ; 10 cycles création / destruction : dérive **<= 50 Mio**, 0 handle .
+- [~] **Retiré (décision PO n° 20)** : qualité d'image VSR vs Lanczos (part Équilibré >= 35 %, aucune métrique sous Lanczos, part VMAF-NEG >= 25 %) -> **déplacé dans ENH-009**, précédé du spike ENH-053. Mesure QA du 2026-10-24 : +13 % en moyenne, BBB-FAST sous Lanczos.
+Notes : **QA validée sur le périmètre du pont (2026-10-24)** ; reste l'étape sécurité puis devops. Pas d'écran : aucun critère UX. Dépend de ENH-001 (fait). Relecture attentive par le reviewer (liaison atypique). Ne contient aucun appel à `NVSDK_NGX_UpdateFeature` (voir ENH-041).
 
 ### ENH-041 — NGX hors ligne : neutraliser la mise à jour et le prouver  [GPU] [Must | 3 pts]
 En tant que PO, je veux la preuve que la super-résolution n'émet rien sur le réseau afin de tenir la promesse « 100 % local » (SEC-01 HIGH, SEC-07 MEDIUM).
@@ -401,17 +409,27 @@ Critères d'acceptation :
 - [ ] **Petite tâche (suite d'ENH-008)** : l'échec du préchargement de `nvcuvid.dll` est **journalisé** (niveau avertissement, code d'erreur Windows, sans chemin personnel) ; test unitaire avec un chargeur factice (sans GPU).
 Notes : dépend d'ENH-008 ; **doit passer avant ENH-048** (qui rejoue la matrice) ; au plus tard Sprint 3. Corpus généré par `tests/gpu/corpus/make-corpus.ps1`.
 
+### ENH-053 — Spike qualité de la super-résolution  [GPU] [Must | 5 pts]
+En tant qu'équipe, nous voulons comparer la VSR (niveaux 1 à 4) et Real-ESRGAN via TensorRT sur des vidéos compressées afin de choisir le moteur de chaque préréglage avant d'implémenter ENH-009.
+Critères d'acceptation :
+- [ ] Étant donné le jeu B (H.264 CRF 12, `tests/clips/in720/`), quand on mesure VSR q1, q2, q3, q4 et Real-ESRGAN (TensorRT), alors VMAF, VMAF-NEG, SSIM et PSNR sont consignés par clip **vs Lanczos et vs Broadcast jeu B**.
+- [ ] (GPU) vitesse 720p -> 4K (médiane de 5, i/s) et VRAM pic (Mio) consignées par moteur et par niveau.
+- [ ] Real-ESRGAN : export ONNX **local** (outil Python approuvé n° 12, roues cu128), moteur TensorRT construit hors ligne ; aucune récupération réseau par l'application ; **licence des poids validée par secdevops** et inscrite dans `docs/security/licences.md` avant toute redistribution.
+- [ ] Livrable : `docs/gpu/ENH-053.md` avec une **recommandation de moteur par préréglage** (Rapide, Équilibré, Qualité max) et un ADR dans `docs/architecture.md`.
+Notes : suit ENH-040 ; précède ENH-009 (qui en dépend) ; qa-tester pour les métriques, secdevops pour les poids. Spike : pas de code livré dans l'application.
+
 ### ENH-009 — Super-résolution RTX Video SDK dans le pipeline  [GPU] [Must | 5 pts]
 En tant qu'utilisateur, je veux agrandir en 4K avec la meilleure qualité afin d'obtenir une image nette.
 Critères d'acceptation :
 - [ ] Étant donné `REF-A`, quand on agrandit en 3840x2160, alors la sortie fait exactement 3840x2160 ; **un fichier 4K lisible** est produit (reliquat d'ENH-001).
+- [ ] (GPU) **Critère déplacé d'ENH-040 (décision PO n° 20)** : qualité d'image VSR sur 3 images par clip (BBB-FAST, BBB-PAN, SYN-TEXT) : part Équilibré >= 35 % de la marge VMAF vs Lanczos sur la moyenne, aucune métrique (VMAF, SSIM, PSNR) sous Lanczos, part VMAF-NEG >= 25 % ; moteur et niveau retenus **selon la recommandation d'ENH-053** (jeu B compressé). Première mesure : +13 % (q4), BBB-FAST sous Lanczos.
 - [ ] (GPU) **Seuils Q** (section « Seuils QA de référence ») : Qualité max : delta VMAF >= 50 % de (100 - VMAF Lanczos) ; Équilibré >= 35 % ; Rapide >= 20 % ; SSIM et PSNR jamais sous Lanczos (reliquat d'ENH-001 : première mesure de la qualité de la VSR). Chaque clip mesuré, minimum par clip respecté.
 - [ ] (GPU) étape seule : q4 Ultra **>= 300 i/s** (mesuré 322), q2 Medium >= 750 i/s (mesuré 822) ; VRAM **<= 400 Mio** (mesuré 188 + 48) ; pas de régression > 5 %.
 - [ ] Les niveaux de qualité du SDK sont associés aux préréglages par **données** (q4 Qualité max et Équilibré, q2 Rapide : à confirmer par la mesure de qualité).
 - [ ] Une source déjà en 4K ou plus est copiée sans agrandissement (message `NoUpscaleAlreadyAtTarget`).
 - [ ] Utilise `IUpscaler` (ENH-040) et les conversions d'ENH-042 ; faux upscaler pour la CI.
 - [ ] Mesure vs Broadcast 2.3 dès que le rapport `2026-10-21_reference-broadcast.md` existe (VMAF >= Broadcast - 0,5, SSIM / PSNR sans tolérance ; sinon « non vérifié »).
-Notes : dépend d'ENH-008, 040, 042. **Risque** : les sources libres étant déjà douces, les cibles de VMAF (ex. TOS-FACE >= 96,4 en Qualité max) peuvent être inatteignables ; la QA remonte l'écart au PO au lieu de relancer.
+Notes : dépend d'ENH-008, 040, 042 et **ENH-053** (spike qualité SR : moteur par préréglage). **Risque** : les sources libres étant déjà douces, les cibles de VMAF (ex. TOS-FACE >= 96,4 en Qualité max) peuvent être inatteignables ; la QA remonte l'écart au PO au lieu de relancer.
 
 ### ENH-010 — Encodage NVENC HEVC 8 et 10 bits  [GPU] [Must | 5 pts]
 En tant qu'utilisateur, je veux sortir en HEVC jusqu'à 10 bits afin de ménager les dégradés et la taille.

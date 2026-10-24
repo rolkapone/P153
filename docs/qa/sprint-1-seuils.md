@@ -36,6 +36,7 @@ Auteur : qa-tester, 2026-10-21. Statut : **proposé** ; arguments alignés sur `
 | | Repli logiciel (FFV1, format non pris en charge par NVDEC) | décode, i/s noté, message français/journal présent, 0 crash | crash ou silence | §4.4 |
 | | Cas limites (protocole §8.1, 2, 4, 7 : corrompu, tronqué, 0 octet, Unicode, > 260) | pas de plantage, erreur claire ou décodage partiel annoncé, VRAM libérée (± 50 Mio) | un plantage = bloquant | §4.4 |
 | **ENH-040** pont | VSR 720p→4K q4, 10 bits, i/s (médiane) | ≥ 300 (spike : 335) ; avertissement 240-300 | < 240 | §4.5 |
+| | VSR 720p→4K q4, **8 bits**, i/s (médiane) — décision PO n° 20 (2026-10-24) | **avertissement** (240-300, à consigner, pas bloquant) ; baseline 2026-10-24 : 289,9 i/s (instable) | < 240 | §4.5 |
 | | VRAM de l'effet (pic − avant création) | ≤ 300 Mio (spike : 188) | > 300 Mio | §4.5 |
 | | Sortie q4 ≠ bicubique (q0), sur image réelle | ≥ 30 % d'octets différents (spike : 59 %) | égale | §4.5 |
 | | Imports : aucun `cudart*.dll` ; DLL `rel` seulement | `dumpbin /dependents` propre | sinon | §4.6 |
@@ -45,7 +46,7 @@ Auteur : qa-tester, 2026-10-21. Statut : **proposé** ; arguments alignés sur `
 | | Écart banc / `nvidia-smi` | < 10 % (voir ENH-008) | ≥ 10 % | §4.1 |
 | | `Measure-Speed.ps1` branché sur le banc | s'exécute de bout en bout en mode Speed et Leak | échec | §4.1 |
 | | Code de sortie | 0 en succès ; ≠ 0 et message clair sur fichier illisible | plantage | §4.7 |
-| **ENH-040 / 047** VSR image, qualité (mode `vsr-image`) | Sur image 720p → 4K d'un clip jeu A, vs `ref4k` : VMAF, SSIM Y, PSNR Y de VSR q4, comparés à Lanczos | **Part Équilibré** (protocole §7.1) sur **chaque** image : part VMAF ≥ 35 % de la marge (VMAF ≥ L + 0,35 × (100 − L)) ; (1 − SSIM) ≤ 0,65 × celui de Lanczos ; ΔPSNR ≥ +1,87 dB ; part VMAF-NEG ≥ 25 % (garde-fou) | une métrique sous Lanczos = FAIL ; sous la part = FAIL (cible Qualité max 50 % : information) | §4.8 |
+| **ENH-009 / spike qualité SR** (déplacé depuis ENH-040, décision PO n° 20) VSR image, qualité (mode `vsr-image`) ; mesurer aussi sur le **jeu B compressé** (H.264) | Sur image 720p → 4K d'un clip jeu A, vs `ref4k` : VMAF, SSIM Y, PSNR Y de VSR q4, comparés à Lanczos | **Part Équilibré** (protocole §7.1) sur **chaque** image : part VMAF ≥ 35 % de la marge (VMAF ≥ L + 0,35 × (100 − L)) ; (1 − SSIM) ≤ 0,65 × celui de Lanczos ; ΔPSNR ≥ +1,87 dB ; part VMAF-NEG ≥ 25 % (garde-fou) | une métrique sous Lanczos = FAIL ; sous la part = FAIL (cible Qualité max 50 % : information) | §4.8 |
 | **ENH-004** UI | Voir `docs/qa/checklist-ui.md` ; seuils chiffrés ci-dessous | | | |
 
 Seuils UI chiffrés (design-system §12) : 60 i/s au repos et pendant une charge GPU, 99e centile du temps d'image ≤ 16,7 ms (33 ms toléré sur < 0,1 % des images) ; temps GPU de l'interface ≤ 1 ms moyen / ≤ 2 ms pire ; **0 image rendue** au repos pointeur immobile ; **écart d'i/s du pipeline entre verre complet et opaque ≤ 2 %** (médiane de 5, mêmes conditions, vitesse instable = non concluant) ; démarrage à froid < 2 s ; aucun `Qt6Network.dll`.
@@ -126,3 +127,5 @@ Un encodeur absent du FFmpeg de mesure est noté « non généré » (pas de té
 - Juger à l'œil le verre (scintillement au redimensionnement, netteté du texte, lisibilité sur fond blanc/noir/saturé) : les chiffres de la checklist ne remplacent pas l'œil.
 - Fermer navigateur / Docker / iCUE avant les mesures de vitesse (sinon l'instabilité > 3 % sera signalée), brancher la machine, ne pas toucher au PC pendant les passes de 5 répétitions.
 - Fournir les DLL/SDK nécessaires déjà posés dans `third_party/` si absents du build (FFmpeg LGPL partagé, RTX Video SDK).
+
+Note 2026-10-24 (décision PO n° 20) : ENH-040 est jugée sur le périmètre du pont ; le critère de qualité VSR image est porté par ENH-009 et le spike « qualité de la super-résolution » (VSR niveaux 1-4 sur jeu B compressé, Real-ESRGAN TensorRT). Premier constat (jeu A, q4, 3 images/clip) : part VMAF moyenne +13,3 % (BBB-FAST −9,7, BBB-PAN +15,6, SYN-TEXT +34,0), SSIM pire que Lanczos sur les 9 images : voir `docs/qa/resultats/2026-10-24_ENH-040.md`.
