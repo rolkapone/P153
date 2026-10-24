@@ -35,6 +35,7 @@ struct BenchArgs {
     std::uint32_t repeat = 1;
     std::uint32_t warmup = 30;
     std::uint64_t max_frames = 0; // 0 = tout le fichier (decode)
+    bool allow_corrupt = false;   // decode : un decodage partiel reste mesure (code 0 + warnings)
     DecoderMode decoder = DecoderMode::Auto;
     std::uint8_t quality = 4; // NVSDK_NGX_VSR_QualityLevel 0..4 (vsr-image)
     std::uint8_t bits = 8;    // 8 ou 10 (vsr-image)

@@ -22,6 +22,7 @@
     "sample_ms": 10,
     "decoder": "auto",
     "max_frames": null,
+    "allow_corrupt": false,
     "q": null,
     "bits": null,
     "size": null,
@@ -33,6 +34,8 @@
   "frames_warmup": 60,
   "frames_out": 540,
   "frames_per_pass": 300,
+  "frames_expected": 300,
+  "corrupt_packets": 0,
   "wall_s": 0.18,
   "fps_out": 3000.0,
   "stages": [

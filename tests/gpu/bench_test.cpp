@@ -194,6 +194,40 @@ TEST_F(ENH047Bench, CodesDeSortie_EntreesIllisibles) {
               1);
 }
 
+TEST_F(ENH047Bench, CodesDeSortie_DecodagePartiel_Code2_SaufAllowCorrupt) {
+    // Clips generes par tests/gpu/corpus/make-corpus.ps1 (ENH-008) : 296/300 et 205/300 images.
+    for (const wchar_t* name : {L"edge_corrupt.mp4", L"edge_truncated.mp4"}) {
+        const fs::path clip = clipsDir() / L"gen" / name;
+        ASSERT_TRUE(fs::exists(clip)) << "lancer tests/gpu/corpus/make-corpus.ps1";
+        const fs::path rep = tmp_.path() / (std::wstring(name) + L".json");
+        EXPECT_EQ(
+            bench({L"--stage", L"decode", L"--in", clip.wstring(), L"--report", rep.wstring()}), 2);
+        const Json j = readJson(rep);
+        EXPECT_EQ(j["exit_code"], 2);
+        ASSERT_FALSE(j["error"].is_null());
+        EXPECT_EQ(j["error"]["code"], "SourceCorrupt");
+        EXPECT_NE(j["error"]["detail"].get<std::string>().find("partial decode"),
+                  std::string::npos);
+        const bool damaged =
+            j["corrupt_packets"].get<long long>() > 0 ||
+            j["frames_per_pass"].get<long long>() < j["frames_expected"].get<long long>();
+        EXPECT_TRUE(damaged);
+        std::wcout << L"[ENH-047] " << name << L" : ";
+        std::cout << j["frames_per_pass"] << "/" << j["frames_expected"] << " images, "
+                  << j["corrupt_packets"] << " paquet(s) corrompu(s)\n";
+
+        // --allow-corrupt : mesure gardee (code 0) mais annoncee dans warnings[].
+        const fs::path rep2 = tmp_.path() / (std::wstring(name) + L".allow.json");
+        EXPECT_EQ(bench({L"--stage", L"decode", L"--in", clip.wstring(), L"--allow-corrupt",
+                         L"--report", rep2.wstring()}),
+                  0);
+        const Json k = readJson(rep2);
+        EXPECT_TRUE(k["error"].is_null());
+        ASSERT_FALSE(k["warnings"].empty());
+        EXPECT_NE(k["warnings"][0].get<std::string>().find("partial decode"), std::string::npos);
+    }
+}
+
 TEST_F(ENH047Bench, Decode_VideoCorrompueNonVide_Code2_JsonAvecErreur) {
     // 64 Kio d'octets pseudo-aleatoires sous une extension .mp4 (ni vide, ni conteneur valide).
     const fs::path bad = tmp_.path() / L"corrompue.mp4";

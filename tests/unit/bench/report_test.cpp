@@ -35,6 +35,7 @@ BenchReport sampleDecodeReport() {
     r.frames_warmup = 60;
     r.frames_out = 540;
     r.frames_per_pass = 300;
+    r.frames_expected = 300;
     r.wall_s = 0.18;
     r.stages = {{.name = "demux", .ms_total = 12.5, .frames = 540},
                 {.name = "decode", .ms_total = 160.25, .frames = 540}};

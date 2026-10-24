@@ -53,6 +53,7 @@ std::string toJsonText(const BenchReport& r) {
     if (decode) {
         params["decoder"] = toString(p.decoder);
         params["max_frames"] = p.max_frames == 0 ? Json(nullptr) : Json(p.max_frames);
+        params["allow_corrupt"] = p.allow_corrupt;
         params["q"] = nullptr;
         params["bits"] = nullptr;
         params["size"] = nullptr;
@@ -60,6 +61,7 @@ std::string toJsonText(const BenchReport& r) {
     } else {
         params["decoder"] = nullptr;
         params["max_frames"] = nullptr;
+        params["allow_corrupt"] = nullptr;
         params["q"] = p.quality;
         params["bits"] = p.bits;
         params["size"] = std::to_string(p.size.width) + "x" + std::to_string(p.size.height);
@@ -73,6 +75,9 @@ std::string toJsonText(const BenchReport& r) {
     j["frames_warmup"] = r.frames_warmup;
     j["frames_out"] = r.frames_out;
     j["frames_per_pass"] = r.frames_per_pass;
+    j["frames_expected"] =
+        decode && r.frames_expected > 0 ? Json(r.frames_expected) : Json(nullptr);
+    j["corrupt_packets"] = decode ? Json(r.corrupt_packets) : Json(nullptr);
     j["wall_s"] = round(r.wall_s, 6);
     j["fps_out"] = round(fpsOut(r.frames_out, r.wall_s), 2);
 

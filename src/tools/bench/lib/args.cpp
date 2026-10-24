@@ -69,6 +69,7 @@ constexpr std::array kOptions = {
     withValue(L"--max-frames"), withValue(L"--decoder"), withValue(L"--q"),
     withValue(L"--bits"),       withValue(L"--size"),    withValue(L"--iterations"),
     withValue(L"--sample-ms"),  flag(L"--force"),        flag(L"--help"),
+    flag(L"--allow-corrupt"),
 };
 
 const OptionSpec* findOption(std::wstring_view name) {
@@ -122,6 +123,8 @@ enh::Expected<BenchArgs, std::string> parseArgs(std::span<const std::wstring> ar
             out.help = true;
         } else if (token == L"--force") {
             out.force = true;
+        } else if (token == L"--allow-corrupt") {
+            out.allow_corrupt = true;
         } else if (token == L"--stage") {
             if (value == L"decode") {
                 out.stage = Stage::Decode;
@@ -226,7 +229,7 @@ enh::Expected<BenchArgs, std::string> parseArgs(std::span<const std::wstring> ar
             return Error(*e);
         }
     } else {
-        if (auto e = forbid({L"--decoder", L"--max-frames"}, "vsr-image")) {
+        if (auto e = forbid({L"--decoder", L"--max-frames", L"--allow-corrupt"}, "vsr-image")) {
             return Error(*e);
         }
         if (!out.output) {
@@ -244,6 +247,7 @@ std::string_view usageText() noexcept {
 
   enhance-bench --stage decode    --in <video> [--report <json>] [--repeat N] [--warmup K]
                 [--max-frames M] [--decoder auto|nvdec|software] [--sample-ms T] [--force]
+                [--allow-corrupt]
   enhance-bench --stage vsr-image --in <image.bmp> --out <image.bmp> [--q 0..4] [--bits 8|10]
                 [--size 3840x2160] [--iterations N] [--warmup K] [--repeat N]
                 [--report <json>] [--sample-ms T] [--force]
@@ -253,6 +257,8 @@ Valeurs par defaut : --repeat 1, --warmup 30, --decoder auto, --q 4, --bits 8,
 sortie standard. --report et --out refusent un fichier existant, sauf avec --force, et ne
 peuvent jamais designer le fichier d'entree. --max-frames M : arret des que M images sont
 decodees (au moins M : les images deja sorties du dernier paquet sont comptees).
+Decodage partiel (paquet corrompu ou rejete, moins d'images que l'annonce du conteneur) :
+code 2 (SourceCorrupt) ; avec --allow-corrupt, code 0 et avertissement (JSON et stderr).
 
 Codes de sortie : 0 succes ; 1 arguments invalides (sans JSON) ou sortie deja existante (JSON
 avec error si --report a pu etre ouvert) ; 2 entree illisible ou format non pris en

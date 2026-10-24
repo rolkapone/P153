@@ -27,6 +27,7 @@ TEST(BenchArgs, Decode_ValeursParDefaut) {
     EXPECT_EQ(r->sample_ms, 10U);
     EXPECT_FALSE(r->force);
     EXPECT_FALSE(r->help);
+    EXPECT_FALSE(r->allow_corrupt);
 }
 
 TEST(BenchArgs, VsrImage_ValeursParDefaut) {
@@ -45,7 +46,7 @@ TEST(BenchArgs, VsrImage_ValeursParDefaut) {
 TEST(BenchArgs, Decode_TousLesArguments_EtFormeEgal) {
     auto r = parse({L"--stage=decode", L"--in", L"vidéo 日本.mkv", L"--report", L"r.json",
                     L"--repeat", L"10", L"--warmup=0", L"--max-frames", L"500", L"--decoder",
-                    L"software", L"--sample-ms", L"5", L"--force"});
+                    L"software", L"--sample-ms", L"5", L"--force", L"--allow-corrupt"});
     ASSERT_TRUE(r) << r.error();
     EXPECT_EQ(r->input, std::filesystem::path(L"vidéo 日本.mkv"));
     ASSERT_TRUE(r->report.has_value());
@@ -56,6 +57,7 @@ TEST(BenchArgs, Decode_TousLesArguments_EtFormeEgal) {
     EXPECT_EQ(r->decoder, DecoderMode::Software);
     EXPECT_EQ(r->sample_ms, 5U);
     EXPECT_TRUE(r->force);
+    EXPECT_TRUE(r->allow_corrupt);
 }
 
 TEST(BenchArgs, VsrImage_TousLesArguments) {
@@ -116,6 +118,8 @@ INSTANTIATE_TEST_SUITE_P(
         BadCase{{L"--stage", L"vsr-image", L"--in", L"a.bmp"}, "--out est obligatoire"},
         BadCase{{L"--stage", L"vsr-image", L"--in", L"a", L"--out", L"b", L"--decoder", L"auto"},
                 "--decoder ne s'applique"},
+        BadCase{{L"--stage", L"vsr-image", L"--in", L"a", L"--out", L"b", L"--allow-corrupt"},
+                "--allow-corrupt ne s'applique"},
         BadCase{{L"--stage", L"vsr-image", L"--in", L"a", L"--out", L"b", L"--q", L"5"}, "--q"},
         BadCase{{L"--stage", L"vsr-image", L"--in", L"a", L"--out", L"b", L"--bits", L"12"},
                 "--bits"},

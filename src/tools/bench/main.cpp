@@ -53,6 +53,9 @@ void recordError(BenchReport& report, const pipeline::PipelineError& e, const Be
 }
 
 void printSummary(const BenchReport& r) {
+    for (const std::string& w : r.warnings) {
+        printErr("enhance-bench : AVERTISSEMENT : " + w);
+    }
     if (r.error) {
         printErr("enhance-bench : ECHEC (code " + std::to_string(toInt(r.exit_code)) + ", " +
                  r.error->code + ") " + r.error->message + "\n  detail : " + r.error->detail);

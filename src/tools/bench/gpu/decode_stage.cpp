@@ -13,6 +13,7 @@
 
 #include <chrono>
 #include <optional>
+#include <string>
 #include <utility>
 
 namespace enh::bench::gpu {
@@ -71,6 +72,8 @@ struct PassResult {
     double demux_ms = 0.0;
     double decode_ms = 0.0;
     pipeline::DecoderPath path = pipeline::DecoderPath::Software;
+    std::uint64_t corrupt_packets = 0; // paquets corrompus (demuxeur) ou rejetes (decodeur)
+    std::uint64_t frames_expected = 0; // annonce du conteneur (nb_frames), 0 = inconnu
 };
 
 double msSince(Clock::time_point t0, Clock::time_point t1) {
@@ -152,6 +155,9 @@ Result<PassResult> runPass(const BenchArgs& args, BenchReport& report, bool firs
     const auto end = Clock::now();
     out.frames = sink.count();
     out.path = (*dec)->path();
+    out.corrupt_packets = (*dec)->corruptPackets();
+    out.frames_expected =
+        vs.frame_count_estimate > 0 ? static_cast<std::uint64_t>(vs.frame_count_estimate) : 0;
     if (sink.timing()) {
         out.frames_timed = out.frames - (args.warmup == 0 ? 0 : args.warmup);
         out.wall_s = std::chrono::duration<double>(end - sink.start()).count();
@@ -219,6 +225,32 @@ Result<void> runDecodeStage(const BenchArgs& args, DxgiCudaProbe& probe, BenchRe
                                   .wall_s = pass->wall_s,
                                   .vram_peak_mib = peaks.process_peak_mib,
                                   .vram_after_mib = after});
+        report.corrupt_packets += pass->corrupt_packets;
+        report.frames_expected = pass->frames_expected;
+
+        // Decodage partiel (ENH-047, QA cycle 2) : un banc ne rapporte pas comme valide le debit
+        // d'un fichier abime. Signes : paquet corrompu / rejete, ou moins d'images que l'annonce
+        // du conteneur (fichier tronque) quand tout le fichier devait etre decode.
+        const bool truncated = args.max_frames == 0 && pass->frames_expected > 0 &&
+                               pass->frames < pass->frames_expected;
+        if (pass->corrupt_packets > 0 || truncated) {
+            const std::string what =
+                "partial decode: " + std::to_string(pass->corrupt_packets) +
+                " corrupt or rejected packet(s), " + std::to_string(pass->frames) + " frame(s)" +
+                (pass->frames_expected > 0
+                     ? " of " + std::to_string(pass->frames_expected) + " announced"
+                     : std::string{});
+            if (!args.allow_corrupt) {
+                report.stages = {
+                    {.name = "demux", .ms_total = demux_ms, .frames = report.frames_out},
+                    {.name = "decode", .ms_total = decode_ms, .frames = report.frames_out}};
+                return fail(PipelineErrorCode::SourceCorrupt,
+                            what + " (measure refused; --allow-corrupt to measure anyway)");
+            }
+            if (rep == 0) {
+                report.warnings.push_back(what + ": measured anyway (--allow-corrupt)");
+            }
+        }
     }
     report.stages = {{.name = "demux", .ms_total = demux_ms, .frames = report.frames_out},
                      {.name = "decode", .ms_total = decode_ms, .frames = report.frames_out}};

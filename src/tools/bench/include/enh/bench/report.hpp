@@ -62,6 +62,8 @@ struct BenchReport {
     std::uint64_t frames_warmup = 0;   // dont chauffe (non chronometree)
     std::uint64_t frames_out = 0;      // images chronometrees
     std::uint64_t frames_per_pass = 0; // decode : images d'une passe (= ffprobe -count_frames)
+    std::uint64_t frames_expected = 0; // decode : images annoncees par le conteneur (0 = inconnu)
+    std::uint64_t corrupt_packets = 0; // decode : paquets corrompus ou rejetes (cumul des passes)
     double wall_s = 0.0;               // duree murale chronometree
     std::vector<StageTime> stages;
 
