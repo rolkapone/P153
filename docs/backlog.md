@@ -10,11 +10,11 @@ Clips de référence : `BBB-FAST`, `BBB-PAN`, `TOS-FACE`, `TOS-DARK`, `SYN-TEXT`
 | Indicateur | Valeur |
 |---|---|
 | Total points MVP | **179** (126 en v0.2 ; +44 pts de stories nouvelles issues du spike, du threat model et de la revue des licences ; +1 net de ré-estimations, voir « Mouvements v0.3 » ; **+3 pts : ENH-008b**, redécoupage d'ENH-008 au planning du Sprint 1, voir « Mouvements v0.4 » ; **+5 pts : ENH-053**, spike qualité de la super-résolution, décision PO n° 20, voir « Mouvements v0.5 ») |
-| Points livrés (kickoff = « sprint 0 », non compté dans la vitesse) | **33** : kickoff 23 (ENH-001 (5), ENH-002 (5), ENH-003 (4 sur 5), ENH-005 (3), ENH-006 (3), ENH-007 (3)) + **ENH-008 (5, DONE le 2026-10-23, merge `0c2f748`)** + **ENH-004 (5, DONE, merge `79a3e93`)** ; Sprint 1 : 10 / 15 |
+| Points livrés (kickoff = « sprint 0 », non compté dans la vitesse) | **33** : kickoff 23 (ENH-001 (5), ENH-002 (5), ENH-003 (4, DONE le 2026-10-24), ENH-005 (3), ENH-006 (3), ENH-007 (3)) + **ENH-008 (5, DONE le 2026-10-23, merge `0c2f748`)** + **ENH-004 (5, DONE, merge `79a3e93`)** ; Sprint 1 : 10 / 15 |
 | Points restants | **146** (dont 5 pts encore engagés au Sprint 1, **démarré le 2026-10-21** : ENH-040 validée par la QA sur son périmètre, étape sécurité en cours ; ENH-047 TODO) |
 | Vitesse supposée | **15 pts / sprint** (aucun sprint terminé : pas d'historique ; le kickoff n'est pas un sprint) |
 | Sprints restants estimés avant le MVP | **10** (146 / 15 = 9,7 ; hors Sprint 1 en cours) ; fourchette **10 à 12** si deux stories `[UI]` passent à 3 cycles de revue (le risque Mica est levé : ENH-004 livrée) |
-| Dernière mise à jour | 2026-10-24 (décision PO n° 20 ; ENH-004 et ENH-008 DONE ; Sprint 1 en cours, aucun sprint terminé) |
+| Dernière mise à jour | 2026-10-24 (décisions PO n° 20 et 21 ; ENH-003 DONE, 4 pts inchangés ; ENH-004 et ENH-008 DONE ; Sprint 1 en cours, aucun sprint terminé) |
 
 Répartition des 146 points restants : Fondations, sécurité et CI 8 (ENH-049, 050), Pipeline GPU 73 (dont ENH-008b, ENH-053), File / préréglages / UI / transverse 65.
 Total « Plus tard » : 52 pts + 8 pts (ENH-051) ; « Avant publication » : 3 pts (hors MVP).
@@ -48,12 +48,12 @@ Ordre de bataille : voir `docs/sprints/sprint-1.md` (Sprint 1 = 15 pts : ENH-004
 
 - ENH-009 8 -> 5 et ENH-012 8 -> 5 : le pont, les conversions couleur, le moteur TensorRT et la détection de coupure sont sortis en stories dédiées.
 - ENH-015 3 -> 5 (limites, fuzzing, SEC-09, SEC-13), ENH-022 3 -> 5 (persistance durcie SEC-10/11/18), ENH-024 2 -> 3 (SEC-11), ENH-028 2 -> 3 (test dynamique, SEC-22), ENH-030 3 -> 5 (SEC-02/04/16, `package.ps1`).
-- ENH-003 5 -> 4 pts : le reliquat (CI GitHub non exécutée, durcissements devops) est porté par ENH-049.
+- ENH-003 5 -> 4 pts : le reliquat (CI GitHub non exécutée, durcissements devops) est porté par ENH-049. **2026-10-24 : ENH-003 DONE, reste à 4 pts** (le reliquat n'était pas uniquement « CI non exécutée » : les durcissements devops restent dans ENH-049) ; aucun mouvement de points.
 - ENH-001, ENH-002, ENH-005, ENH-006, ENH-007 : DONE ; leurs critères non remplis sont **transférés** à une story nommée (aucun critère perdu).
 
 ## Décisions du PO
 
-Décisions n° 1 à 15 : **2026-10-21** (validation de la vision `vision.md`, de ce backlog v0.2, de la stack ADR-001 Qt 6 / Qt Quick et de la direction visuelle). Décisions n° 16 à 19 : **2026-10-23**. Numérotation continue, sans doublon ; les renvois « décision n° N » des autres documents restent valables.
+Décisions n° 1 à 15 : **2026-10-21** (validation de la vision `vision.md`, de ce backlog v0.2, de la stack ADR-001 Qt 6 / Qt Quick et de la direction visuelle). Décisions n° 16 à 19 : **2026-10-23** ; n° 20 et 21 : **2026-10-24**. Numérotation continue, sans doublon ; les renvois « décision n° N » des autres documents restent valables.
 
 1. **Cadence** : on n'interpole jamais au-delà de 60 i/s ; une source >= 50 i/s n'est pas interpolée ; 24 i/s -> vrai 60 i/s interpolé (ENH-012). **Précision** : toute source strictement sous 50 i/s (y compris 31-49 i/s) est interpolée vers 60 i/s.
 2. **Conteneur MVP** : MP4 ; bascule automatique en MKV, avec message, si une piste de sous-titres est incompatible MP4 (ENH-013, ENH-024).
@@ -74,6 +74,8 @@ Décisions n° 1 à 15 : **2026-10-21** (validation de la vision `vision.md`, de
 17. **Barre de titre et accentuation Windows** (2026-10-23) : la barre de titre suit la couleur d'accentuation Windows choisie par l'utilisateur (`ColorPrevalence`).
 18. **Opacité du verre sur fond vif** (2026-10-23) : réglée à ENH-016 sur du vrai contenu ; piste : teinte allégée dans le biseau.
 19. **Aucune vraie frappe clavier / clic sur le poste du PO** (2026-10-23) : aucun agent n'envoie de vraies frappes clavier ni de clics sur le poste du PO (incident QA d'ENH-004) ; les tests clavier sont automatisés ou faits par le PO.
+20. **Qualité de la super-résolution et seuil de débit** (2026-10-24) : ENH-040 validée sur le périmètre du pont, critère de qualité VSR déplacé dans ENH-009 ; **ENH-053 créée** : spike « niveaux VSR 1 à 4 sur jeu B compressé + alternative Real-ESRGAN via TensorRT », dont ENH-009 dépend ; **seuil de 300 i/s en q4 8 bits ramené à un avertissement** (10 bits >= 300 maintenu ; le goulot de la chaîne est NVENC, ~105 i/s) (voir « Mouvements v0.5 »).
+21. **Traçabilité des commits et équipe** (2026-10-24) : chaque commit porte une ligne `Agent: <rôle>` (rôle de l'agent auteur du changement) ; le README comporte une section « Équipe ». Cette ligne n'est pas une mention de Claude (décision n° 15 inchangée).
 
 ## Faits techniques établis par le kickoff (reflétés dans les stories)
 
@@ -123,21 +125,23 @@ Applicables en plus des critères propres à chaque story ; vérifiés par le ui
 ## Questions pour le PO et points ouverts
 
 **Pour le PO**
-0. **Squelette ENH-004 (UX) — en attente PO** : (a) la barre d'état affiche-t-elle « GeForce RTX 5070 · prête » en dur (y compris sur une autre machine, le temps du développement) ou le texte neutre « Carte graphique · vérification à venir » ? (b) la capsule « Tester le ressort » reste-t-elle visible pendant la démo (avec « Démonstration technique ») ou n'est-elle activée que par Ctrl+Maj+D ? Valeurs par défaut en attendant : texte en dur, capsule visible (à confirmer avant le développement d'ENH-004).
-1. **Composition du Sprint 1** : on privilégie une démo « fenêtre + décodage + super-résolution d'une image » (ENH-004, ENH-008, ENH-040, ENH-047) et on place l'export RIFE (ENH-043) en sprint 3. Si vous préférez sécuriser la licence RIFE tout de suite, ENH-043 (5 pts) remplace ENH-008 (le premier fichier 4K de bout en bout glisse alors d'un sprint). Confirmer.
-2. **Dépôt GitHub** : sans remote (`rolkapone/P153` non créé), la CI GitHub (`ci.yml`, `security.yml`) n'a jamais tourné ; ENH-003 reste à 4/5 et ENH-049 ne peut pas le clore. Créer le dépôt (privé) au sprint 2 ? Aucun push sans votre accord.
-3. **SEC-05 (HIGH, processus)** : la config git **globale** de la machine contient l'adresse professionnelle ; à corriger par vous (noreply, ou `includeIf`), et activer sur GitHub « Keep my email addresses private » + « Block command line pushes that expose my email ». Bloque la fin d'ENH-049.
-4. **Poids RIFE** : télécharger vous-même `flownet.pkl` (RIFE 4.25, lien « Trained Model » du README de Practical-RIFE), noter son SHA-256 et archiver README + `LICENSE` du commit `bbfd2ea9` dans `third_party/models/rife/_licences/` (ENH-043, sprint 3).
-5. **WER (SEC-14)** : exclure Enhance des rapports d'erreurs Windows (`WerAddExcludedApplication`) avec vidage local facultatif ? Recommandation secdevops : oui. À trancher avant ENH-025.
-6. **Seuils SSIM / PSNR** : la décision n° 14 ne vise que le VMAF ; le qa-tester proposera des équivalents en part de marge (protocole §7.1). Valider à ce moment-là.
-7. **Notification de fin de file** (ENH-019) : toast Windows (exige un identifiant d'application, absent d'une version portable) ou repli discret dans l'app + clignotement de la barre des tâches ? À décider au sprint de ENH-019.
+1. **Poids RIFE** : télécharger vous-même `flownet.pkl` (RIFE 4.25, lien « Trained Model » du README de Practical-RIFE), noter son SHA-256 et archiver README + `LICENSE` du commit `bbfd2ea9` dans `third_party/models/rife/_licences/` (ENH-043, sprint 3).
+2. **WER (SEC-14)** : exclure Enhance des rapports d'erreurs Windows (`WerAddExcludedApplication`) avec vidage local facultatif ? Recommandation secdevops : oui. À trancher avant ENH-025.
+3. **Seuils SSIM / PSNR** : la décision n° 14 ne vise que le VMAF ; le qa-tester a proposé des équivalents en part de marge (protocole §7.1, marqués [H]). **À valider par le PO** avec le reste du protocole.
+4. **Notification de fin de file** (ENH-019) : toast Windows (exige un identifiant d'application, absent d'une version portable) ou repli discret dans l'app + clignotement de la barre des tâches ? À décider au sprint de ENH-019.
+
+**Résolues (historique)**
+- *Résolu le 2026-10-21* — **Composition du Sprint 1** : validée par le PO (« Je valide le Sprint 1 avec les choix par défaut ») ; l'export RIFE (ENH-043) reste au Sprint 3.
+- *Résolu le 2026-10-23* — **Squelette ENH-004 (UX)** : barre d'état en dur, capsule « Tester le ressort » visible, motif de test sur demande, icône provisoire (décisions consignées au sprint) ; ENH-004 livrée et vérifiée à l'écran par le PO le 2026-10-23.
+- *Résolu le 2026-10-24* — **Dépôt GitHub** : `rolkapone/P153` créé, `main` poussée, CI verte (commit `9a78fca`) ; ENH-003 DONE.
+- *Résolu le 2026-10-24* — **SEC-05** (config git globale) : adresse globale corrigée par le PO (noreply) ; finding clos par secdevops.
 
 **Entre agents (consignés, pas pour le PO)**
-- **Pilote minimal affiché** : `parcours.md` P-01 dit « version 580 », le guide du RTX Video SDK dit r550.58 (VSR) / r570 (TrueHDR), `scripts/gpu-requirements.json` exige 617.42 (pilote de la machine). Le gpu-engineer tranche la valeur, l'ux-designer aligne le texte (ENH-031).
-- **`parcours.md` P-06 est périmé** : il écrit « la VRAM est relâchée (< 2 s) » à la pause, contraire à la décision n° 8 (VRAM conservée). L'ux-designer corrige avant ENH-021.
+- *Résolu* — **Pilote minimal affiché** : tranché par ADR-052 et aligné dans `parcours.md`.
+- *Résolu* — **`parcours.md` P-06** (VRAM conservée à la pause, décision n° 8) : corrigé.
 - **Ctrl+Entrée** et **Rétablir = relancer depuis le début** (`design-system.md` §11) : trancher ux / ui / gpu-engineer avant ENH-017 / ENH-021.
 - **Textes P-08 `SourceUnreadable` et P-08b (préparation des modèles)** : **faits** par l'ux-designer (`parcours.md`), plus à transmettre.
-- **Comparaison Broadcast** : renvoi `docs/qa/resultats/2026-10-21_reference-broadcast.md` (qa-tester, en cours) ; à intégrer au plan dès qu'il existe (seuil « vs Broadcast » de ENH-009, ENH-029).
+- *Résolu* — **Comparaison Broadcast** : faite, rapport `docs/qa/resultats/2026-10-21_reference-broadcast.md` (le seuil « vs Broadcast » de ENH-009 / ENH-029 s'appuie dessus).
 
 ## État des stories du kickoff
 
@@ -145,7 +149,7 @@ Applicables en plus des critères propres à chaque story ; vérifiés par le ui
 |---|---|---|
 | ENH-001 Spike VSR | **DONE** (5/5) | Critères transférés : sortie 4K lisible et VMAF/SSIM/PSNR de la VSR vs Lanczos -> **ENH-009** ; test réseau de NGX -> **ENH-041**. Livrable : `docs/gpu/spike.md` (phases 1-2) |
 | ENH-002 Spike interpolation | **DONE** (5/5) | Brique choisie : RIFE 4.25 (ADR-043/044). Livrable : `docs/gpu/spike.md` (phase 3). Licences consignées. Suites : ENH-043, 044, 045, 046 |
-| ENH-003 Repo, build, CI, tests GPU | **PARTIEL** (4/5) | Fait : `build.ps1` MSVC v145 + vcpkg, `test-gpu.ps1` (rapport 2026-10-21_1832 VERT), nvcc 13.4 sans `-allow-unsupported-compiler`, identité noreply locale + hook `commit-msg`, `ci.yml` et `security.yml` écrits. **Non vérifié** : CI verte sur GitHub (pas de remote). Reliquat -> **ENH-049** |
+| ENH-003 Repo, build, CI, tests GPU | **DONE** (4 pts, 2026-10-24) | `build.ps1` MSVC v145 + vcpkg, `test-gpu.ps1` (rapport 2026-10-21_1832 VERT), nvcc 13.4 sans `-allow-unsupported-compiler`, identité noreply locale + hook `commit-msg`, `ci.yml` et `security.yml`. **CI verte sur GitHub** le 2026-10-24 (commit `9a78fca` : `ci` vert, `security` 6/6, run 40038519042). Les durcissements devops restent portés par **ENH-049** |
 | ENH-005 Protocole QA et clips | **DONE** (3/3) | Critère « extraits des archives du PO » -> **ENH-029** ; comparaison Broadcast en cours (renvoi ci-dessus) |
 | ENH-006 Threat model et licences | **DONE** (3/3) | Findings SEC-01 à SEC-22 et registre livrés ; les actions sont reprises dans les stories ci-dessous |
 | ENH-007 Design system | **DONE** (3/3) | Tokens (`tokens.json`, `tokens.css`, `Theme.qml`, `qmldir`), maquettes validées par le PO, contrastes vérifiés. Reste : ligne « icônes Lucide ISC » du registre (tâche secdevops, Sprint 1) |
@@ -158,7 +162,7 @@ Applicables en plus des critères propres à chaque story ; vérifiés par le ui
 | SEC-02 TensorRT (obligations de livraison) | LOW (levé) | ENH-030 |
 | SEC-03 poids RIFE / export maison | MEDIUM | ENH-043 (+ ENH-030) |
 | SEC-04 FRUC non redistribuable | MEDIUM | ENH-030 (refus par `package.ps1`) ; FRUC reste repli local |
-| SEC-05 config git globale | HIGH (processus) | Action PO + ENH-049 |
+| SEC-05 config git globale | HIGH (processus) | **Clos** (PO + secdevops, 2026-10-24) |
 | SEC-06 FFmpeg minimal | HIGH (porte de release) | ENH-048 (avant ENH-030) |
 | SEC-07 CRL / OCSP de NGX | MEDIUM | ENH-041 |
 | SEC-08 durcissement du chargement de DLL | MEDIUM | ENH-004 (+ ENH-040 pour les SDK) |
@@ -205,13 +209,13 @@ Critères d'acceptation :
 - [x] ADR-043 / ADR-044 : **RIFE 4.25 + TensorRT natif, 720p, avant la super-résolution** ; FRUC = repli local non livrable.
 Notes : TensorRT 11 ne propose plus `--fp16` : précision mixte maison (voir ENH-043).
 
-### ENH-003 — Setup repo, build CMake/MSVC, CI et tests GPU locaux  [Must | 4 pts]  — **PARTIEL (4/5 livrés)**
+### ENH-003 — Setup repo, build CMake/MSVC, CI et tests GPU locaux  [Must | 4 pts]  — **DONE (2026-10-24)**
 En tant que développeur, je veux un build reproductible et une CI afin de livrer chaque story proprement.
 Critères d'acceptation :
 - [x] Étant donné un clone propre, `scripts/build.ps1` compile avec MSVC v145 (VS 2026) et vcpkg en mode manifeste.
-- [ ] Le workflow GitHub Actions exécute build, `clang-format`, `clang-tidy` et tests unitaires sans GPU et passe au vert. *Écrit, jamais exécuté (pas de remote) : reliquat dans ENH-049.*
+- [x] Le workflow GitHub Actions exécute build, `clang-format`, `clang-tidy` et tests unitaires sans GPU et passe au vert. *Vérifié le 2026-10-24 sur `rolkapone/P153`, commit `9a78fca` : run `ci` vert (`format`, `sast`, `core`, `tidy` ; `ui` réservé aux PR) et run `security` 6/6 jobs verts (40038519042).*
 - [x] `scripts/test-gpu.ps1` lance `tests/gpu/` en local et retourne un code non nul en cas d'échec (rapport VERT du 2026-10-21).
-- [x] Identité git noreply en config locale, hook `commit-msg`, liste d'exclusion respectée. *SEC-05 (config globale) = action PO, suivie dans ENH-049.*
+- [x] Identité git noreply en config locale, hook `commit-msg`, liste d'exclusion respectée. *SEC-05 (config globale) : corrigé par le PO, clos par secdevops.*
 - [x] `nvcc` 13.4 accepte MSVC v145 sans `-allow-unsupported-compiler`.
 
 ### ENH-004 — Squelette de l'application Qt Quick + prototype Mica  [UI] [Must | 5 pts]  — **DONE (2026-10-23)**
@@ -308,7 +312,7 @@ Critères d'acceptation :
 - [ ] Qualité : PSNR entre la sortie de l'ONNX exporté et celle de PyTorch CPU (FP32) **>= 60 dB** sur 20 images ; **VMAF des images générées >= 90,5 (BBB-FAST), >= 89,9 (BBB-PAN), >= 68,7 (SYN-TEXT)** (= RIFE mixte du spike - 1), mesuré par le qa-tester.
 - [ ] Licences : README et `LICENSE` de Practical-RIFE (commit `bbfd2ea9`) archivés hors dépôt ; mention MIT + copyright dans `THIRD-PARTY-LICENSES.txt` ; ligne du registre `licences.md` passée à « OK » par secdevops.
 - [ ] `package.ps1` refuse tout ONNX dont le SHA-256 n'est pas celui du verrou (et tout ONNX vs-mlrt).
-Notes : action PO préalable (téléchargement du `flownet.pkl`, voir « Questions pour le PO » n° 4) ; l'ONNX vs-mlrt reste local, comme référence de comparaison.
+Notes : action PO préalable (téléchargement du `flownet.pkl`, voir « Questions pour le PO » n° 1) ; l'ONNX vs-mlrt reste local, comme référence de comparaison.
 
 ### ENH-044 — Moteur TensorRT : construction au premier traitement, cache, exécution  [GPU] [Must | 5 pts]
 En tant qu'utilisateur, je veux que la préparation de la fluidité se fasse une seule fois, avec un message clair, afin de ne plus attendre ensuite (décision n° 10).
@@ -364,7 +368,7 @@ Notes : devops + gpu-engineer ; le fuzzing d'ENH-015 s'exécute sur **ce** build
 ### ENH-049 — Garde-fous CI et chaîne de livraison (reliquat devops du kickoff)  [Must | 5 pts]
 En tant que devops, je veux terminer les garde-fous de la CI afin qu'aucune régression de sécurité ou de licence n'entre dans `main`.
 Critères d'acceptation (chacun testé par un cas fautif qui doit **échouer**) :
-- [ ] Image de CI **VS 2026** confirmée (ou repli décidé par ADR) ; reliquat d'ENH-003 : le workflow `ci.yml` **passe au vert sur GitHub** (dépend de la création du dépôt par le PO, voir « Questions pour le PO » n° 2).
+- [ ] Image de CI **VS 2026** confirmée (ou repli décidé par ADR) ; *(le reliquat « `ci.yml` vert sur GitHub » d'ENH-003 est levé le 2026-10-24 : `ci` et `security` verts sur `9a78fca` ; reste à confirmer l'image VS 2026 ou le repli par ADR).*
 - [ ] `scripts/licences.ps1 -Check` : le contenu livré et les dépendances du manifeste vcpkg correspondent au registre `licences.md` ; une dépendance non inscrite échoue.
 - [ ] Job `cve-watch` (surveillance FFmpeg, Qt, bibliothèques vcpkg) et dossier `.semgrep/` (règles **locales**, `--metrics=off`).
 - [ ] **ASan** sur les tests du cœur (job dédié).
@@ -597,7 +601,7 @@ En tant que développeur, je veux des journaux locaux afin de diagnostiquer sans
 Critères d'acceptation :
 - [ ] Journal fichier tournant (5 x 2 Mio) dans `%LOCALAPPDATA%\Enhance\logs`, niveaux Info / Avertissement / Erreur (spdlog asynchrone, façade `enh::log`).
 - [ ] Aucun chemin complet, aucune donnée personnelle par défaut (`fileNameOnly`) ; `--verbose` documenté comme « contient des chemins ».
-- [ ] **SEC-14** : `av_log` filtré (<= `AV_LOG_WARNING`, pas d'URL ni de chemin), journal TensorRT à `kWARNING`, journal NGX désactivé, messages Qt redirigés ; **décision WER** (« Questions pour le PO » n° 5) appliquée (`WerAddExcludedApplication`).
+- [ ] **SEC-14** : `av_log` filtré (<= `AV_LOG_WARNING`, pas d'URL ni de chemin), journal TensorRT à `kWARNING`, journal NGX désactivé, messages Qt redirigés ; **décision WER** (« Questions pour le PO » n° 2) appliquée (`WerAddExcludedApplication`).
 - [ ] Bouton « Afficher les journaux » dans les réglages (ouvre le dossier dans l'Explorateur).
 
 ### ENH-026 — Thèmes sombre et clair, accessibilité  [UI] [Must | 5 pts]

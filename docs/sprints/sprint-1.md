@@ -40,7 +40,7 @@ Pourquoi ces quatre, dans cet ordre :
 - **ENH-047** donne à la QA son premier instrument officiel et rend la démo tangible (une image avant / après).
 - Les conversions couleur (ENH-042) et l'encodage (ENH-010) ne tiennent pas dans 15 pts : le premier fichier 4K de bout en bout est le jalon **J2 (Sprint 2)**.
 - **Redécoupage d'ENH-008** (estimation gpu-engineer : 8 pts pour la matrice complète) : ENH-008 (5 pts, ici) garde AVIO maison, RAII, hwaccel, repli logiciel, SEC-13 et la matrice « noyau » (8 combinaisons dont ProRes en repli + `BBB-FAST`) ; **ENH-008b (3 pts, hors sprint, avant ENH-048, au plus tard Sprint 3)** porte le reste de la matrice, 8 / 10 bits, VFR, rotation, dimensions impaires. Le sprint reste à 15 pts ; le total MVP passe à 174.
-- **Non retenu** : l'export RIFE (ENH-043, 5 pts) est prévu au Sprint 3 ; il passe devant ENH-008 si le PO préfère sécuriser la licence tout de suite (voir `backlog.md`, « Questions pour le PO » n° 1).
+- **Non retenu** : l'export RIFE (ENH-043, 5 pts) est prévu au Sprint 3 ; composition validée par le PO le 2026-10-21 (voir `backlog.md`, « Résolues (historique) »).
 
 ## Ordre d'exécution et dépendances
 
