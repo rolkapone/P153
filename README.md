@@ -40,6 +40,26 @@ scripts\test.ps1 -Coverage                # + couverture (OpenCppCoverage)
 Presets CMake : `dev`, `dev-nogpu`, `local-gpu` (GPU obligatoire), `release`, `ci`, `ci-ui`.
 Architecture et decisions : `docs/architecture.md`.
 
+## Equipe
+
+Enhance est concu et realise par une equipe organisee en roles, autour de Carol, Product Owner
+(vision, priorites, validation du backlog, des maquettes et des demos).
+
+| Role | Responsabilite |
+|---|---|
+| scrum-master | Backlog, user stories, planning de sprint, suivi et retrospective |
+| ux-designer | Personas, parcours, architecture des ecrans, wireframes, accessibilite |
+| ui-designer | Design system, maquettes animees, mouvements, controle de conformite design |
+| gpu-engineer | Pipeline video GPU : decodage, super-resolution RTX, interpolation, encodage NVENC, VRAM, performances |
+| developer | Application hors pipeline GPU : interface, file d'attente, prereglages, reglages, journalisation |
+| reviewer | Revue de code C++ (APPROVE / CHANGES_REQUESTED) |
+| qa-tester | Qualite objective (PSNR / SSIM / VMAF), vitesse, VRAM, tests de l'interface |
+| devops | Depot, build CMake/MSVC, CI, tests GPU locaux, packaging, merge et releases |
+| secdevops | Modele de menaces, zero appel reseau, robustesse des fichiers, licences, scans |
+
+Le role auteur de chaque commit figure dans la ligne `Agent:` de son message ; pour retrouver
+ses contributions : `git log --grep "Agent: gpu-engineer"`.
+
 ## Conventions
 
 Commits Conventional Commits ; une story = une branche = un merge ; aucun appel reseau dans

@@ -26,6 +26,9 @@ if ($CommitMsgFile) {
         Write-Host 'COMMIT BLOQUE : le message mentionne Claude/Anthropic (Co-Authored-By ou "Generated with"). Retirer ces lignes.' -ForegroundColor Red
         exit 1
     }
+    if ($msg -notmatch '(?im)^Agent:\s*\S+') {
+        Write-Host 'Avertissement : ligne "Agent: <role>" absente du message (non bloquant).' -ForegroundColor Yellow
+    }
     exit 0
 }
 
