@@ -44,6 +44,10 @@ enum class Component : std::uint8_t {
     RtxVideoSdk,
     TensorRt,
     InterpolationModel,
+    // ComponentMissing : NGX execute (ou ne dit pas) une DLL de fonction VSR qui n'est pas celle
+    // livree avec Enhance (SEC-01, ENH-040). A presenter comme « super-resolution desactivee par
+    // securite », pas comme un composant absent.
+    RtxVideoFeatureUntrusted,
 };
 
 struct PipelineError {

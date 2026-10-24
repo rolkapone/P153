@@ -63,10 +63,8 @@ function(enh_define_nvidia_targets)
     endif()
   endforeach()
   # Seules bibliotheques d'import necessaires ; le reste est charge dynamiquement (ADR-026).
-  if(EXISTS "${_root}/rtx-video-sdk/lib/Windows/x64/nvsdk_ngx_d.lib")
-    target_link_libraries(NVIDIA::rtx_video INTERFACE
-      "${_root}/rtx-video-sdk/lib/Windows/x64/nvsdk_ngx_d.lib")
-  endif()
+  # RTX Video SDK : AUCUNE bibliotheque NGX liee a l'application. Seul le pont
+  # enh_rtxvideo_bridge.dll lie nvsdk_ngx_s.lib (ENH-040, bloquant B4, ADR-037).
   file(GLOB _nvinfer "${_root}/tensorrt/lib/nvinfer_[0-9]*.lib")
   if(_nvinfer)
     list(GET _nvinfer 0 _nvinfer0)

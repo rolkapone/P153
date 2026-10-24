@@ -43,7 +43,8 @@
     "wldp.dll",
     "bcrypt.dll",
     "ncrypt.dll",
-    "rpcrt4.dll"
+    "rpcrt4.dll",
+    "wintrust.dll"
   ],
   "exceptions": [
     {
@@ -116,11 +117,16 @@
       "module": "avformat-*.dll / avcodec-*.dll / avfilter-*.dll (BtbN, dev-only)",
       "imports": ["secur32.dll", "crypt32.dll", "ncrypt.dll", "iphlpapi.dll", "bcrypt.dll"],
       "decision": "Accepte en developpement uniquement (TLS Schannel et outils reseau du build BtbN) ; memes conditions que E3. Remplace l'ancienne exception E3b (secur32 est un avertissement, pas un import interdit)."
+    },
+    {
+      "module": "enhance.exe / enh_*_tests.exe (enh_pipeline_rtxvideo, ENH-040)",
+      "imports": ["crypt32.dll: CertGetNameStringW, CryptCATAdmin*", "wintrust.dll: WinVerifyTrust, WTHelper*"],
+      "decision": "Accepte (2026-10-24, secdevops, SEC-34). Verification Authenticode HORS LIGNE de la DLL de fonction NVIDIA (module_trust.cpp) : WTD_REVOKE_NONE + WTD_REVOCATION_CHECK_NONE + WTD_CACHE_ONLY_URL_RETRIEVAL, aucune CRL/OCSP/AIA recuperee ; empreinte calculee localement (CryptCATAdminCalcHashFromFileHandle2). Toute autre utilisation de WinVerifyTrust sans ces drapeaux est interdite. Mesure reseau M2 en ENH-041."
     }
   ],
   "stringScan": {
     "skipAuthenticodeCertificateTable": true,
-    "ownBinaries": ["Enhance.exe", "*enhance*.dll"],
+    "ownBinaries": ["Enhance.exe", "*enhance*.dll", "enh_rtxvideo_bridge.dll"],
     "ownBinaryFailPatterns": [
       "https?://",
       "[A-Za-z]:\\\\Users\\\\",

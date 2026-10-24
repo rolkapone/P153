@@ -1,0 +1,11 @@
+; Exports du pont RTX Video (ADR-037) : uniquement l'API C rvb_* (enh/rtxvideo_bridge.h).
+; Les substituts cuda* de cudart_shim.cpp ne sont PAS exportes (usage interne a NGX).
+LIBRARY enh_rtxvideo_bridge
+EXPORTS
+    rvb_abi_version
+    rvb_runtime_create
+    rvb_runtime_destroy
+    rvb_vsr_query
+    rvb_vsr_create
+    rvb_vsr_evaluate
+    rvb_effect_destroy

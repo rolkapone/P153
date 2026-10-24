@@ -123,6 +123,19 @@ La pause gèle les étages entre deux images (reprise immédiate, < 2 s, aucune 
 
 L'application doit démarrer sur un PC sans carte compatible (ENH-031, mode lecture seule). Donc : `cudart` lié **statiquement** (autorisé par l'EULA CUDA, rien à redistribuer ; il charge `nvcuda.dll` à la demande) ; NVENC via `NvEncodeAPICreateInstance` chargé avec `LoadLibraryExW(..., LOAD_LIBRARY_SEARCH_SYSTEM32)` ; TensorRT, RTX Video SDK, FRUC en **`/DELAYLOAD`** depuis le dossier de l'application uniquement (`SetDefaultDllDirectories`) — protection contre le détournement de DLL (point secdevops).
 
+**Amendement 1 (ENH-040, 2026-10-23, gpu-engineer).** Mesuré et décidé à l'implémentation :
+1. **RTX Video SDK : chargement explicite, pas `/DELAYLOAD`.** `enh_rtxvideo_bridge.dll` (ADR-037) est chargée par `LoadLibraryExW(<dossier de l'exe>\enh_rtxvideo_bridge.dll, nullptr, LOAD_LIBRARY_SEARCH_DLL_LOAD_DIR | LOAD_LIBRARY_SEARCH_SYSTEM32)` puis `GetProcAddress` sur les 7 fonctions `rvb_*` et contrôle de `rvb_abi_version()` (classe RAII `BridgeLibrary`). Raisons : chemin absolu maîtrisé ; absence ou ABI différente rendues en `Expected` (`ComponentMissing{RtxVideoSdk}`) au lieu d'une exception SEH du chargeur différé ; aucune bibliothèque NGX liée à l'application (`nvsdk_ngx_d.lib` retirée de `NVIDIA::rtx_video`). Écarté : `/DELAYLOAD` (échec = exception SEH à attraper par `__try`, pas de contrôle de version).
+2. **DLL du pilote préchargées depuis System32** avant tout usage CUDA / FFmpeg / NGX : `nvcuda`, `nvcuvid`, `nvEncodeAPI64`, `nvofapi64`, `nvml` (`preloadNvidiaDriverDlls`). Le pont est lié avec `/DEPENDENTLOADFLAG:0x800`.
+3. **NGX n'est pas un chargeur ordinaire** (constaté, pilote 617.42, journal NGX) : son cœur `_nvngx.dll` vient du DriverStore, ses modules sont projetés sans le chargeur Windows (invisibles à `EnumProcessModules`), la DLL de fonction exécutée peut être une copie rangée dans `%ProgramData%\NVIDIA\NGX\models`, et NGX lance `nvngx_update.exe -api update … -bootstrap` à chaque initialisation, **même avec l'identifiant d'application 0 et sans appel de mise à jour**. D'où, au lieu du contrôle des modules prévu par la note d'ENH-040 :
+   - **création de processus enfants interdite** pendant l'initialisation de NGX et la création de l'effet (Job Object, `JOB_OBJECT_LIMIT_ACTIVE_PROCESS = 1`, limite levée ensuite ; RAII `ChildProcessBlocker`) : `nvngx_update.exe` ne peut pas démarrer depuis Enhance ;
+   - **DLL de fonction vérifiée après chargement (détection, pas prévention)** : NGX annonce dans son journal (niveau ON, gardé en mémoire, jamais écrit) le chemin de la DLL de fonction qu'il a **déjà chargée et initialisée**. La vérification a donc lieu **après** l'exécution de son code d'initialisation : un refus empêche seulement de traiter des images avec elle, il ne défait rien. Règle (**décision du PO du 2026-10-24**) :
+     - `nvngx_vsr.dll` livrée, ou copie identique octet pour octet dans le magasin NGX → acceptée ;
+     - autre DLL (mise à jour NGX) **signée « NVIDIA Corporation »** (Authenticode hors ligne) → acceptée, avec un **avertissement au journal** (version et empreinte Authenticode SHA-256, sans chemin) ;
+     - autre DLL non signée, signataire autre, signature invalide, ou DLL non identifiable (NGX ne l'annonce plus dans son journal) → **refus** : `ComponentMissing{RtxVideoFeatureUntrusted}`, `detail` préfixé `VsrFeatureUntrusted:`, distinct de « SDK absent ».
+   - Piste de **prévention** (ENH-041) : avant `rvb_vsr_create`, comparer les DLL VSR du magasin NGX (`%ProgramData%\NVIDIA\NGX\models\vsr\versions\*\files\*.bin`) à la nôtre et appliquer la même règle de signature ; non retenue ici car NGX choisit lui-même la version (critère non documenté) et un fichier du magasin non utilisé provoquerait un refus à tort.
+   - **Contrainte acceptée par le PO (2026-10-24)** : pendant l'initialisation de NGX et la création de l'effet (~1 s), **aucun processus ne peut être lancé par l'application** (Job Object, et le processus reste à vie dans ce job, limite levée hors de cette fenêtre). Toute story future qui lance un processus (ouvrir l'Explorateur, assistant, outil externe) doit l'éviter pendant cette fenêtre ou réessayer ; à rappeler dans ses critères.
+   Écartés : énumération des modules (inopérante) ; écriture dans le registre du pilote pour couper les mises à jour (touche le système de l'utilisateur, non documenté). Preuve réseau : ENH-041.
+
 ### ADR-049 — Fichiers : **l'application possède le cycle de vie**, le pipeline écrit au chemin exact reçu, E/S FFmpeg par **`AVIOContext` Win32 maison**
 
 **Partage des rôles (tranché, aligné sur l'ADR-010 ; remplace le `.enhance-part` de la v0.1)** :
@@ -634,7 +647,7 @@ enum class PipelineErrorCode : std::uint16_t {
   InvalidParams,      // défaut de validation côté application → affiché comme Internal
   Busy,               // un job déjà actif → défaut d'orchestration → affiché comme Internal
 };
-enum class Component : std::uint8_t { None, NvidiaGpu, Driver, NvencHevc, NvencAv1, Nvenc10Bit, RtxVideoSdk, TensorRt, InterpolationModel };
+enum class Component : std::uint8_t { None, NvidiaGpu, Driver, NvencHevc, NvencAv1, Nvenc10Bit, RtxVideoSdk, TensorRt, InterpolationModel, RtxVideoFeatureUntrusted /* ENH-040 : DLL de fonction VSR non livree par Enhance */ };
 
 struct PipelineError {
   PipelineErrorCode code = PipelineErrorCode::Internal;

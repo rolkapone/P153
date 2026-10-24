@@ -22,3 +22,18 @@ if(TARGET enh_pipeline_ffmpeg)
   enh_copy_runtime_dlls(enh_gpu_decode_tests)
   gtest_discover_tests(enh_gpu_decode_tests NO_PRETTY_VALUES PROPERTIES LABELS gpu TIMEOUT 600 DISCOVERY_TIMEOUT 60)
 endif()
+
+# ENH-040 : pont RTX Video (imports sans cudart, VSR 720p -> 4K, debit, VRAM, 10 cycles, modules
+# charges, signature, aucun fichier ecrit par NGX). Pont + nvngx_vsr.dll (rel) copies a cote.
+add_executable(enh_gpu_rtxvideo_tests
+  rtxvideo_test.cpp
+  ${PROJECT_SOURCE_DIR}/tests/unit/pipeline/pe/pe_image.cpp)
+enh_target_defaults(enh_gpu_rtxvideo_tests)
+target_include_directories(enh_gpu_rtxvideo_tests PRIVATE ${PROJECT_SOURCE_DIR}/tests/unit/pipeline)
+target_compile_definitions(enh_gpu_rtxvideo_tests PRIVATE ENH_RTXVIDEO_SDK_DIR=L"${ENH_RTXVIDEO_SDK_DIR}")
+target_link_libraries(enh_gpu_rtxvideo_tests PRIVATE enh_pipeline_gpu dxgi GTest::gtest GTest::gtest_main)
+enh_deploy_rtxvideo(enh_gpu_rtxvideo_tests)
+if(TARGET enh_pipeline_ffmpeg)
+  enh_copy_runtime_dlls(enh_gpu_rtxvideo_tests)
+endif()
+gtest_discover_tests(enh_gpu_rtxvideo_tests NO_PRETTY_VALUES PROPERTIES LABELS gpu TIMEOUT 600 DISCOVERY_TIMEOUT 60)

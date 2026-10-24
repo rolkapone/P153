@@ -16,3 +16,9 @@ if(TARGET enh_pipeline_ffmpeg)
   target_include_directories(enh_pipeline_gpu PUBLIC nvdec/include)
   target_link_libraries(enh_pipeline_gpu PUBLIC enh_pipeline_ffmpeg)
 endif()
+
+# RTX Video (ENH-040) : images RGB CUDA (texture + surface) et RtxVideoUpscaler (enh_pipeline_rtxvideo,
+# sans CUDA). Le pont enh_rtxvideo_bridge.dll n'est PAS lie : il est charge a l'execution.
+target_sources(enh_pipeline_gpu PRIVATE rtxvideo/cuda_rgb_image.cpp)
+target_include_directories(enh_pipeline_gpu PUBLIC rtxvideo/include)
+target_link_libraries(enh_pipeline_gpu PUBLIC enh_pipeline_rtxvideo)
