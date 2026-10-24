@@ -126,7 +126,7 @@
   ],
   "stringScan": {
     "skipAuthenticodeCertificateTable": true,
-    "ownBinaries": ["Enhance.exe", "*enhance*.dll", "enh_rtxvideo_bridge.dll"],
+    "ownBinaries": ["Enhance.exe", "*enhance*.dll", "enh_rtxvideo_bridge.dll", "enhance-bench.exe"],
     "ownBinaryFailPatterns": [
       "https?://",
       "[A-Za-z]:\\\\Users\\\\",
