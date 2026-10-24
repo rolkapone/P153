@@ -3,8 +3,15 @@
 .SYNOPSIS
   Vitesse (images/s de sortie), VRAM (pic, fuite sur 10 fichiers) via enhance-bench.exe + nvidia-smi. Ecrit un JSON.
 .DESCRIPTION
-  Protocole : docs/qa/protocole.md sections 4 et 5. Exige la cible enhance-bench (protocole 4.3) :
-    enhance-bench --in <f> --out <f> --preset quality|balanced|fast --codec hevc|av1 --bits 8|10 --report <json>
+  Protocole : docs/qa/protocole.md sections 4 et 5. Exige la cible enhance-bench (protocole 4.3).
+  -Stage choisit l'etage mesure (ENH-047, docs/gpu/ENH-047.md) :
+    decode    : enhance-bench --stage decode --in <f> --report <json> [-BenchArgs ...]
+    vsr-image : enhance-bench --stage vsr-image --in <f.bmp> --out <f.bmp> --report <json> [-BenchArgs ...]
+    pipeline  : (a venir, ENH-010+) enhance-bench --in <f> --out <f> --preset ... --codec ... --bits ...
+  -BenchArgs : arguments supplementaires du banc (ex. '--repeat 20 --warmup 30' ; scindes sur espaces et virgules).
+  Recoupement VRAM : (pic nvidia-smi - repos nvidia-smi avant lancement) compare a la VRAM totale
+  du processus vue par le banc (vram_peak_mib - vram_process_start_mib, DXGI) ; ecart > 10 % signale.
+  Recoupement interne : vram_stage_mib (DXGI, processus) contre vram_device_stage_mib (cudaMemGetInfo).
   Mode Speed : 1 chauffe non comptee + N repetitions, mediane, min-max, alerte si (max-min)/mediane > 3 %.
   Mode Leak  : traite 10 fichiers a la suite, releve la VRAM au repos entre chaque fichier, calcule la derive.
   Echantillonnage externe : nvidia-smi toutes les 200 ms. Carte au repos, autres applications GPU fermees.
@@ -17,6 +24,9 @@ param(
     [Parameter(Mandatory)][string]$OutJson,
     [Parameter(Mandatory)][string]$OutDir,               # dossier de sortie des videos produites (jetables)
     [ValidateSet('Speed', 'Leak')][string]$Mode = 'Speed',
+    [ValidateSet('pipeline', 'decode', 'vsr-image')][string]$Stage = 'pipeline',
+    [string[]]$BenchArgs = @(),
+    [ValidateRange(20, 1000)][int]$SmiPeriodMs = 200,
     [ValidateSet('quality', 'balanced', 'fast')][string]$Preset = 'balanced',
     [ValidateSet('hevc', 'av1')][string]$Codec = 'hevc',
     [ValidateSet(8, 10)][int]$Bits = 10,
@@ -29,6 +39,9 @@ $ErrorActionPreference = 'Stop'
 . (Join-Path $PSScriptRoot 'QaCommon.ps1')
 
 $smi = (Get-Command nvidia-smi -ErrorAction Stop).Source
+$Bench = (Resolve-Path -LiteralPath $Bench -ErrorAction Stop).Path   # chemin absolu (ProcessStartInfo ne resout pas un chemin relatif)
+# -BenchArgs : tableau en appel PowerShell, ou chaine unique '--repeat 20' avec pwsh -File (scindee ici).
+$BenchExtra = @($BenchArgs | ForEach-Object { $_ -split '[\s,]+' } | Where-Object { $_ })
 New-Item -ItemType Directory -Path $OutDir -Force | Out-Null
 
 function Get-GpuState {
@@ -39,7 +52,7 @@ function Get-GpuState {
 
 function Start-Sampler {
     $log = Join-Path ([System.IO.Path]::GetTempPath()) ("enhance-smi-" + [guid]::NewGuid().ToString('N').Substring(0, 8) + '.csv')
-    $p = Start-Process -FilePath $smi -ArgumentList @('--query-gpu=memory.used,temperature.gpu,clocks.sm,power.draw', '--format=csv,noheader,nounits', '-lms', '200') `
+    $p = Start-Process -FilePath $smi -ArgumentList @('--query-gpu=memory.used,temperature.gpu,clocks.sm,power.draw', '--format=csv,noheader,nounits', '-lms', "$SmiPeriodMs") `
         -RedirectStandardOutput $log -NoNewWindow -PassThru
     return [pscustomobject]@{ Process = $p; Log = $log }
 }
@@ -56,22 +69,35 @@ function Stop-Sampler($s) {
 
 function Invoke-BenchRun {
     param([string]$In, [string]$Tag)
-    $out = Join-Path $OutDir "$Tag.mp4"
     $rep = Join-Path $OutDir "$Tag.report.json"
+    switch ($Stage) {
+        'decode' {
+            $out = $null
+            $cmdArgs = @('--stage', 'decode', '--in', $In, '--report', $rep, '--force') + $BenchExtra
+        }
+        'vsr-image' {
+            $out = Join-Path $OutDir "$Tag.bmp"
+            $cmdArgs = @('--stage', 'vsr-image', '--in', $In, '--out', $out, '--report', $rep, '--force') + $BenchExtra
+        }
+        default {
+            $out = Join-Path $OutDir "$Tag.mp4"
+            $cmdArgs = @('--in', $In, '--out', $out, '--preset', $Preset, '--codec', $Codec, '--bits', "$Bits", '--report', $rep) + $BenchExtra
+        }
+    }
     $rest = Get-GpuState
     $s = Start-Sampler
-    $r = Invoke-Native $Bench @('--in', $In, '--out', $out, '--preset', $Preset, '--codec', $Codec, '--bits', "$Bits", '--report', $rep)
-    $rows = Stop-Sampler $s
+    # try/finally : nvidia-smi est toujours arrete, meme si le lancement du banc echoue.
+    try { $r = Invoke-Native $Bench $cmdArgs } finally { $rows = Stop-Sampler $s }
     $rep_j = if (Test-Path $rep) { Get-Content $rep -Raw | ConvertFrom-Json } else { $null }
     $peakExt = if ($rows.Count) { ($rows | Measure-Object vram -Maximum).Maximum - $rest.vram_mib } else { $null }
-    Remove-Item $out -Force -ErrorAction SilentlyContinue
+    if ($out) { Remove-Item $out -Force -ErrorAction SilentlyContinue }
     return [pscustomobject]@{ exit = $r.ExitCode; report = $rep_j; rest = $rest; vram_peak_external_mib = $peakExt; samples = $rows; stderr = $r.StdErr.Trim() }
 }
 
 function Get-BenchValue { param($Run, [string]$Name) if ($Run.report) { $p = $Run.report.PSObject.Properties[$Name]; if ($p) { return $p.Value } } return $null }
 
 $result = [ordered]@{
-    schema = 'enhance-qa-speed/1'; mode = $Mode; preset = $Preset; codec = $Codec; bits = $Bits
+    schema = 'enhance-qa-speed/1'; mode = $Mode; stage = $Stage; bench_args = ($BenchExtra -join ' '); preset = $Preset; codec = $Codec; bits = $Bits
     machine = Get-MachineInfo; git = Get-GitHashSafe
     start_state = Get-GpuState
     warnings = [System.Collections.Generic.List[string]]::new()
@@ -95,6 +121,8 @@ if ($Mode -eq 'Speed') {
         $runs += [ordered]@{
             run = $i; fps_out = [double](Get-BenchValue $r 'fps_out'); wall_s = [double](Get-BenchValue $r 'wall_s')
             vram_peak_inprocess_mib = Get-BenchValue $r 'vram_peak_mib'; vram_rest_mib = Get-BenchValue $r 'vram_rest_mib'
+            vram_stage_mib = Get-BenchValue $r 'vram_stage_mib'; vram_device_stage_mib = Get-BenchValue $r 'vram_device_stage_mib'
+            vram_process_total_mib = $($pk = Get-BenchValue $r 'vram_peak_mib'; $st = Get-BenchValue $r 'vram_process_start_mib'; if ($null -ne $pk -and $null -ne $st) { $pk - $st } else { $null })
             vram_peak_external_mib = $r.vram_peak_external_mib; stages = Get-BenchValue $r 'stages'
             temp_max_c = $(if ($r.samples.Count) { ($r.samples | Measure-Object temp -Maximum).Maximum } else { $null })
             sm_mhz_mean = $(if ($r.samples.Count) { [math]::Round(($r.samples | Measure-Object sm -Average).Average) } else { $null })
@@ -113,9 +141,27 @@ if ($Mode -eq 'Speed') {
     $result['vram_peak_inprocess_mib'] = if ($vi.Count) { ($vi | Measure-Object -Maximum).Maximum } else { $null }
     $ve = @($runs | ForEach-Object { $_.vram_peak_external_mib } | Where-Object { $null -ne $_ })
     $result['vram_peak_external_mib'] = if ($ve.Count) { ($ve | Measure-Object -Maximum).Maximum } else { $null }
-    if ($result['vram_peak_inprocess_mib'] -and $result['vram_peak_external_mib'] -and
-        [math]::Abs($result['vram_peak_inprocess_mib'] - $result['vram_peak_external_mib']) / $result['vram_peak_inprocess_mib'] -gt 0.10) {
-        $result.warnings.Add('Ecart > 10 % entre VRAM in-process et nvidia-smi : chercher une consommation hors processus.')
+    # Recoupement nvidia-smi PAR PASSE (pic - repos avant lancement, contre la VRAM totale du processus),
+    # mediane des passes : une passe perturbee par une autre application ne fait pas basculer le verdict.
+    $pcts = @($runs | Where-Object { $_.vram_process_total_mib -and $null -ne $_.vram_peak_external_mib } |
+        ForEach-Object { 100 * ($_.vram_peak_external_mib - $_.vram_process_total_mib) / $_.vram_process_total_mib } | Sort-Object)
+    if ($pcts.Count) {
+        $result['vram_crosscheck_smi_pct_runs'] = @($pcts | ForEach-Object { [math]::Round($_, 1) })
+        $result['vram_crosscheck_smi_pct'] = [math]::Round($pcts[[int][math]::Floor($pcts.Count / 2)], 1)
+        if ([math]::Abs($result['vram_crosscheck_smi_pct']) -gt 10) {
+            $result.warnings.Add("Ecart median > 10 % entre VRAM in-process et nvidia-smi ($($result['vram_crosscheck_smi_pct']) %) : chercher une consommation hors processus.")
+        }
+    }
+    # Recoupement interne (sans nvidia-smi) : etage vu par DXGI (processus) et par cudaMemGetInfo (carte).
+    $vs = @($runs | ForEach-Object { $_.vram_stage_mib } | Where-Object { $null -ne $_ })
+    $vd = @($runs | ForEach-Object { $_.vram_device_stage_mib } | Where-Object { $null -ne $_ })
+    if ($vs.Count -and $vd.Count) {
+        $result['vram_stage_mib'] = ($vs | Measure-Object -Maximum).Maximum
+        $result['vram_device_stage_mib'] = ($vd | Measure-Object -Maximum).Maximum
+        if ($result['vram_stage_mib'] -gt 0) {
+            $result['vram_crosscheck_dxgi_pct'] = [math]::Round(100 * ($result['vram_device_stage_mib'] - $result['vram_stage_mib']) / $result['vram_stage_mib'], 1)
+            if ([math]::Abs($result['vram_crosscheck_dxgi_pct']) -gt 10) { $result.warnings.Add("Ecart > 10 % entre VRAM d'etage DXGI et cudaMemGetInfo : $($result['vram_crosscheck_dxgi_pct']) %.") }
+        }
     }
     if ($Sustained) {
         $end = (Get-Date).AddSeconds($SustainedSeconds); $loop = @(); $k = 0
@@ -136,7 +182,7 @@ else {
         $after = Get-GpuState
         $series += [ordered]@{
             file = $i + 1; vram_after_mib = $after.vram_mib; vram_peak_inprocess_mib = Get-BenchValue $r 'vram_peak_mib'
-            private_mib_end = Get-BenchValue $r 'process_private_mib_end'
+            private_mib_end = $($p = Get-BenchValue $r 'process_private_mib'; if ($p) { $p.end } else { $null })
         }
     }
     $y = @($series | ForEach-Object { $_.vram_after_mib })
@@ -152,5 +198,5 @@ else {
 }
 
 Write-JsonFile -Object $result -Path $OutJson
-if ($Mode -eq 'Speed') { Write-Host ("{0}: {1} i/s (mediane), ecart {2} %, VRAM pic {3} Mio" -f $Preset, $result['fps_out_median'], $result['spread_pct'], $result['vram_peak_inprocess_mib']) }
+if ($Mode -eq 'Speed') { Write-Host ("{0}: {1} i/s (mediane), ecart {2} %, VRAM processus pic {3} Mio, etage {4} Mio ; nvidia-smi pic-repos {5} Mio (ecart {6} %), DXGI/CUDA {7} %" -f $(if ($Stage -eq 'pipeline') { $Preset } else { $Stage }), $result['fps_out_median'], $result['spread_pct'], $result['vram_peak_inprocess_mib'], $result['vram_stage_mib'], $result['vram_peak_external_mib'], $result['vram_crosscheck_smi_pct'], $result['vram_crosscheck_dxgi_pct']) }
 else { Write-Host ("Fuite VRAM : derive {0} Mio, pente {1} Mio/fichier -> {2}" -f $result['vram_drift_mib'], $result['vram_slope_mib_per_file'], $result['vram_leak_status']) }
