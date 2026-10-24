@@ -3,9 +3,12 @@
 
 #include <gtest/gtest.h>
 
+#include <algorithm>
 #include <atomic>
 #include <chrono>
 #include <thread>
+#include <utility>
+#include <vector>
 
 namespace enh::bench {
 namespace {
@@ -30,20 +33,51 @@ public:
     std::atomic<int> attached{0};
 };
 
+/// Sonde a sequence fixee : le releve n rend la valeur n de la liste (puis la derniere). Le
+/// resultat ne depend pas de la vitesse de la machine : chaque releve compte, quel que soit le
+/// moment ou il arrive.
+class SequenceProbe final : public IVramProbe {
+public:
+    explicit SequenceProbe(std::vector<VramSample> seq) : seq_(std::move(seq)) {}
+    std::optional<VramSample> sample() noexcept override {
+        const auto n = static_cast<std::size_t>(calls.fetch_add(1));
+        return seq_[std::min(n, seq_.size() - 1)];
+    }
+    std::atomic<int> calls{0};
+
+private:
+    std::vector<VramSample> seq_;
+};
+
 TEST(BenchVramMonitor, GardeLePicPasseger) {
-    FakeProbe probe;
+    // Repos, pic d'un seul releve (n = 4), retour pres du repos.
+    SequenceProbe probe({{100.0, 2000.0},
+                         {100.0, 2000.0},
+                         {110.0, 2010.0},
+                         {150.0, 2050.0},
+                         {400.0, 2300.0},
+                         {130.0, 2030.0},
+                         {120.0, 2020.0}});
     VramMonitor mon(probe, 1ms);
-    std::this_thread::sleep_for(20ms);
-    probe.process = 400.0; // pic bref
-    probe.device = 2300.0;
-    std::this_thread::sleep_for(30ms);
-    probe.process = 120.0; // retour pres du repos avant l'arret
-    probe.device = 2020.0;
-    std::this_thread::sleep_for(20ms);
+    const auto deadline = std::chrono::steady_clock::now() + 10s; // garde-fou, jamais atteint
+    while (probe.calls.load() < 8 && std::chrono::steady_clock::now() < deadline) {
+        std::this_thread::yield();
+    }
     const VramPeaks p = mon.stop();
+    ASSERT_GE(probe.calls.load(), 8) << "le thread d'echantillonnage n'a pas tourne";
     EXPECT_DOUBLE_EQ(p.process_peak_mib, 400.0);
     EXPECT_DOUBLE_EQ(p.device_used_peak_mib, 2300.0);
-    EXPECT_GE(p.samples, 3U);
+    EXPECT_GE(p.samples, 8U);
+}
+
+TEST(BenchVramMonitor, AttacheLeThreadUneFois) {
+    FakeProbe probe;
+    VramMonitor mon(probe, 1ms);
+    const auto deadline = std::chrono::steady_clock::now() + 10s;
+    while (probe.calls.load() < 3 && std::chrono::steady_clock::now() < deadline) {
+        std::this_thread::yield();
+    }
+    (void)mon.stop();
     EXPECT_EQ(probe.attached.load(), 1);
 }
 

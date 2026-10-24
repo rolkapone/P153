@@ -29,8 +29,9 @@ constexpr double kMiB = 1024.0 * 1024.0;
 } // namespace
 
 struct DxgiCudaProbe::Impl {
-    ComPtr<IDXGIAdapter3> adapter;       // ComPtr : Release() automatique (RAII COM)
-    std::atomic<bool> cuda_ready{false}; // cudaMemGetInfo autorise (contexte cree)
+    ComPtr<IDXGIAdapter3> adapter;               // ComPtr : Release() automatique (RAII COM)
+    std::atomic<bool> cuda_ready{false};         // cudaMemGetInfo autorise (contexte cree)
+    std::atomic<std::uint64_t> dxgi_failures{0}; // lectures QueryVideoMemoryInfo en echec
 };
 
 DxgiCudaProbe::DxgiCudaProbe(PrivateTag /*tag*/, std::unique_ptr<Impl> impl) noexcept
@@ -89,9 +90,14 @@ double DxgiCudaProbe::processMib() const noexcept {
     DXGI_QUERY_VIDEO_MEMORY_INFO info{};
     if (impl_->adapter == nullptr ||
         FAILED(impl_->adapter->QueryVideoMemoryInfo(0, DXGI_MEMORY_SEGMENT_GROUP_LOCAL, &info))) {
+        impl_->dxgi_failures.fetch_add(1);
         return 0.0;
     }
     return static_cast<double>(info.CurrentUsage) / kMiB;
+}
+
+std::uint64_t DxgiCudaProbe::dxgiFailures() const noexcept {
+    return impl_->dxgi_failures.load();
 }
 
 std::optional<VramSample> DxgiCudaProbe::sample() noexcept {

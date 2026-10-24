@@ -194,6 +194,49 @@ TEST_F(ENH047Bench, CodesDeSortie_EntreesIllisibles) {
               1);
 }
 
+TEST_F(ENH047Bench, Decode_VideoCorrompueNonVide_Code2_JsonAvecErreur) {
+    // 64 Kio d'octets pseudo-aleatoires sous une extension .mp4 (ni vide, ni conteneur valide).
+    const fs::path bad = tmp_.path() / L"corrompue.mp4";
+    {
+        std::ofstream f(bad, std::ios::binary);
+        std::uint32_t x = 2463534242U; // xorshift32, deterministe
+        for (int i = 0; i < 65536; ++i) {
+            x ^= x << 13U;
+            x ^= x >> 17U;
+            x ^= x << 5U;
+            f.put(static_cast<char>(x & 0xFFU));
+        }
+    }
+    const fs::path rep = tmp_.path() / L"corrompue.json";
+    EXPECT_EQ(bench({L"--stage", L"decode", L"--in", bad.wstring(), L"--report", rep.wstring()}),
+              2);
+    const Json j = readJson(rep);
+    EXPECT_EQ(j["exit_code"], 2);
+    ASSERT_FALSE(j["error"].is_null());
+    EXPECT_FALSE(j["error"]["code"].get<std::string>().empty());
+    EXPECT_EQ(j["input"]["size_bytes"], 65536);
+}
+
+TEST_F(ENH047Bench, SortieDesignantLEntree_Code1_EntreeIntacte_MemeAvecForce) {
+    const fs::path in = tmp_.path() / L"a.bmp";
+    auto bmp = encodeBmp24(RgbImage{.size_px = {16, 16}, .rgb = std::vector<std::uint8_t>(768, 7)});
+    ASSERT_TRUE(bmp);
+    {
+        std::ofstream f(in, std::ios::binary);
+        f.write(reinterpret_cast<const char*>(bmp->data()),
+                static_cast<std::streamsize>(bmp->size()));
+    }
+    const std::string before = readText(in);
+    const fs::path dotted = tmp_.path() / L"." / L"A.bmp";
+    EXPECT_EQ(bench({L"--stage", L"vsr-image", L"--in", in.wstring(), L"--out", dotted.wstring(),
+                     L"--force"}),
+              1);
+    EXPECT_EQ(bench({L"--stage", L"decode", L"--in", in.wstring(), L"--report", dotted.wstring(),
+                     L"--force"}),
+              1);
+    EXPECT_EQ(readText(in), before) << "l'entree a ete modifiee";
+}
+
 /// Image n de BBB-FAST.mkv (720p, FFV1 sans perte) en BMP 24 bits, par le ffmpeg de la build.
 fs::path extractFrame(const fs::path& dir) {
     const fs::path out = dir / L"in720.bmp";

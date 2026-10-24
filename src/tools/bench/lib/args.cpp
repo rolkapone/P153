@@ -250,9 +250,12 @@ std::string_view usageText() noexcept {
 
 Valeurs par defaut : --repeat 1, --warmup 30, --decoder auto, --q 4, --bits 8,
 --size 3840x2160, --iterations 300, --sample-ms 10. Sans --report, le JSON est ecrit sur la
-sortie standard. --report et --out refusent un fichier existant, sauf avec --force.
+sortie standard. --report et --out refusent un fichier existant, sauf avec --force, et ne
+peuvent jamais designer le fichier d'entree. --max-frames M : arret des que M images sont
+decodees (au moins M : les images deja sorties du dernier paquet sont comptees).
 
-Codes de sortie : 0 succes ; 1 arguments invalides ; 2 entree illisible ou format non pris en
+Codes de sortie : 0 succes ; 1 arguments invalides (sans JSON) ou sortie deja existante (JSON
+avec error si --report a pu etre ouvert) ; 2 entree illisible ou format non pris en
 charge ; 3 GPU, pilote ou composant absent ; 4 VRAM insuffisante ; 5 erreur interne ou ecriture.
 )";
 }

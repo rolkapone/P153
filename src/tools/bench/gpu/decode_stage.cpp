@@ -175,8 +175,9 @@ Result<PassResult> runPass(const BenchArgs& args, BenchReport& report, bool firs
 
 Result<void> runDecodeStage(const BenchArgs& args, DxgiCudaProbe& probe, BenchReport& report) {
     std::error_code ec;
-    report.input.size_bytes = static_cast<std::uint64_t>(std::filesystem::file_size(
-        std::filesystem::path(pipeline::toExtendedPath(args.input)), ec));
+    const std::uintmax_t size =
+        std::filesystem::file_size(std::filesystem::path(pipeline::toExtendedPath(args.input)), ec);
+    report.input.size_bytes = ec ? 0 : static_cast<std::uint64_t>(size); // absent : 0, pas -1
     double demux_ms = 0.0;
     double decode_ms = 0.0;
     for (std::uint32_t rep = 0; rep < args.repeat; ++rep) {

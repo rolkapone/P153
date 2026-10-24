@@ -96,13 +96,17 @@ OutputFile::OutputFile(OutputFile&& other) noexcept
 
 OutputFile& OutputFile::operator=(OutputFile&& other) noexcept {
     if (this != &other) {
-        close();
+        discard(); // l'ancien fichier n'a pas ete valide
         handle_ = std::exchange(other.handle_, nullptr);
     }
     return *this;
 }
 
 OutputFile::~OutputFile() {
+    discard(); // sans commit() : sortie supprimee (echec, exception, retour premature)
+}
+
+void OutputFile::commit() noexcept {
     close();
 }
 
@@ -195,6 +199,47 @@ std::string redactPaths(std::string text, std::span<const std::filesystem::path>
 
 std::string fileNameUtf8(const std::filesystem::path& path) {
     return toUtf8(path.filename());
+}
+
+bool sameFile(const std::filesystem::path& a, const std::filesystem::path& b) {
+    namespace fs = std::filesystem;
+    std::error_code ec_a;
+    std::error_code ec_b;
+    const bool a_exists = fs::exists(fs::path(pipeline::toExtendedPath(a)), ec_a);
+    const bool b_exists = fs::exists(fs::path(pipeline::toExtendedPath(b)), ec_b);
+    if (a_exists && b_exists) {
+        std::error_code ec;
+        const bool eq = fs::equivalent(fs::path(pipeline::toExtendedPath(a)),
+                                       fs::path(pipeline::toExtendedPath(b)), ec);
+        if (!ec) {
+            return eq; // identite du fichier : couvre aussi les liens physiques
+        }
+    }
+    std::error_code ec;
+    const fs::path ca = fs::weakly_canonical(fs::absolute(a, ec), ec);
+    const fs::path cb = fs::weakly_canonical(fs::absolute(b, ec), ec);
+    const std::wstring& wa = ca.native();
+    const std::wstring& wb = cb.native();
+    // NTFS ne distingue pas la casse : comparaison ordinale insensible a la casse.
+    return CompareStringOrdinal(wa.c_str(), static_cast<int>(wa.size()), wb.c_str(),
+                                static_cast<int>(wb.size()), TRUE) == CSTR_EQUAL;
+}
+
+enh::Expected<void, std::string>
+checkDistinctFiles(const std::filesystem::path& input,
+                   const std::optional<std::filesystem::path>& output,
+                   const std::optional<std::filesystem::path>& report) {
+    using Error = enh::Unexpected<std::string>;
+    if (output && sameFile(input, *output)) {
+        return Error("--out designe le fichier d'entree : refuse, meme avec --force");
+    }
+    if (report && sameFile(input, *report)) {
+        return Error("--report designe le fichier d'entree : refuse, meme avec --force");
+    }
+    if (output && report && sameFile(*output, *report)) {
+        return Error("--report et --out designent le meme fichier");
+    }
+    return {};
 }
 
 } // namespace enh::bench

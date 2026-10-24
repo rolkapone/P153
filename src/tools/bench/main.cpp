@@ -82,6 +82,12 @@ int run(const std::vector<std::wstring>& argv) {
         return toInt(ExitCode::Ok);
     }
 
+    // Un outil de mesure n'ecrase jamais son entree : chemins compares apres normalisation.
+    if (auto distinct = checkDistinctFiles(args.input, args.output, args.report); !distinct) {
+        printErr("enhance-bench : " + distinct.error());
+        return toInt(ExitCode::InvalidArgs);
+    }
+
     BenchReport report;
     report.params = args;
     report.tool_version = ENH_BENCH_VERSION;
@@ -145,9 +151,13 @@ int run(const std::vector<std::wstring>& argv) {
     report.private_end_mib = processPrivateMib();
     if (!status) {
         recordError(report, status.error(), args);
-        if (output_file) {
-            output_file->discard(); // pas de BMP incomplet
-        }
+    } else if (output_file) {
+        output_file->commit(); // BMP complet : garde ; sinon supprime par le destructeur
+    }
+    if (probe && probe->dxgiFailures() > 0) {
+        report.warnings.push_back("DXGI QueryVideoMemoryInfo failed " +
+                                  std::to_string(probe->dxgiFailures()) +
+                                  " time(s): process VRAM values may read 0");
     }
 
     const std::string json = toJsonText(report);
@@ -157,6 +167,7 @@ int run(const std::vector<std::wstring>& argv) {
                      std::string(frenchMessage(w.error().code)));
             return toInt(ExitCode::InternalOrWrite);
         }
+        report_file->commit();
     } else {
         std::fputs(json.c_str(), stdout);
     }

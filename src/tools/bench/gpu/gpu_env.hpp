@@ -33,8 +33,10 @@ public:
     void attachThread() noexcept override;
     [[nodiscard]] std::optional<VramSample> sample() noexcept override;
 
-    /// Usage du processus seul (0 si indisponible).
+    /// Usage du processus seul (0 si indisponible : compte dans dxgiFailures()).
     [[nodiscard]] double processMib() const noexcept;
+    /// Nombre de lectures DXGI en echec depuis la creation (signale dans warnings[] du rapport).
+    [[nodiscard]] std::uint64_t dxgiFailures() const noexcept;
 
     struct Impl;
 

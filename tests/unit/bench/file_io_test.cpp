@@ -7,6 +7,8 @@
 
 #include <fstream>
 #include <iterator>
+#include <optional>
+#include <stdexcept>
 #include <string>
 
 #ifndef WIN32_LEAN_AND_MEAN
@@ -50,6 +52,7 @@ TEST_F(BenchFileIo, CreateNew_RefuseUnFichierExistant_SaufForce) {
         ASSERT_TRUE(f) << f.error().detail;
         ASSERT_TRUE(f->replaceContent(std::string_view("premier contenu long")));
         ASSERT_TRUE(f->replaceContent(std::string_view("court"))); // fin du fichier recalee
+        f->commit();
     }
     EXPECT_EQ(readAll(p), "court");
     auto again = OutputFile::create(p, false);
@@ -60,6 +63,7 @@ TEST_F(BenchFileIo, CreateNew_RefuseUnFichierExistant_SaufForce) {
         auto forced = OutputFile::create(p, true);
         ASSERT_TRUE(forced) << forced.error().detail;
         ASSERT_TRUE(forced->replaceContent(std::string_view("ecrase")));
+        forced->commit();
     }
     EXPECT_EQ(readAll(p), "ecrase");
 }
@@ -73,6 +77,90 @@ TEST_F(BenchFileIo, Discard_SupprimeLaSortieIncomplete) {
     EXPECT_FALSE(fs::exists(p));
     f->discard(); // sans effet une seconde fois
     EXPECT_FALSE(f->replaceContent(std::string_view("x")));
+}
+
+TEST_F(BenchFileIo, SansCommit_SortieSupprimee_MemeSurException) {
+    const fs::path p = dir_ / L"rapport.json";
+    try {
+        auto f = OutputFile::create(p, false);
+        ASSERT_TRUE(f);
+        ASSERT_TRUE(f->replaceContent(std::string_view("a moitie ecrit")));
+        throw std::runtime_error("echec simule pendant la mesure");
+    } catch (const std::runtime_error&) { // NOLINT(bugprone-empty-catch) : exception attendue
+    }
+    EXPECT_FALSE(fs::exists(p)) << "sortie incomplete laissee apres une exception";
+    {
+        auto f = OutputFile::create(p, false);
+        ASSERT_TRUE(f);
+    } // ni ecriture ni commit : pas de fichier de 0 octet
+    EXPECT_FALSE(fs::exists(p));
+}
+
+TEST_F(BenchFileIo, Commit_GardeLaSortie_DeplacementSansDoubleSuppression) {
+    const fs::path p = dir_ / L"sortie.bmp";
+    std::optional<OutputFile> holder;
+    {
+        auto f = OutputFile::create(p, false);
+        ASSERT_TRUE(f);
+        holder = std::move(*f); // l'objet source deplace ne supprime rien en mourant
+    }
+    EXPECT_TRUE(fs::exists(p));
+    ASSERT_TRUE(holder->replaceContent(std::string_view("complet")));
+    holder->commit();
+    holder.reset();
+    EXPECT_EQ(readAll(p), "complet");
+}
+
+TEST_F(BenchFileIo, SameFile_CheminsEquivalents) {
+    const fs::path a = dir_ / L"a.bmp";
+    {
+        std::ofstream(a, std::ios::binary) << "x";
+    }
+    EXPECT_TRUE(sameFile(a, dir_ / L"." / L"a.bmp"));
+    EXPECT_TRUE(sameFile(a, dir_ / L"A.BMP"));
+    EXPECT_TRUE(sameFile(a, dir_ / L"sous" / L".." / L"a.bmp"));
+    EXPECT_FALSE(sameFile(a, dir_ / L"b.bmp"));
+    // Deux sorties inexistantes : comparaison des chemins normalises.
+    EXPECT_TRUE(sameFile(dir_ / L"n.json", dir_ / L"." / L"N.json"));
+    EXPECT_FALSE(sameFile(dir_ / L"n.json", dir_ / L"m.json"));
+    // Lien physique : meme fichier sous un autre nom.
+    const fs::path link = dir_ / L"lien.bmp";
+    std::error_code ec;
+    fs::create_hard_link(a, link, ec);
+    if (!ec) {
+        EXPECT_TRUE(sameFile(a, link));
+    }
+}
+
+TEST_F(BenchFileIo, CheminsRelatifs_PointBarreContreNomSeul) {
+    {
+        std::ofstream(dir_ / L"a.bmp", std::ios::binary) << "x";
+    }
+    const fs::path previous = fs::current_path();
+    fs::current_path(dir_);
+    const bool same = sameFile(LR"(.\a.bmp)", L"a.bmp");
+    const auto check = checkDistinctFiles(L"a.bmp", fs::path(LR"(.\a.bmp)"), std::nullopt);
+    fs::current_path(previous);
+    EXPECT_TRUE(same);
+    ASSERT_FALSE(check);
+    EXPECT_NE(check.error().find("--out designe le fichier d'entree"), std::string::npos);
+}
+
+TEST_F(BenchFileIo, CheckDistinctFiles_RefusMemeAvecForce) {
+    const fs::path in = dir_ / L"in.bmp";
+    {
+        std::ofstream(in, std::ios::binary) << "entree";
+    }
+    EXPECT_TRUE(checkDistinctFiles(in, dir_ / L"out.bmp", dir_ / L"r.json"));
+    EXPECT_TRUE(checkDistinctFiles(in, std::nullopt, std::nullopt));
+    auto out_in = checkDistinctFiles(in, dir_ / L"." / L"IN.bmp", std::nullopt);
+    ASSERT_FALSE(out_in);
+    auto rep_in = checkDistinctFiles(in, std::nullopt, dir_ / L"in.bmp");
+    ASSERT_FALSE(rep_in);
+    EXPECT_NE(rep_in.error().find("--report designe le fichier d'entree"), std::string::npos);
+    auto out_rep = checkDistinctFiles(in, dir_ / L"o.bmp", dir_ / L"x" / L".." / L"o.bmp");
+    ASSERT_FALSE(out_rep);
+    EXPECT_EQ(readAll(in), "entree") << "l'entree ne doit jamais etre touchee";
 }
 
 TEST_F(BenchFileIo, Create_DossierAbsent_WriteDenied) {
