@@ -73,3 +73,6 @@ AGENTS.md
 *.pt
 *.ckpt
 *.safetensors
+
+# Notes locales (Obsidian)
+.obsidian/
