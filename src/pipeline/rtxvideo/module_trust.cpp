@@ -38,7 +38,7 @@ PipelineError untrusted(std::string detail, std::int64_t native = 0,
     return e;
 }
 
-std::wstring upperInvariant(std::wstring s) {
+std::wstring upperInvariant(const std::wstring& s) {
     if (s.empty()) {
         return s;
     }
@@ -92,7 +92,7 @@ std::wstring lexicalPathKey(std::wstring_view path) {
     while (s.size() > 3 && s.back() == L'\\') {
         s.pop_back();
     }
-    return upperInvariant(std::move(s));
+    return upperInvariant(s);
 }
 
 fs::path finalPath(const fs::path& path) {
