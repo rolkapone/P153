@@ -154,3 +154,60 @@ Branche `feature/ENH-040-pont-rtxvideo`, diff `main...feature/ENH-040-pont-rtxvi
 | LOW | manuel | `docs/gpu/ENH-040.md` § 4, l. 88 | SEC-36 : note en décalage avec le code (journal OFF, exports `rvb_*` seuls, énumération des modules) | renvoyer au § 10 / ADR-048 am. 1 | ENH-041 |
 
 **SEC-01** : passe de HIGH à **MEDIUM (atténué)**, porte ENH-041 (mesure réseau sur session complète, télémétrie d'init R-8, SEC-30, SEC-31) ; repasse HIGH si `enhance.exe` émet du trafic. Threat model mis à jour (§ 3.6, § 3.8, § 3.8.1, § 3.9, SEC-01, SEC-30 à SEC-36, R-7, R-8, § 7).
+
+## ENH-047 `[GPU]` — `enhance-bench` v1 (2026-10-25)
+
+Branche `feature/ENH-047-enhance-bench`, 7 commits (`44bcc90` → `373ced9`), revue APPROVE, QA PASS (re-QA cycle 2, test-gpu 41/41). Outil de développement **hors livrable**.
+
+**VERDICT : PASS** (aucun CRITICAL/HIGH ; 4 LOW pour le backlog).
+
+### Scans
+
+| Contrôle | Résultat |
+|---|---|
+| `check-no-network.ps1 -SourcesOnly` | OK (C1 : 142 fichiers) |
+| `check-no-network.ps1 -Path build/dev` et `-Path build/local-gpu` | OK. `enhance-bench.exe` (build du 2026-10-24 19:17, après `373ced9`) : **aucun** import réseau (`ws2_32`, `winhttp`, `wininet`, `urlmon` absents) ; `wintrust.dll` (7) + `crypt32.dll` (1) = vérification Authenticode hors ligne d'ENH-040 (SEC-34, déjà acceptée) ; chaînes propres analysées (C4, `ownBinaries` contient bien `enhance-bench.exe`). Les FFmpeg copiés dans `src/tools/bench/` sont la build de **développement** (exceptions `dev-only` existantes E3…, jamais livrées) |
+| Code réseau dans le diff (revue) | aucun ; FFmpeg ouvert par le démuxeur d'ENH-008 (`protocol_whitelist=file`, AVIOContext Win32) ; `nvml.dll` seulement via `GetModuleHandleW` (déjà chargée depuis System32, aucun chargement par nom) |
+| gitleaks 8.30.1 (`.gitleaks.toml`) | 7 commits de la branche + `docs/qa/resultats/2026-10-24_ENH-047.md`, `…_1854_…`, `…_1919_…`, `docs/reviews/ENH-047.md` : aucune fuite |
+| Auteurs / committers | 7/7 = noreply du PO ; chaque message a sa ligne `Agent: gpu-engineer` ; aucune attribution d'outil |
+| E-mails / chemins personnels / logiciels du PO | aucun e-mail ; aucun chemin sous le profil utilisateur ; `F:\P153\…` (dossier du projet, convention déjà présente dans `main`) dans `docs/gpu/ENH-047.md` ; rapports QA : **aucune application du PO nommée** (seulement « applications GPU du PO fermées », « VRAM occupée par le bureau ») → aucune correction nécessaire |
+| Fichiers interdits | `git ls-files` : aucun `.claude/`, `CLAUDE.md`, `third_party/`, binaire, clip, `.env` ; aucun binaire dans le diff (`--numstat`). **`.obsidian/`** (non suivi, contient `lastOpenFiles`) n'est pas dans `.gitignore` : ne pas l'ajouter |
+| Dépendances | aucune nouvelle : `nlohmann-json` et `tl-expected` déjà au manifeste et au registre (`licences.md`, MIT / CC0) ; `psapi`, `dxgi` = bibliothèques système |
+| Tests | `enh_bench_unit_tests` : 84/84 (build `dev`) |
+| semgrep / cppcheck / osv-scanner | non installés (`pip install semgrep`, `winget install Cppcheck.Cppcheck`, `winget install Google.OSVScanner`) → revue manuelle ciblée |
+
+### Revue manuelle
+
+- **Lecteur BMP** (`bmp.cpp`) : taille du fichier bornée avant lecture (`readFileBounded`, 256 Mio + 4 Kio) ; en-tête ≥ 54 octets vérifié avant toute lecture ; DIB 40/108/124 seulement, troncature de l'en-tête vérifiée ; dimensions 1–8192 (hauteur négative en 64 bits, `INT32_MIN` compris) ; 24/32 bits, `BI_RGB` ou `BI_BITFIELDS` standard (masques lus dans l'en-tête déjà borné) ; foulée, taille et fin des données en arithmétique vérifiée (`checkedMul`/`checkedAdd` en `size_t`) puis comparées à la taille du fichier ; aucun accès hors limites trouvé. L'encodeur borne aussi ses entrées.
+- **Vidéos corrompues / tronquées** : code 2 `SourceCorrupt` si paquet corrompu/rejeté ou moins d'images que `nb_frames` ; `--allow-corrupt` mesure quand même avec avertissement. Sans `nb_frames` (mkv, webm), seule la détection par paquets joue (limite documentée par la QA, acceptable pour un banc).
+- **Entrée jamais détruite** : `checkDistinctFiles` avant toute ouverture en écriture (`fs::equivalent` sur chemins étendus, repli `weakly_canonical` + comparaison insensible à la casse). **Vérifié** sur le binaire : lien physique vers l'entrée, `IN.BMP`, `sub\..\in.bmp` → code 1, MD5 de l'entrée inchangé. Lien symbolique non testé (privilège absent), couvert par `equivalent` (suit les liens).
+- **`OutputFile`** : `CREATE_NEW` par défaut, partage 0, suppression par `FileDispositionInfo` à la destruction sans `commit()` → aucun fichier résiduel (vérifié : BMP invalide → ni `--out` ni fichier partiel). Avec `--force`, l'ancien fichier est tronqué dès l'ouverture (SEC-38).
+- **Chemins dans le JSON / stderr** : JSON = noms de fichiers seulement ; `detail` passé par `redactPaths` ; vérifié sous `%TEMP%` du profil : aucun chemin dans le JSON ni sur stderr. `dump(…, replace)` : pas d'exception sur UTF-8 invalide. Limites du masquage : SEC-39.
+- **Arguments** : toutes les valeurs numériques bornées (`--size` ≤ côté max, `--repeat`, `--iterations`, `--warmup`, `--sample-ms`) ; tampon hôte de sortie dimensionné par `fitInside` (borné).
+- **DLL** : `/DEPENDENTLOADFLAG:0xA00` (dossier de l'exe + System32), pilote préchargé depuis System32 ; pas de `SetDefaultDllDirectories` dans `wmain` (SEC-37).
+- **`tests/quality/Measure-Speed.ps1`** : `nvidia-smi` résolu par `Get-Command` (PATH, comme `QaCommon.ps1`), échantillonneur toujours arrêté (`try/finally` + `Stop-Process`), CSV temporaire supprimé, sorties BMP supprimées ; `Get-MachineInfo` n'écrit ni nom de machine ni nom d'utilisateur. Remarque mineure : `Remove-Item $out` sans `-LiteralPath` (noms avec `[` `]`), sans impact sécurité.
+- **Hors livrable** : aucune règle `install()`/CPack dans le dépôt ; `package.ps1` n'existe pas encore → consigne SEC-40 pour ENH-030.
+- NGX écrit ses données dans `%TEMP%\enhance-bench\ngx` (non nettoyé, outil de dev ; le test ENH-040 « NGX n'écrit ni journal ni mise à jour » reste la garantie).
+
+### Licences
+
+Aucun composant nouveau. `licences.md` inchangé.
+
+### Findings
+
+| Sévérité | Source | Emplacement | Problème | Correction | Quand |
+|---|---|---|---|---|---|
+| LOW | manuel (confiance élevée) | `src/tools/bench/main.cpp` | SEC-37 : pas de `SetDefaultDllDirectories` / `SetDllDirectoryW(L"")` dans `wmain` | appeler le durcissement d'`enh_platform` | backlog |
+| LOW | manuel (confiance élevée) | `src/tools/bench/lib/file_io.cpp` | SEC-38 : `--force` détruit l'ancienne sortie même si la mesure échoue | temporaire + `MoveFileExW(REPLACE_EXISTING)` ; à appliquer surtout aux sorties de l'app | backlog |
+| LOW | manuel (confiance moyenne) | `src/tools/bench/lib/file_io.cpp` `redactPaths` | SEC-39 : masquage sensible à la casse et limité aux chemins passés en argument | insensible à la casse + `%TEMP%`/`%USERPROFILE%` | backlog |
+| LOW | manuel (confiance élevée) | ENH-030 (`package.ps1`, `check-no-network -Package`) | SEC-40 : rien n'empêche mécaniquement d'embarquer `enhance-bench.exe` et les DLL de dev voisines | liste explicite des fichiers livrés + `forbiddenInPackage` | ENH-030 |
+| INFO | manuel | `.gitignore` | `.obsidian/` non ignoré (config locale de l'éditeur, liste de fichiers ouverts) | devops : ajouter `.obsidian/` à `.gitignore` | prochain commit `chore:` |
+
+Threat model : SEC-37 à SEC-40 ajoutés (§ 4).
+
+### Consignes pour devops au merge
+
+1. Commits de la branche : n'ajouter que des fichiers explicitement listés ; **ne pas** ajouter `.obsidian/` ; `docs/qa/broadcast.md` est marqué modifié sans différence de contenu (fins de ligne) : ne pas le committer.
+2. Rapports QA non suivis (`docs/qa/resultats/2026-10-24_ENH-047.md`, `…_1854_…`, `…_1919_…`) : relus, committables tels quels si la QA le souhaite.
+3. Relancer `scripts/check-no-network.ps1` sur `build/dev` après le merge et garder `enhance-bench.exe` dans `ownBinaries`.
+4. ENH-030 : appliquer SEC-40 (aucun fichier de `src/tools/bench/` dans l'installeur ; `-Package` doit échouer s'il y en a un).

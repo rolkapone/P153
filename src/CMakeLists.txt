@@ -4,6 +4,7 @@ add_subdirectory(pipeline)
 add_subdirectory(core)
 add_subdirectory(platform/win)
 add_subdirectory(app) # enh_app_policy toujours ; enh_app / modules QML seulement si ENH_UI_EFFECTIVE
+add_subdirectory(tools/bench) # enh_bench_lib (CI) ; enhance-bench si ENH_GPU_EFFECTIVE (ADR-037)
 
 # Deploiement local du runtime Qt a cote de enhance.exe (+ controle C2 et test des modules
 # charges). AUTO : seulement avec le Qt de vcpkg, compile sans Qt6Network (ADR-024). Le Qt

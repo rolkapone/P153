@@ -779,6 +779,11 @@ Les noms `pipeline/api` et `pipeline/impl` du gpu-engineer sont conservés (`pip
 3. **`enh_pipeline_ffmpeg` lie `enh_pipeline_core`** (et non `enh_pipeline_api` seule) : `Win32File`, bornes et journal sont dans `core`. La règle « une cible ne lie que les couches du dessous » est respectée : api ← stage ← core ← ffmpeg ← gpu.
 4. Le point 2 de la décision initiale (« construite dès que la feature vcpkg `ffmpeg` est présente ») se lit, en phase de développement, « dès que FFmpeg est trouvé » : `cmake/EnhFfmpeg.cmake` définit `Enhance::ffmpeg` depuis `ENH_FFMPEG_ROOT` (défaut `third_party/ffmpeg/lgpl-shared`, ADR-025). Sans FFmpeg, la cible et ses tests sont absents et la CI compile (vérifié).
 
+**Amendement 2 (ENH-047, 2026-10-24, gpu-engineer).** Le point 3 est précisé ainsi :
+1. **`enh_bench_lib`** (`src/tools/bench/lib`, STATIC, **sans CUDA ni FFmpeg**) : arguments, BMP durci, rapport JSON (`nlohmann-json`), fichiers de sortie RAII, `VramMonitor` derrière `IVramProbe`. Construite partout (CI comprise) et testée par `tests/unit/bench` (label `unit`). Lie `enh_pipeline_core` (erreurs P-08, `Win32File`, `checkedMul`).
+2. **`enhance-bench`** (exécutable console) : construit si `ENH_GPU_EFFECTIVE` **et** `enh_pipeline_ffmpeg` existe ; lie `enh_pipeline_gpu` directement (et non `enh_pipeline_impl`, qui ne désigne que la façade : le banc a besoin des étages concrets `CudaFrameStore`, `FfmpegDecoder`, `RtxVideoUpscaler`). Le pont et `nvngx_vsr.dll` sont copiés à côté (`enh_deploy_rtxvideo`), les DLL FFmpeg aussi ; `/DEPENDENTLOADFLAG:0xA00` comme `enhance.exe`. Il n'est pas copié par l'empaquetage et figure dans `ownBinaries` de `scripts/network-allowlist.json` (scan des chaînes C4).
+3. Tests GPU : `tests/gpu/bench_test.cpp` (`enh_gpu_bench_tests`, label `gpu`) lance l'exécutable en processus séparé, comme la QA ; `tests/quality/Measure-Speed.ps1 -Stage decode|vsr-image` l'utilise en modes Speed et Leak.
+
 ### 15.19 ADR-053 — Mica avec Qt Quick (risque A1) et deploiement local de Qt (ENH-004)
 
 **Contexte.** ENH-004 devait prouver le Mica avec une fenetre Qt Quick transparente (Direct3D 11), ou consigner un repli opaque (risque A1). Le Qt de vcpkg ne fournit pas `windeployqt`.

@@ -37,3 +37,23 @@ if(TARGET enh_pipeline_ffmpeg)
   enh_copy_runtime_dlls(enh_gpu_rtxvideo_tests)
 endif()
 gtest_discover_tests(enh_gpu_rtxvideo_tests NO_PRETTY_VALUES PROPERTIES LABELS gpu TIMEOUT 600 DISCOVERY_TIMEOUT 60)
+
+# ENH-047 : enhance-bench lance en processus separe (JSON, codes de sortie, VRAM, sortie VSR).
+if(TARGET enhance-bench)
+  get_property(_enh_ff_bin GLOBAL PROPERTY ENH_FFMPEG_BIN_DIR)
+  add_executable(enh_gpu_bench_tests
+    bench_test.cpp
+    ${PROJECT_SOURCE_DIR}/tests/unit/pipeline/ffmpeg/clip_writer.cpp)
+  enh_target_defaults(enh_gpu_bench_tests)
+  target_include_directories(enh_gpu_bench_tests PRIVATE ${PROJECT_SOURCE_DIR}/tests/unit/pipeline)
+  target_compile_definitions(enh_gpu_bench_tests PRIVATE
+    ENH_BENCH_EXE=L"$<TARGET_FILE:enhance-bench>"
+    ENH_CLIPS_DIR=L"${PROJECT_SOURCE_DIR}/tests/clips"
+    ENH_FFPROBE_EXE=L"${_enh_ff_bin}/ffprobe.exe"
+    ENH_FFMPEG_EXE=L"${_enh_ff_bin}/ffmpeg.exe")
+  target_link_libraries(enh_gpu_bench_tests PRIVATE
+    enh_bench_lib enh_pipeline_ffmpeg nlohmann_json::nlohmann_json GTest::gtest GTest::gtest_main)
+  add_dependencies(enh_gpu_bench_tests enhance-bench)
+  enh_copy_runtime_dlls(enh_gpu_bench_tests)
+  gtest_discover_tests(enh_gpu_bench_tests NO_PRETTY_VALUES PROPERTIES LABELS gpu TIMEOUT 600 DISCOVERY_TIMEOUT 60)
+endif()
