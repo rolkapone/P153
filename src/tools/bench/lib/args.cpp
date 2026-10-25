@@ -53,7 +53,7 @@ std::optional<pipeline::Size> parseSize(std::wstring_view text) {
 
 struct OptionSpec {
     std::wstring_view name;
-    bool takes_value;
+    bool takes_value{false};
 };
 
 constexpr OptionSpec withValue(std::wstring_view name) noexcept {

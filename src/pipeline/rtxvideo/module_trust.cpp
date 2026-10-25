@@ -38,7 +38,7 @@ PipelineError untrusted(std::string detail, std::int64_t native = 0,
     return e;
 }
 
-std::wstring upperInvariant(std::wstring s) {
+std::wstring upperInvariant(const std::wstring& s) {
     if (s.empty()) {
         return s;
     }
