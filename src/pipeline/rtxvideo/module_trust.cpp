@@ -92,7 +92,7 @@ std::wstring lexicalPathKey(std::wstring_view path) {
     while (s.size() > 3 && s.back() == L'\\') {
         s.pop_back();
     }
-    return upperInvariant(std::move(s));
+    return upperInvariant(s);
 }
 
 fs::path finalPath(const fs::path& path) {
