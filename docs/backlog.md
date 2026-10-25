@@ -1,6 +1,6 @@
 # Enhance — Backlog produit
 
-Mise à jour du 2026-10-24 : **décision PO n° 20** (voir « Mouvements v0.5 »).
+Mise à jour du 2026-10-25 : **fin du Sprint 1** (15 / 15, plan de release recalé). Précédente : 2026-10-24, décision PO n° 20 (voir « Mouvements v0.5 »).
 Version : v0.3 du 2026-10-21 (scrum-master, étape 7 du kickoff). Statut : v0.2 validée par le PO le 2026-10-21 ; **v0.3 à relire par le PO** (nouvelles stories, seuils QA, statuts du kickoff).
 Les chiffres des critères `[GPU]` sont désormais **ancrés sur les mesures du spike** (`docs/gpu/spike.md`, phases 2 et 3) ; ceux qui restent des hypothèses sont marqués **[H]**.
 Clips de référence : `BBB-FAST`, `BBB-PAN`, `TOS-FACE`, `TOS-DARK`, `SYN-TEXT` (`docs/qa/clips.md`) ; « REF-A » = `BBB-FAST` en jeu A tant que le PO n'a pas désigné un clip unique. « Sur la 5070 » = RTX 5070 12 Gio du PO, pilote 617.42.
@@ -10,13 +10,13 @@ Clips de référence : `BBB-FAST`, `BBB-PAN`, `TOS-FACE`, `TOS-DARK`, `SYN-TEXT`
 | Indicateur | Valeur |
 |---|---|
 | Total points MVP | **179** (126 en v0.2 ; +44 pts de stories nouvelles issues du spike, du threat model et de la revue des licences ; +1 net de ré-estimations, voir « Mouvements v0.3 » ; **+3 pts : ENH-008b**, redécoupage d'ENH-008 au planning du Sprint 1, voir « Mouvements v0.4 » ; **+5 pts : ENH-053**, spike qualité de la super-résolution, décision PO n° 20, voir « Mouvements v0.5 ») |
-| Points livrés (kickoff = « sprint 0 », non compté dans la vitesse) | **33** : kickoff 23 (ENH-001 (5), ENH-002 (5), ENH-003 (4, DONE le 2026-10-24), ENH-005 (3), ENH-006 (3), ENH-007 (3)) + **ENH-008 (5, DONE le 2026-10-23, merge `0c2f748`)** + **ENH-004 (5, DONE, merge `79a3e93`)** ; Sprint 1 : 10 / 15 |
-| Points restants | **146** (dont 5 pts encore engagés au Sprint 1, **démarré le 2026-10-21** : ENH-040 validée par la QA sur son périmètre, étape sécurité en cours ; ENH-047 TODO) |
-| Vitesse supposée | **15 pts / sprint** (aucun sprint terminé : pas d'historique ; le kickoff n'est pas un sprint) |
-| Sprints restants estimés avant le MVP | **10** (146 / 15 = 9,7 ; hors Sprint 1 en cours) ; fourchette **10 à 12** si deux stories `[UI]` passent à 3 cycles de revue (le risque Mica est levé : ENH-004 livrée) |
-| Dernière mise à jour | 2026-10-24 (décisions PO n° 20 et 21 ; ENH-003 DONE, 4 pts inchangés ; ENH-004 et ENH-008 DONE ; Sprint 1 en cours, aucun sprint terminé) |
+| Points livrés (kickoff = « sprint 0 », non compté dans la vitesse) | **38** : kickoff 23 (ENH-001 (5), ENH-002 (5), ENH-003 (4, DONE le 2026-10-24), ENH-005 (3), ENH-006 (3), ENH-007 (3)) + **Sprint 1 : 15 / 15** (ENH-008 (5, merge `0c2f748`), ENH-004 (5, merge `79a3e93`), ENH-040 (3, merge `986d7e3`), **ENH-047 (2, DONE le 2026-10-25, merge `76c559e`)**) |
+| Points restants | **141** (179 - 38) |
+| Vitesse | **15 pts / sprint, mesurée** (Sprint 1 : 15 / 15 ; un seul sprint terminé, donc un seul point de donnée ; le kickoff n'est pas un sprint) |
+| Sprints restants estimés avant le MVP | **10** (141 / 15 = 9,4, arrondi au sprint supérieur : Sprints 2 à 11) ; fourchette **10 à 12** (stories `[UI]` à 3 cycles de revue, instabilité des mesures GPU, ré-estimations des spikes ENH-053 / ENH-045) |
+| Dernière mise à jour | 2026-10-25 (**fin du Sprint 1** : 4 / 4 stories DONE, `main` = `76c559e` ; plan recalé sur la vitesse réelle ; SEC-37 à SEC-40 au backlog ; proposition de contenu du Sprint 2 ci-dessous, à valider par le PO) |
 
-Répartition des 146 points restants : Fondations, sécurité et CI 8 (ENH-049, 050), Pipeline GPU 73 (dont ENH-008b, ENH-053), File / préréglages / UI / transverse 65.
+Répartition des points restants : l'ancienne répartition (143) n'était pas exactement sommable ; elle est **à recalculer au planning du Sprint 2** (Pipeline GPU : -2 pts avec ENH-047 livrée ; Fondations, sécurité et CI 8 : ENH-049, 050 ; le reste en file / préréglages / UI / transverse).
 Total « Plus tard » : 52 pts + 8 pts (ENH-051) ; « Avant publication » : 3 pts (hors MVP).
 
 ### Jalons (indicatifs, à recaler à chaque fin de sprint)
@@ -24,13 +24,35 @@ Total « Plus tard » : 52 pts + 8 pts (ENH-051) ; « Avant publication » : 3 p
 | Jalon | Contenu | Sprint visé |
 |---|---|---|
 | J0 | Kickoff : spikes VSR / interpolation, protocole QA, threat model, licences, design system, CI locale (**fait**) | 0 |
-| J1 | **Fenêtre Enhance** qui s'ouvre (Qt Quick, sombre, Mica), **décodage NVDEC** mesuré, **pont RTX Video** en production, `enhance-bench` v1 (agrandir une image en 4K) | 1 |
-| J2 | **Premier fichier 4K de bout en bout** : décodage -> super-résolution -> NVENC HEVC 10 bits, i/s et VRAM mesurés par la QA | 2 |
-| J3 | **Vrai 4K60** : RIFE (export maison, moteur TensorRT, coupures de plan) intégré, AV1, budget VRAM, audio / sous-titres | 4-5 |
-| J4 | **L'application complète côté utilisateur** : file, glisser-déposer, préréglages, progression, pause / annulation, thèmes | 7-8 |
-| J5 | **MVP** : robustesse (fuzzing), zéro réseau prouvé, FFmpeg minimal sans réseau, paquet portable, À propos / CLUF | 10 |
+| J1 | **Fenêtre Enhance** qui s'ouvre (Qt Quick, sombre, Mica), **décodage NVDEC** mesuré, **pont RTX Video** en production, `enhance-bench` v1 (agrandir une image en 4K) | 1 — **atteint le 2026-10-25** |
+| J2 | **Premier fichier 4K de bout en bout** : décodage -> super-résolution -> NVENC HEVC 10 bits, i/s et VRAM mesurés par la QA | **3** (recalé : le spike ENH-053 et la sécurité NGX passent avant ENH-009 / ENH-010) |
+| J3 | **Vrai 4K60** : RIFE (export maison, moteur TensorRT, coupures de plan) intégré, AV1, budget VRAM, audio / sous-titres | 5-6 |
+| J4 | **L'application complète côté utilisateur** : file, glisser-déposer, préréglages, progression, pause / annulation, thèmes | 8-9 |
+| J5 | **MVP** : robustesse (fuzzing), zéro réseau prouvé, FFmpeg minimal sans réseau, paquet portable, À propos / CLUF | **11** (141 pts / 15 par sprint) |
 
-Ordre de bataille : voir `docs/sprints/sprint-1.md` (Sprint 1 = 15 pts : ENH-004, ENH-008, ENH-040, ENH-047). Sprint 2 pressenti (15 pts) : ENH-042, ENH-009, ENH-010. ENH-008b (3 pts) : avant ENH-048, au plus tard Sprint 3. Sprints 3-4 : RIFE (ENH-043, ENH-044, ENH-012, ENH-046), AV1, file (ENH-016), journal (ENH-025), NGX hors ligne (ENH-041).
+Ordre de bataille : Sprint 1 terminé (`docs/sprints/sprint-1.md`, 15 / 15). **Sprint 2 proposé** (voir « Proposition de contenu du Sprint 2 » ci-dessous, à valider par le PO) : ENH-053, ENH-042, ENH-041. Sprint 3 pressenti : ENH-009, ENH-010, ENH-008b (13 pts) + reliquat. ENH-008b (3 pts) : avant ENH-048, au plus tard Sprint 3. Sprints 4-5 : RIFE (ENH-043, ENH-044, ENH-012, ENH-046), AV1, file (ENH-016), journal (ENH-025).
+
+### Proposition de contenu du Sprint 2 (2026-10-25, scrum-master — non démarré, en attente du PO)
+
+Objectif proposé : **« Choisir le bon moteur d'agrandissement, convertir les couleurs sur le GPU et prouver que la super-résolution ne parle pas au réseau. »**
+
+| Story | Titre | Tags | Pts | Pourquoi dans ce sprint |
+|---|---|---|---|---|
+| ENH-053 | Spike qualité de la super-résolution (VSR q1-q4 vs Real-ESRGAN TensorRT) | `[GPU]` | 5 | Levier n° 1 sur la valeur du produit : la VSR n'apporte que +13 % de la marge vs Lanczos ; ENH-009 en dépend (décision n° 20). Poids Real-ESRGAN : licence à valider par secdevops avant usage |
+| ENH-042 | Conversions couleur CUDA (NV12 / P010 <-> RGB) | `[GPU]` | 5 | Maillon manquant entre le décodeur (NV12 / P010) et la VSR (RGB) ; précède ENH-009 et ENH-010 ; testable en CI avec une référence CPU |
+| ENH-041 | NGX hors ligne : neutraliser la mise à jour et le prouver (+ SEC-30 à SEC-36) | `[GPU]` | 5 (3 + suites secdevops, estimation à confirmer au planning) | Tient la promesse « 100 % local » tant que le pont est tout neuf (SEC-01 HIGH atténué) ; SEC-35 doit précéder ENH-030 |
+| | **Total** | | **15** | |
+
+- **Non retenues** : **ENH-008b** (3 pts, avant ENH-048, au plus tard Sprint 3) ; **ENH-009 et ENH-010** (dépendent d'ENH-053 / ENH-042) -> Sprint 3 ; l'ensemble 053 + 042 + 009 + 010 dépasse 15 pts. **Conséquence : J2 (premier fichier 4K de bout en bout) passe du Sprint 2 au Sprint 3.**
+- Variante si le PO préfère un résultat plus visible : ENH-042 (5) + ENH-009 (5) sans attendre le spike, + ENH-008b (3) = 13 pts ; **déconseillée** : on implémenterait la VSR avant de savoir si c'est le bon moteur.
+- Si ENH-041 reste à 3 pts après estimation : ajouter ENH-008b ne rentre pas (16 pts) ; compléter par les suites LOW SEC-37 / SEC-38 (hors points).
+- Pas de story `[UI]` dans ce sprint : le PO ne verra pas de nouvelle fenêtre, mais **des images 4K comparées** (spike) et des rapports chiffrés ; à lui de dire si cela lui convient (question au PO n° 1).
+
+### Suites secdevops d'ENH-047 (ajoutées le 2026-10-25, LOW, rapport `docs/security/sprint-1.md`)
+- [ ] **SEC-37** : `enhance-bench` n'appelle ni `SetDefaultDllDirectories` ni `SetDllDirectoryW(L"")` dans `wmain` -> appeler le durcissement d'`enh_platform` ; **à traiter avec la première story qui touche au banc (ENH-010)**.
+- [ ] **SEC-38** : `--force` détruit l'ancienne sortie même si la mesure échoue -> fichier temporaire + `MoveFileExW(REPLACE_EXISTING)` ; à appliquer surtout aux sorties de l'application (ENH-010, ENH-024).
+- [ ] **SEC-39** : le masquage des chemins (`redactPaths`) est sensible à la casse et limité aux chemins passés en argument -> insensible à la casse + `%TEMP%` / `%USERPROFILE%` (avec SEC-37 / SEC-38).
+- [ ] **SEC-40** : rien n'empêche d'embarquer `enhance-bench.exe` et les DLL de développement voisines -> **dans ENH-030** : liste explicite des fichiers livrés + `forbiddenInPackage` dans `check-no-network.ps1 -Package`.
 
 ### Mouvements v0.5 (décision PO n° 20, 2026-10-24, après la QA d'ENH-040)
 
@@ -53,7 +75,7 @@ Ordre de bataille : voir `docs/sprints/sprint-1.md` (Sprint 1 = 15 pts : ENH-004
 
 ## Décisions du PO
 
-Décisions n° 1 à 15 : **2026-10-21** (validation de la vision `vision.md`, de ce backlog v0.2, de la stack ADR-001 Qt 6 / Qt Quick et de la direction visuelle). Décisions n° 16 à 19 : **2026-10-23** ; n° 20 et 21 : **2026-10-24**. Numérotation continue, sans doublon ; les renvois « décision n° N » des autres documents restent valables.
+Décisions n° 1 à 15 : **2026-10-21** (validation de la vision `vision.md`, de ce backlog v0.2, de la stack ADR-001 Qt 6 / Qt Quick et de la direction visuelle). Décisions n° 16 à 19 : **2026-10-23** ; n° 20 à 25 : **2026-10-24**. Numérotation continue, sans doublon ; les renvois « décision n° N » des autres documents restent valables.
 
 1. **Cadence** : on n'interpole jamais au-delà de 60 i/s ; une source >= 50 i/s n'est pas interpolée ; 24 i/s -> vrai 60 i/s interpolé (ENH-012). **Précision** : toute source strictement sous 50 i/s (y compris 31-49 i/s) est interpolée vers 60 i/s.
 2. **Conteneur MVP** : MP4 ; bascule automatique en MKV, avec message, si une piste de sous-titres est incompatible MP4 (ENH-013, ENH-024).
@@ -76,6 +98,10 @@ Décisions n° 1 à 15 : **2026-10-21** (validation de la vision `vision.md`, de
 19. **Aucune vraie frappe clavier / clic sur le poste du PO** (2026-10-23) : aucun agent n'envoie de vraies frappes clavier ni de clics sur le poste du PO (incident QA d'ENH-004) ; les tests clavier sont automatisés ou faits par le PO.
 20. **Qualité de la super-résolution et seuil de débit** (2026-10-24) : ENH-040 validée sur le périmètre du pont, critère de qualité VSR déplacé dans ENH-009 ; **ENH-053 créée** : spike « niveaux VSR 1 à 4 sur jeu B compressé + alternative Real-ESRGAN via TensorRT », dont ENH-009 dépend ; **seuil de 300 i/s en q4 8 bits ramené à un avertissement** (10 bits >= 300 maintenu ; le goulot de la chaîne est NVENC, ~105 i/s) (voir « Mouvements v0.5 »).
 21. **Traçabilité des commits et équipe** (2026-10-24) : chaque commit porte une ligne `Agent: <rôle>` (rôle de l'agent auteur du changement) ; le README comporte une section « Équipe ». Cette ligne n'est pas une mention de Claude (décision n° 15 inchangée).
+22. **Poids RIFE** (2026-10-24) : l'équipe télécharge elle-même `flownet.pkl` (RIFE 4.25, Practical-RIFE, MIT) au sprint 3, SHA-256 consigné, README + `LICENSE` archivés, jamais commités (ENH-043).
+23. **WER** (2026-10-24) : Enhance exclu des rapports d'erreurs Windows, aucun vidage mémoire ni envoi ; en cas de plantage, une ligne dans le journal local avec seulement un code d'erreur, sans chemin ni contenu (ENH-025).
+24. **Seuils SSIM / PSNR validés** (2026-10-24) : PSNR +3,0 / +1,9 / +1,0 dB ; (1 - SSIM) x 0,5 / 0,65 / 0,8 vs Lanczos (Qualité max / Équilibré / Rapide) ; VMAF-NEG : part - 10 pts ; réajustables après le spike ENH-053.
+25. **Notification de fin de file** (2026-10-24) : au MVP, clignotement de l'icône dans la barre des tâches + progression sur l'icône + résumé dans l'app + son discret désactivable ; toast Windows quand l'installeur existera (ENH-019, ENH-033).
 
 ## Faits techniques établis par le kickoff (reflétés dans les stories)
 
@@ -102,6 +128,8 @@ Décisions n° 1 à 15 : **2026-10-21** (validation de la vision `vision.md`, de
 
 Exemples chiffrés (VMAF Lanczos du 2026-10-21, jeu A) : **BBB-PAN Kept 82,57** -> Qualité max >= 91,3 ; Équilibré >= 88,7 ; Rapide >= 86,1. **SYN-TEXT 63,74** -> >= 81,9 ; 76,4 ; 71,0. **TOS-FACE 92,81** -> >= 96,4 ; 95,3 ; 94,3. **BBB-FAST Kept 92,26** -> >= 96,1 ; 95,0 ; 93,8. **TOS-DARK 95,90** -> >= 97,9 ; 97,3 ; 96,7. Ces valeurs sont des **cibles non encore mesurées** : la première mesure d'Enhance (ENH-009) peut les contredire ; en cas d'écart, la QA remonte le chiffre au PO (jamais de relance jusqu'à PASS).
 
+**SSIM / PSNR (décision n° 24, validés le 2026-10-24)** : gain de PSNR vs Lanczos >= **+3,0 dB** (Qualité max) / **+1,9 dB** (Équilibré) / **+1,0 dB** (Rapide) ; (1 - SSIM) réduit d'au moins **x 0,5 / 0,65 / 0,8** vs Lanczos (autrement dit, (1 - SSIM) <= 0,5 / 0,65 / 0,8 fois celui de Lanczos) ; VMAF-NEG : part de marge du préréglage **- 10 pts**. Réajustables après le spike ENH-053.
+
 **Interpolation** (images `Generated`) : >= valeur du spike - 1 -> **BBB-FAST >= 90,5**, **BBB-PAN >= 89,9**, **SYN-TEXT >= 68,7** (RIFE mixte, 720p, interpolation seule, modèle VMAF par défaut : 91,5 / 90,9 / 69,7) ; 1er centile >= celui de la duplication ; Rapide : >= duplication + 1.
 
 **Contre NVIDIA Broadcast 2.3** (jeu B, >= 2 clips) : VMAF >= Broadcast - 0,5 ; SSIM et PSNR sans tolérance. Rapport Broadcast **en cours de production par le qa-tester** (`docs/qa/resultats/2026-10-21_reference-broadcast.md`, à venir) : tant qu'il n'existe pas, ce seuil est « non vérifié », jamais PASS par défaut.
@@ -125,12 +153,16 @@ Applicables en plus des critères propres à chaque story ; vérifiés par le ui
 ## Questions pour le PO et points ouverts
 
 **Pour le PO**
-1. **Poids RIFE** : télécharger vous-même `flownet.pkl` (RIFE 4.25, lien « Trained Model » du README de Practical-RIFE), noter son SHA-256 et archiver README + `LICENSE` du commit `bbfd2ea9` dans `third_party/models/rife/_licences/` (ENH-043, sprint 3).
-2. **WER (SEC-14)** : exclure Enhance des rapports d'erreurs Windows (`WerAddExcludedApplication`) avec vidage local facultatif ? Recommandation secdevops : oui. À trancher avant ENH-025.
-3. **Seuils SSIM / PSNR** : la décision n° 14 ne vise que le VMAF ; le qa-tester a proposé des équivalents en part de marge (protocole §7.1, marqués [H]). **À valider par le PO** avec le reste du protocole.
-4. **Notification de fin de file** (ENH-019) : toast Windows (exige un identifiant d'application, absent d'une version portable) ou repli discret dans l'app + clignotement de la barre des tâches ? À décider au sprint de ENH-019.
+1. **Composition du Sprint 2** (2026-10-25) : valider « ENH-053 (spike qualité SR) + ENH-042 (conversions couleur) + ENH-041 (NGX hors ligne, sécurité) » = 15 pts, **sans écran à voir** ; ou préférer la variante « ENH-042 + ENH-009 + ENH-008b » (13 pts, déconseillée tant que le spike n'a pas tranché le moteur). Conséquence : J2 (premier fichier 4K) passe au Sprint 3.
+2. **Real-ESRGAN (ENH-053)** : outil local Python approuvé (n° 12) ; confirmer que le PO accepte que l'équipe télécharge les poids Real-ESRGAN (licence à valider par secdevops avant) comme pour RIFE (n° 22).
+
+(Les questions n° 1 à 4 de la v0.3 ont été tranchées le 2026-10-24 : décisions n° 22 à 25.)
 
 **Résolues (historique)**
+- *Résolu le 2026-10-24* — **Poids RIFE** (décision n° 22) : l'équipe télécharge `flownet.pkl` (Practical-RIFE, MIT) au sprint 3 ; SHA-256 consigné, README + `LICENSE` archivés, jamais commités (ENH-043).
+- *Résolu le 2026-10-24* — **WER / SEC-14** (décision n° 23) : Enhance exclu des rapports d'erreurs Windows, aucun vidage ni envoi ; ligne de journal local avec code d'erreur seul (ENH-025).
+- *Résolu le 2026-10-24* — **Seuils SSIM / PSNR** (décision n° 24) : validés (voir « Seuils QA de référence »).
+- *Résolu le 2026-10-24* — **Notification de fin de file** (décision n° 25) : clignotement de l'icône + progression sur l'icône + résumé dans l'app + son discret désactivable ; toast avec l'installeur (ENH-019, ENH-033).
 - *Résolu le 2026-10-21* — **Composition du Sprint 1** : validée par le PO (« Je valide le Sprint 1 avec les choix par défaut ») ; l'export RIFE (ENH-043) reste au Sprint 3.
 - *Résolu le 2026-10-23* — **Squelette ENH-004 (UX)** : barre d'état en dur, capsule « Tester le ressort » visible, motif de test sur demande, icône provisoire (décisions consignées au sprint) ; ENH-004 livrée et vérifiée à l'écran par le PO le 2026-10-23.
 - *Résolu le 2026-10-24* — **Dépôt GitHub** : `rolkapone/P153` créé, `main` poussée, CI verte (commit `9a78fca`) ; ENH-003 DONE.
@@ -273,6 +305,7 @@ Notes : icônes Lucide (ISC) à inscrire dans le registre (secdevops).
 ### ENH-040 — DLL pont RTX Video et chargement différé des DLL NVIDIA  [GPU] [Must | 3 pts]
 En tant qu'équipe, nous voulons une DLL pont qui isole la bibliothèque NGX (compilée avec CUDA 11.8) du runtime CUDA 13 afin que la super-résolution fonctionne sans plantage (bloquant B4).
 Critères d'acceptation :
+**Statut : DONE (2026-10-24)** — merge `986d7e3` (--no-ff), revue APPROVE au cycle 2 / 3, QA PASS sur le périmètre du pont (décision n° 20), secdevops PASS, `test-gpu` 32 / 32 après merge ; poussée sur GitHub (`75f27d4`), issue #23 fermée. Suites secdevops : SEC-30 à SEC-36 (voir « Suites secdevops d'ENH-040 »).
 - [ ] Étant donné `rtxvideo_bridge.dll` (contient `nvsdk_ngx_s.lib`, **ne lie pas `cudart`**, fournit `cudaGetDevice`, `cudaGetDeviceProperties`, `cudaGetErrorString` via l'API driver), quand l'application initialise NGX, alors **aucun** `0xC0000409` : le test `tests/gpu` exécute une super-résolution 1280x720 -> 3840x2160 (q4) d'une image synthétique et vérifie que la sortie diffère de la bicubique (q0).
 - [ ] Un test vérifie par analyse des imports (`dumpbin`) que le pont n'importe **aucun** `cudart*.dll`.
 - [ ] (GPU) super-résolution seule, 720p -> 4K q4, 8 bits : **>= 300 images/s en avertissement seulement** (décision PO n° 20 : le goulot de la chaîne est NVENC, environ 105 i/s ; mesuré QA 290 i/s médiane), VRAM de l'effet **<= 300 Mio** (mesuré 322 i/s au spike, 188 Mio + 48 Mio de tampons).
@@ -281,7 +314,7 @@ Critères d'acceptation :
 - [ ] Note `docs/gpu/ENH-040.md` : cause, contournement, **limites** (n'écrit que le préfixe 11.x de `cudaDeviceProp`), à revoir à chaque nouvelle version du SDK ; texte à transmettre à NVIDIA (signalement) prêt pour le PO.
 - [ ] **Seuils QA** (`docs/qa/sprint-1-seuils.md` §3, §4.5-4.8) : VSR 720p -> 4K q4, **10 bits**, médiane de 5 : **>= 300 i/s** (spike 335 ; QA 305 ; avertissement 240-300, FAIL < 240) ; en 8 bits le seuil 300 i/s n'est plus qu'un avertissement (décision n° 20) ; VRAM de l'effet (pic - avant création) **<= 300 Mio** ; sortie q4 != q0 sur image réelle : **>= 30 %** d'octets différents (spike 59 %) ; `dumpbin /dependents` sans `cudart*.dll` ; 10 cycles création / destruction : dérive **<= 50 Mio**, 0 handle .
 - [~] **Retiré (décision PO n° 20)** : qualité d'image VSR vs Lanczos (part Équilibré >= 35 %, aucune métrique sous Lanczos, part VMAF-NEG >= 25 %) -> **déplacé dans ENH-009**, précédé du spike ENH-053. Mesure QA du 2026-10-24 : +13 % en moyenne, BBB-FAST sous Lanczos.
-Notes : **QA validée sur le périmètre du pont (2026-10-24)** ; reste l'étape sécurité puis devops. Pas d'écran : aucun critère UX. Dépend de ENH-001 (fait). Relecture attentive par le reviewer (liaison atypique). Ne contient aucun appel à `NVSDK_NGX_UpdateFeature` (voir ENH-041).
+Notes : **DONE le 2026-10-24** (QA sur le périmètre du pont). Pas d'écran : aucun critère UX. Dépend de ENH-001 (fait). Relecture attentive par le reviewer (liaison atypique). Ne contient aucun appel à `NVSDK_NGX_UpdateFeature` (voir ENH-041).
 
 ### ENH-041 — NGX hors ligne : neutraliser la mise à jour et le prouver  [GPU] [Must | 3 pts]
 En tant que PO, je veux la preuve que la super-résolution n'émet rien sur le réseau afin de tenir la promesse « 100 % local » (SEC-01 HIGH, SEC-07 MEDIUM).
@@ -291,6 +324,16 @@ Critères d'acceptation :
 - [ ] Au chargement, le chemin **réel** du module `nvngx_vsr.dll` (`GetModuleFileNameW`) est celui du dossier de l'application ; sinon erreur `ComponentMissing`.
 - [ ] Vérification de signature : si un trafic CRL/OCSP est constaté (SEC-07), il est documenté comme exception système (sans donnée utilisateur) ou remonté au PO ; **si NGX télécharge une DLL : escalade immédiate au PO** et question à NVIDIA.
 - [ ] Script `scripts/test-no-network-dynamic.ps1` (pare-feu + audit) rejouable en local ; rapport dans `docs/security/`.
+### Suites secdevops d'ENH-040 (ajoutées le 2026-10-24, portées par ENH-041 sauf mention)
+- [ ] **SEC-30 (MEDIUM)** : si la création du Job Object échoue, **refuser l'effet** (erreur explicite) au lieu de continuer sans confinement ; test avec un faux échec.
+- [ ] **SEC-31 (MEDIUM)** : le magasin `%ProgramData%\NVIDIA\NGX\models` est modifiable par tout utilisateur -> **contrôle avant `rvb_vsr_create`** (ACL / propriétaire ; refus avec `ComponentMissing` ou équivalent si non conforme) + **signalement à NVIDIA** (texte prêt pour le PO).
+- [ ] **SEC-32** : figer la liste des **27 exports** du pont dans le test (échec si un export apparaît ou disparaît).
+- [ ] **SEC-34** : mesure **M2 (pare-feu)** de `zero-reseau.md` rejouée sur le pont.
+- [ ] **SEC-35** : `cuda.lib` de CUDA 13 embarque du code -> charger `nvcuda.dll` par `LoadLibraryExW` depuis System32 + `GetProcAddress`, **avant ENH-030** (rattaché à ENH-030 si ENH-041 est plein).
+- [ ] **SEC-36** : corriger la note `docs/gpu/ENH-040.md` § 4 / l. 88 (périmée).
+- [ ] **Dette `tidy.ps1`** : 26 avertissements `clang-tidy` (code antérieur au pont), à résorber (hors points, ou ENH-049).
+Estimation : ces suites peuvent faire passer ENH-041 de 3 à 5 pts ; à confirmer à son planning.
+
 Notes : secdevops + gpu-engineer ; dépend d'ENH-040 ; prépare ENH-028.
 
 ### ENH-042 — Conversions couleur CUDA (NV12 / P010 <-> RGB)  [GPU] [Must | 5 pts]
@@ -312,7 +355,7 @@ Critères d'acceptation :
 - [ ] Qualité : PSNR entre la sortie de l'ONNX exporté et celle de PyTorch CPU (FP32) **>= 60 dB** sur 20 images ; **VMAF des images générées >= 90,5 (BBB-FAST), >= 89,9 (BBB-PAN), >= 68,7 (SYN-TEXT)** (= RIFE mixte du spike - 1), mesuré par le qa-tester.
 - [ ] Licences : README et `LICENSE` de Practical-RIFE (commit `bbfd2ea9`) archivés hors dépôt ; mention MIT + copyright dans `THIRD-PARTY-LICENSES.txt` ; ligne du registre `licences.md` passée à « OK » par secdevops.
 - [ ] `package.ps1` refuse tout ONNX dont le SHA-256 n'est pas celui du verrou (et tout ONNX vs-mlrt).
-Notes : action PO préalable (téléchargement du `flownet.pkl`, voir « Questions pour le PO » n° 1) ; l'ONNX vs-mlrt reste local, comme référence de comparaison.
+Notes : **décision PO n° 22 (2026-10-24)** : l'équipe télécharge elle-même les poids RIFE 4.25 (`flownet.pkl`, Practical-RIFE, MIT) au sprint 3, SHA-256 consigné, README + `LICENSE` archivés, jamais commités (plus d'action PO préalable) ; l'ONNX vs-mlrt reste local, comme référence de comparaison.
 
 ### ENH-044 — Moteur TensorRT : construction au premier traitement, cache, exécution  [GPU] [Must | 5 pts]
 En tant qu'utilisateur, je veux que la préparation de la fluidité se fasse une seule fois, avec un message clair, afin de ne plus attendre ensuite (décision n° 10).
@@ -347,6 +390,8 @@ Critères d'acceptation :
 Notes : le critère « changements de plan » d'ENH-012 est transféré ici ; dépend d'ENH-044.
 
 ### ENH-047 — `enhance-bench` : banc en ligne de commande pour la QA  [GPU] [Must | 2 pts]
+**Statut : DONE (2026-10-25)** — merge `76c559e` (--no-ff), poussée ; revue APPROVE au cycle 1 / 3 + corrections ; QA FAIL puis PASS (décodage partiel, correctif `373ced9`) ; secdevops PASS ; `test-gpu` 41 / 41. Baseline `main` : décodage BBB-FAST 4 100 i/s, BBB-PAN 2 870 i/s ; VSR q4 8 bits ~300 i/s, 10 bits ~315 i/s ; VRAM 58 / 198 Mio (décodage), 188 / 364 Mio (VSR). Suites : SEC-37 à SEC-39 (voir « Suites secdevops d'ENH-047 »), SEC-40 -> ENH-030. Les cases ci-dessous restent à titre de référence des critères vérifiés.
+
 En tant que qa-tester, je veux une CLI de banc afin de mesurer images/s et VRAM sans interface (protocole §4.3).
 Critères d'acceptation :
 - [ ] Version 1 (Sprint 1) : `enhance-bench --in <fichier> --stage decode --report <json>` décode un fichier vidéo sur NVDEC ; `--stage vsr-image --in <image> --out <image>` agrandit une image 720p -> 4K par la super-résolution (q0 à q4) pour un contrôle visuel. Le format d'image d'entrée / sortie (BMP, visible dans Windows, ou équivalent sans dépendance) est choisi par le gpu-engineer.
@@ -540,7 +585,7 @@ En tant qu'utilisateur, je veux que les fichiers se traitent l'un après l'autre
 Critères d'acceptation :
 - [ ] Étant donné 3 fichiers, « Démarrer » les traite dans l'ordre, un seul à la fois ; un échec ou une annulation n'empêche pas le suivant.
 - [ ] (GPU) file de 10 fichiers de 30 s (Équilibré) : tous terminés, dérive VRAM <= 50 Mio.
-- [ ] À la fin, notification discrète (non bloquante) avec récapitulatif « N vidéos terminées » (+ échecs, « Voir les erreurs ») ; **choix toast / repli dans l'app** décidé ici (ADR-004, risque A5).
+- [ ] À la fin, notification discrète (non bloquante) avec récapitulatif « N vidéos terminées » (+ échecs, « Voir les erreurs »). **Décision PO n° 25 (2026-10-24)**, au MVP : clignotement de l'icône dans la barre des tâches + progression sur l'icône + résumé dans l'app + son discret désactivable ; **toast Windows** seulement quand l'installeur existera (ENH-033 / ENH-019 revus alors).
 - [ ] Prévérifications (< 1 s) : espace disque estimé, VRAM libre, prérequis ; erreurs P-08.
 Notes : dépend d'ENH-009 / 010 / 012 / 016.
 
@@ -601,7 +646,7 @@ En tant que développeur, je veux des journaux locaux afin de diagnostiquer sans
 Critères d'acceptation :
 - [ ] Journal fichier tournant (5 x 2 Mio) dans `%LOCALAPPDATA%\Enhance\logs`, niveaux Info / Avertissement / Erreur (spdlog asynchrone, façade `enh::log`).
 - [ ] Aucun chemin complet, aucune donnée personnelle par défaut (`fileNameOnly`) ; `--verbose` documenté comme « contient des chemins ».
-- [ ] **SEC-14** : `av_log` filtré (<= `AV_LOG_WARNING`, pas d'URL ni de chemin), journal TensorRT à `kWARNING`, journal NGX désactivé, messages Qt redirigés ; **décision WER** (« Questions pour le PO » n° 2) appliquée (`WerAddExcludedApplication`).
+- [ ] **SEC-14** : `av_log` filtré (<= `AV_LOG_WARNING`, pas d'URL ni de chemin), journal TensorRT à `kWARNING`, journal NGX désactivé, messages Qt redirigés ; **décision PO n° 23 (2026-10-24)** : Enhance **exclu des rapports d'erreurs Windows** (`WerAddExcludedApplication`), aucun vidage mémoire ni envoi ; en cas de plantage, une ligne dans le journal local avec seulement un code d'erreur (aucun chemin ni contenu), test à l'appui.
 - [ ] Bouton « Afficher les journaux » dans les réglages (ouvre le dossier dans l'Explorateur).
 
 ### ENH-026 — Thèmes sombre et clair, accessibilité  [UI] [Must | 5 pts]
@@ -647,6 +692,8 @@ Critères d'acceptation :
 - [ ] Toutes les DLL redistribuées figurent dans `licences.md` avec « redistribuable : oui » ; `THIRD-PARTY-LICENSES.txt` généré ; `LICENSES\` (LGPL-2.1, LGPL-3.0 + GPL-3.0, MIT / BSD, licence d'Enhance).
 - [ ] **SEC-16** : `/PDBALTPATH:%_PDB%`, `source_location` tronqué au dossier `src/`, contrôle de chaînes `C:\Users\` dans le livrable ; `check-no-network.ps1 -Package` vert sur le dossier livré.
 - [ ] CLUF (ENH-050) et attribution NVIDIA présents.
+- [ ] **SEC-40 (LOW, suite d'ENH-047)** : `package.ps1` construit le livrable depuis une **liste explicite de fichiers** ; `enhance-bench.exe` et les DLL de développement voisines sont dans `forbiddenInPackage` de `check-no-network.ps1 -Package` (cas fautif : y déposer `enhance-bench.exe` doit faire échouer le contrôle).
+- [ ] **SEC-35** (si non traité dans ENH-041) : chargement de `nvcuda.dll` depuis System32 (`cuda.lib` de CUDA 13 embarque du code).
 
 ### ENH-031 — Détection des prérequis (carte, pilote)  [UI] [Must | 3 pts]
 En tant qu'utilisateur, je veux un message clair si ma machine n'est pas compatible afin de comprendre pourquoi.
@@ -667,6 +714,7 @@ Contraintes d'architecture à tenir dès le MVP : étapes du pipeline en modules
 Sortie HEVC/AV1 10 bits HDR10 avec métadonnées (`MASTERING_DISPLAY_INFO`, `CONTENT_LIGHT_LEVEL` disponibles dans NVENC 13.1, HEVC et AV1) ; case à cocher dans le panneau Préréglage (« Couleurs HDR ») ; TrueHDR mesuré au spike : 4K -> 4K **737 i/s, 164 Mio** ; validation visuelle sur un écran HDR.
 
 ### ENH-033 — Comparaison avant / après côte à côte  [UI] [GPU] [Should | 8 pts]
+Note décision n° 25 : la notification Windows (toast) de fin de file est à étudier quand l'installeur existera (avec ENH-019).
 Curseur de comparaison sur une image ou quelques secondes ; 60 i/s d'animation ; lecture synchronisée ; bouton « Comparer » sur la carte Terminée.
 
 ### ENH-034 — Préréglages personnalisés  [UI] [Could | 5 pts]

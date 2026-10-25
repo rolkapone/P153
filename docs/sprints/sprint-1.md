@@ -1,6 +1,6 @@
 # Sprint 1 — « Une fenêtre, un décodeur, une super-résolution »
 
-Statut : **DÉMARRÉ le 2026-10-21, validé par le PO avec les choix par défaut** (état au 2026-10-23 : ENH-008 DONE ; ENH-004 DONE ; ENH-040 en revue, cycle 1 ; ENH-047 TODO). Rédigé le 2026-10-21 par le scrum-master.
+Statut : **TERMINÉ le 2026-10-25 : 4 stories sur 4 DONE, 15 / 15 points ; `main` = `76c559e`, poussée sur GitHub.** Démarré le 2026-10-21, validé par le PO avec les choix par défaut. Rédigé le 2026-10-21 par le scrum-master. **On s'arrête ici et on attend le PO avant d'ouvrir le Sprint 2.**
 
 ### Décisions du PO (2026-10-21)
 1. Barre d'état « GeForce RTX 5070 · prête » **en dur** dans le squelette (détection réelle plus tard, ENH-031).
@@ -135,11 +135,15 @@ Chaque story suit le workflow de `CLAUDE.md` : implémentation -> **reviewer** (
 |---|---|---|---|
 | ENH-004 Squelette Qt Quick + Mica [UI] | **DONE** (2026-10-23) | 2 / 3 | Merge `79a3e93` (--no-ff) ; revue APPROVE ; contrôle design CONFORME ; QA PASS (vérifications à l'écran par le PO) ; secdevops PASS ; risque A1 (Mica) levé. Suites au backlog : SEC-27, SEC-28, B2, dette design |
 | ENH-008 Démuxage + NVDEC, matrice noyau [GPU] | **DONE** (2026-10-23) | 2 / 3 | Merge `0c2f748` (--no-ff) ; revue APPROVE ; QA PASS : 3 398 i/s (BBB-FAST), 2 541 i/s (BBB-PAN), 58 Mio, dérive 0 ; secdevops PASS. Reports : UNC -> ENH-015 ; SEC-23 + fin SEC-13 + troncature -> ENH-015 ; journal `nvcuvid.dll` -> ENH-008b |
-| ENH-040 Pont RTX Video [GPU] | **SECURITY** | 2 / 3 | Branche `feature/ENH-040-pont-rtxvideo` ; **QA validée sur son périmètre (le pont)** le 2026-10-24, décision PO n° 20 (rapport `docs/qa/resultats/2026-10-24_ENH-040.md`) ; critère de qualité VSR déplacé dans ENH-009 (dépend du spike ENH-053) ; seuil 300 i/s en q4 8 bits = avertissement (290 i/s mesuré, NVENC ~105 i/s est le goulot), 10 bits 305 i/s OK. Prochaine étape : secdevops puis devops. 3 pts comptés à la fin de l'étape devops |
-| ENH-047 `enhance-bench` v1 [GPU] | TODO | 0 | Priorité 3 ; dépend d'ENH-040 (ENH-008 mergée) |
+| ENH-040 Pont RTX Video [GPU] | **DONE** (2026-10-24) | 2 / 3 | Merge `986d7e3` (--no-ff), poussée `75f27d4`, issue #23 fermée ; revue APPROVE cycle 2 ; QA PASS sur le périmètre du pont (décision n° 20, rapport `docs/qa/resultats/2026-10-24_ENH-040.md`) ; secdevops PASS ; `test-gpu` 32 / 32 après merge. Critère de qualité VSR déplacé dans ENH-009 (après ENH-053) ; 300 i/s en q4 8 bits = avertissement (290 mesuré), 10 bits 305 OK. Suites : SEC-30 à SEC-36 + dette `tidy.ps1` (26 avertissements) -> ENH-041 / ENH-030 |
+| ENH-047 `enhance-bench` v1 [GPU] | **DONE** (2026-10-25) | 1 / 3 | Merge `76c559e` (--no-ff), poussée ; revue APPROVE au cycle 1 + corrections ; QA **FAIL** (décodage partiel mesuré comme complet) puis **PASS** après le correctif `373ced9` (le banc refuse de mesurer un décodage partiel) ; secdevops PASS ; `test-gpu` 41 / 41. Baseline `main` : décodage BBB-FAST 4 100 i/s, BBB-PAN 2 870 i/s ; VSR q4 8 bits ~300 i/s, 10 bits ~315 i/s ; VRAM 58 / 198 Mio (décodage) et 188 / 364 Mio (VSR, repos / pic). Suites LOW : SEC-37, SEC-38, SEC-39 (backlog), SEC-40 (-> ENH-030) |
 | *ENH-008b Matrice de formats étendue [GPU]* | *hors sprint* | - | 3 pts, avant ENH-048, au plus tard Sprint 3 ; + petite tâche : journaliser l'échec de préchargement de `nvcuvid.dll` |
 
-Points livrés dans ce sprint : **10 / 15** (ENH-008, ENH-004) ; ENH-040 (3 pts) passera à 13 / 15 au merge, ENH-047 (2 pts) à 15 / 15.
+Points livrés dans ce sprint : **15 / 15** (ENH-008 5, ENH-004 5, ENH-040 3, ENH-047 2).
+
+Décisions du PO du 2026-10-24 (n° 22 à 25, détail dans `backlog.md`) : poids RIFE téléchargés par l'équipe au sprint 3 ; Enhance exclu de WER ; seuils SSIM / PSNR validés ; notification de fin de file au MVP = icône de la barre des tâches + résumé + son (toast avec l'installeur).
+
+**Clips de test** : la copie de 19 Go dans le worktree a été remplacée par une jonction (traité, plus de tâche devops en attente).
 Hors sprint, créée le 2026-10-24 : ENH-053 (spike qualité SR, 5 pts, avant ENH-009), voir `docs/backlog.md` « Mouvements v0.5 ».
 
 Suites ajoutées au backlog le 2026-10-23 : SEC-27 (cache de pipeline Qt : ENH-025 / ENH-030), SEC-28 (`SetSearchPathMode`, avant ENH-016), B2 (pics de rendu à rejouer machine calme), dette design (pointillés du cadre depuis un jeton, illustration en .svg), SEC-23 et fin de SEC-13 + avertissement de fichier tronqué (ENH-015), journal `nvcuvid.dll` (ENH-008b), recoupement PresentMon avant ENH-010.
@@ -166,14 +170,98 @@ Suites ajoutées au backlog le 2026-10-23 : SEC-27 (cache de pipeline Qt : ENH-0
 
 Critères de réussite du sprint : les 4 stories `DONE`, démo sans intervention du développeur, mesures conformes aux seuils ci-dessus. Non attendus à ce stade : fichier 4K encodé (J2), interpolation (J3), glisser-déposer (ENH-017).
 
-## Revue (à remplir en fin de sprint)
+## Revue (2026-10-25)
 
-- Livré / non livré :
-- Comment faire la démo : voir « Définition de la démo » ci-dessus (à actualiser avec les chemins réels).
-- Dernières mesures qualité / vitesse :
+**Vitesse réelle : 15 / 15 points** (4 stories sur 4). Premier sprint terminé : la vitesse de 15 pts / sprint n'est plus une hypothèse mais une mesure (un seul point de donnée).
 
-## Rétro (à remplir en fin de sprint)
+### Livré
+| Story | Pts | Merge | Cycles | Verdicts |
+|---|---|---|---|---|
+| ENH-008 Démuxage FFmpeg + NVDEC | 5 | `0c2f748` | 2 / 3 | QA PASS, secdevops PASS |
+| ENH-004 Squelette Qt Quick + Mica + verre `[UI]` | 5 | `79a3e93` | 2 / 3 | design CONFORME, QA PASS (vérifications à l'écran par le PO), secdevops PASS |
+| ENH-040 DLL pont RTX Video | 3 | `986d7e3` | 2 / 3 | QA PASS sur le périmètre du pont (décision n° 20), secdevops PASS |
+| ENH-047 `enhance-bench` v1 | 2 | `76c559e` | 1 / 3 + corrections | QA FAIL puis PASS, secdevops PASS |
 
-- Ce qui a marché :
-- Ce qui a coincé (ex. stories à 3 cycles) :
-- Actions pour le sprint suivant (1 à 3) :
+Autres livrables du sprint : premier push et **CI GitHub verte** après correctifs (security 6 / 6 ; ci : format, sast, core, tidy) -> **ENH-003 DONE** ; backlog GitHub (5 jalons, 54 issues de stories, tableau Kanban « Enhance — Sprints ») ; README « Équipe » et ligne `Agent:` (décision n° 21) ; décisions du PO n° 16 à 25 ; risque A1 (Mica) levé ; blocage B4 (NGX / CUDA 13) levé par le pont.
+
+### Non livré / reporté
+- Rien d'engagé n'est resté en dehors du sprint. Critères déplacés ou reportés (aucun perdu) : qualité d'image VSR -> ENH-009 derrière le spike **ENH-053** (décision n° 20) ; test UNC, SEC-23, fin de SEC-13 -> ENH-015 ; journal `nvcuvid.dll` -> ENH-008b ; mesures de coût du verre pendant un vrai traitement -> ENH-010 ; SEC-30 à SEC-36 -> ENH-041 / ENH-030 ; SEC-37 à SEC-39 -> backlog, SEC-40 -> ENH-030.
+
+### Dernières mesures (RTX 5070, pilote 617.42, `main` = `76c559e`)
+| Mesure | Valeur | Seuil |
+|---|---|---|
+| Décodage NVDEC BBB-FAST (720p) | **4 100 i/s** (3 398 mesurés à la QA d'ENH-008) | >= 1 000 |
+| Décodage NVDEC BBB-PAN | **2 870 i/s** (2 541 à la QA d'ENH-008) | informatif |
+| VSR q4 720p -> 4K, 8 bits | **~300 i/s** (avertissement, décision n° 20) | >= 300 (avertissement) |
+| VSR q4 720p -> 4K, 10 bits | **~315 i/s** | >= 300 (bloquant) |
+| VRAM décodage (repos / pic) | 58 / 198 Mio | <= 600 Mio |
+| VRAM VSR (repos / pic) | 188 / 364 Mio | <= 300 Mio (effet seul) |
+| Dérive VRAM, 10 fichiers à la suite | 0 | <= 50 Mio |
+| `scripts\test-gpu.ps1` | **41 / 41** | tout vert |
+| Qualité VSR q4 vs Lanczos | +13 % de la marge VMAF seulement (BBB-FAST sous Lanczos) | cible Équilibré 35 % -> **spike ENH-053** |
+
+Réserve : ces vitesses varient de **5 à 15 % d'une session à l'autre** selon la charge de la machine du PO (instabilité observée) ; les comparaisons « pas de régression > 5 % » exigent une carte au repos (action n° 1 de la rétro).
+
+### Comment faire la démo au PO (~10 minutes)
+Depuis `F:\P153`, sur `main` (`76c559e`), PowerShell. Si le build n'est pas à jour : `scripts\build.ps1 -Preset dev`. Les exécutables sont dans `build\dev` ; le préréglage `local-gpu` donne les mêmes binaires dans `build\local-gpu`. Fermer navigateur, Docker et iCUE avant de regarder les chiffres.
+
+1. **La fenêtre** (fenêtre calme d'abord) :
+   ```powershell
+   F:\P153\build\dev\src\enhance.exe
+   ```
+   Attendu : fenêtre « Enhance » en moins de 2 s, thème sombre, barre de titre sombre (couleur d'accentuation Windows si activée), fond Mica, textes français, barre d'état « GeForce RTX 5070 · prête » (en dur), capsule « Tester le ressort » (animation fluide). Regarder à 100 % puis 200 % de mise à l'échelle Windows. Sur demande :
+   ```powershell
+   F:\P153\build\dev\src\enhance.exe --glass-testbed    # motif sous le verre, pour voir la matière
+   F:\P153\build\dev\src\enhance.exe --no-mica          # repli opaque teinté, pour comparer
+   ```
+2. **Le décodage** :
+   ```powershell
+   $B = "F:\P153\build\dev\src\tools\bench\enhance-bench.exe"
+   & $B --stage decode --in F:\P153\tests\clips\in720\BBB-FAST.mp4 --report $env:TEMP\decode.json
+   code $env:TEMP\decode.json
+   ```
+   Attendu : `frames_in` égal au nombre d'images de `ffprobe`, `fps_out` **>= 1 000** (~4 100 sur ce poste), `vram_stage_mib` <= 600, code de sortie 0.
+3. **La super-résolution, avec comparaison à Lanczos** :
+   ```powershell
+   $FF = "C:\Tools\ffmpeg\bin"; $T = "$env:TEMP\enh-demo"; mkdir $T -Force | Out-Null
+   & "$FF\ffmpeg" -y -i F:\P153\tests\clips\in720\BBB-FAST.mp4 -vf "select=eq(n\,100)" -frames:v 1 "$T\image720.bmp"
+   & $B --stage vsr-image --in "$T\image720.bmp" --out "$T\image4k_vsr.bmp" --q 4 --report "$T\vsr.json"
+   & "$FF\ffmpeg" -y -i "$T\image720.bmp" -vf "scale=3840:2160:flags=lanczos" "$T\image4k_lanczos.bmp"
+   ```
+   Ouvrir `image4k_vsr.bmp` et `image4k_lanczos.bmp` côte à côte (Photos, zoom 100 % sur un contour ou du texte). Honnêteté vis-à-vis du PO : la différence est **visible mais modeste sur ce clip** (mesure : +13 % de la marge VMAF), c'est la raison du spike ENH-053. `vsr.json` donne les i/s et la VRAM.
+4. **Les contrôles** :
+   ```powershell
+   F:\P153\scripts\test-gpu.ps1                                   # attendu : 41 / 41
+   Get-ChildItem F:\P153\build\dev\src -Recurse -Filter Qt6Network.dll   # attendu : aucun résultat
+   ```
+Non attendu à ce stade : fichier 4K encodé (J2), interpolation (J3), glisser-déposer (ENH-017), détection réelle de la carte (ENH-031).
+
+### Les 5 « À retenir en C++ » du sprint (synthèse des 4 stories)
+1. **RAII au lieu de `goto cleanup`** : `std::unique_ptr` avec un suppresseur sur mesure (`AVFormatContext`, `FreeLibrary`, `HANDLE`, `ComPtr`) libère tout à la sortie de portée, même sur un `return` d'erreur ; `OutputFile` du banc va plus loin (RAII « transaction » : le fichier de sortie est supprimé sauf si `commit()` a été appelé).
+2. **L'ordre de déclaration des membres est l'ordre de destruction** (inverse) : le contexte FFmpeg est fermé avant l'AVIO qu'il utilise, l'effet NGX avant le runtime puis la DLL. Les classes qui possèdent une ressource sont **déplaçables et non copiables** (`= delete`, `std::exchange`) : un seul propriétaire, pas de double libération ; `std::shared_ptr` seulement quand la durée de vie est vraiment partagée (surface GPU et son pool).
+3. **Erreurs par valeur** : `enh::Expected<T, PipelineError>` oblige à tester la réussite avant de lire le résultat et transporte le code natif (AVERROR, `cudaError_t`, `GetLastError`) ; à une frontière de DLL, `extern "C"` + `struct_size` + `try { … } catch (...)` dans chaque export : aucune exception ne traverse la frontière.
+4. **Une interface abstraite pour tester sans matériel** : `IVramProbe`, `IUpscaler`, `IDecoder` ont une version réelle et un faux pour la CI sans GPU (en C : une structure de pointeurs de fonctions, sans vérification par le compilateur) ; même idée pour le temps : `std::chrono` avec une horloge passée en paramètre, aucun `sleep` dans les tests.
+5. **Des types qui évitent les pièges du C** : `enum class`, `std::optional` (pas de -1 sentinelle), `std::span` / `std::string_view` (pas de `strcmp`), `std::cmp_greater` (comparaison signé / non signé sûre) et `std::jthread` + `stop_token` (le thread de mesure VRAM s'arrête et est joint tout seul).
+
+## Rétro (2026-10-25)
+
+### Ce qui a marché
+- **Les 4 stories livrées, aucune à 3 cycles** : 3 stories à 2 cycles, 1 à 1 cycle (+ corrections). Le redécoupage d'ENH-008 au planning (5 + 3 pts) a évité un dépassement.
+- **Les mesures ont servi de garde-fou, pas de formalité** : la QA a refusé ENH-047 (décodage partiel mesuré comme complet) et ENH-040 a révélé tôt que la qualité de la VSR était faible (+13 %) -> décision n° 20 et spike ENH-053 *avant* d'investir dans ENH-009.
+- **Le risque Mica (A1) levé** en une story ; le design est CONFORME avec vérification à l'écran par le PO.
+- **GitHub opérationnel** : CI verte, backlog en issues et Kanban, traçabilité des commits (`Agent:`).
+- **Sécurité en continu** : SEC-01 atténué (Job Object contre l'updater NGX), suites LOW triées et rattachées à des stories, rien de CRITICAL / HIGH ouvert.
+
+### Ce qui a coincé
+- **Incident QA d'ENH-004** : des frappes clavier de la QA ont été détournées vers le navigateur du PO -> règle n° 19 (plus de vraies frappes ni de clics sur le poste du PO).
+- **Trois coupures dues aux limites d'utilisation** en cours de sprint : reprises coûteuses, état à reconstituer depuis le dépôt.
+- **Mesures de vitesse instables** (5 à 15 % d'une session à l'autre, machine du PO chargée : VRAM de fond de 2 à 3,8 Gio) : un FAIL ou un PASS peut tenir à la charge de la machine, pas au code.
+- **Copie de 19 Go de clips dans un worktree** : lente et fragile ; remplacée par une jonction.
+- **Cycles de revue** : 3 stories sur 4 ont eu besoin d'un second cycle ; un défaut de mesure (décodage partiel) n'a été vu qu'à la QA, après la revue.
+
+### Actions pour le Sprint 2 (4)
+1. **Carte au repos pour toute mesure officielle** : avant chaque mesure, `nvidia-smi` doit montrer une charge GPU < 5 % et une VRAM de fond notée dans le rapport ; applications graphiques fermées ; baseline `main` rejouée dans la même session que la mesure de la branche. Écart de 5 à 15 % entre sessions = « non concluant », jamais FAIL de régression. *(qa-tester ; devops : ajouter ce contrôle en tête de `Measure-Speed.ps1`)*
+2. **Réduire les cycles de revue** : l'implémenteur fait passer `clang-format`, `tidy.ps1` et une auto-relecture sur la liste des motifs apparus aux cycles 1 de ce sprint, et ajoute un test « cas d'échec » à chaque critère de mesure (ex. fichier partiel) avant de demander la revue. *(gpu-engineer, developer ; reviewer fournit la liste en début de sprint)*
+3. **Tenir compte des limites d'usage** : tâches de planning courtes et commitables, une étape de workflow par lancement d'agent, état de la story consigné dans `docs/sprints/sprint-2.md` après chaque étape pour reprise sans perte ; pas plus de deux agents lourds en parallèle. *(orchestrateur, scrum-master)*
+4. **Worktrees et clips** : un worktree par story, clips partagés par jonction ou `ENH_CLIPS_DIR` (jamais de copie), procédure d'une ligne dans `scripts\README` ; supprimer les worktrees fusionnés. *(devops)*
+5. **Ne pas laisser dériver les suites de sécurité** : SEC-30 à SEC-36 sont rassemblées dans ENH-041 (Sprint 2) ; SEC-37 / SEC-38 / SEC-39 (LOW) sont traitées avec la première story qui touche au banc ou à l'écriture de sorties (ENH-010). *(secdevops, scrum-master)*
