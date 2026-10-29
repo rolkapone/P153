@@ -1,7 +1,7 @@
 # Enhance — Protocole qualité (ENH-005, base d'ENH-029)
 
 Auteur : qa-tester. Statut : **v0.1 proposée** le 2026-10-21, à valider par le PO avec la liste de téléchargements. Les seuils marqués **[H]** sont des hypothèses, à confirmer ou réviser après les spikes ENH-001/002 (première mesure réelle).
-Documents liés : `docs/qa/clips.md` (clips), `docs/qa/broadcast.md` (ce que le PO produit avec Broadcast), `tests/quality/` (scripts), `docs/vision.md` §5 (objectifs), `docs/gpu/architecture-pipeline.md` §4 (préréglages), `docs/architecture.md` ADR-031 (`scripts/test-gpu.ps1`).
+Documents liés : `docs/qa/clips.md` (clips), `docs/qa/broadcast.md` (ce que le PO produit avec Broadcast), `tests/quality/` (scripts), `docs/vision.md` §5 (objectifs), `docs/gpu/pipeline-vram-vitesse.md` §4 (préréglages), `docs/architecture/ADR-031.md` (`scripts/test-gpu.ps1`).
 
 ## 1. Principe
 
@@ -90,7 +90,7 @@ PO-RETRO et PO-ARCH n'ont pas de 4K d'origine : pas de VMAF. Ils servent à : la
 - **Chauffe thermique** : un essai **soutenu** de 3 min en boucle (même clip répété) mesure les images/s en fin d'essai ; on rapporte le ratio « soutenu / à froid » ; sous 0,9, on l'écrit (les budgets s'appliquent à la valeur **soutenue**).
 - **Conditions mesurées** : entrée 720p30 (jeu A), sortie 3840×2160 à 60 i/s, HEVC 10 bits, préréglage visé, débit du préréglage ; AV1 10 bits en seconde ligne.
 - **File** : le temps total d'une file de 10 clips est consigné (suite des 10 extraits), avec une cible indicative = somme des durées / vitesse médiane + 10 % ; pas de seuil bloquant.
-- **Budgets** (`docs/architecture.md` / vision §5) : Qualité max ≥ 30 i/s, Équilibré ≥ 60 i/s, Rapide ≥ 100 i/s. Verdict : voir §7.
+- **Budgets** (`docs/architecture/index.md` / vision §5) : Qualité max ≥ 30 i/s, Équilibré ≥ 60 i/s, Rapide ≥ 100 i/s. Verdict : voir §7.
 
 ### 4.3 Instrumentation attendue du produit (demande au gpu-engineer)
 
@@ -179,7 +179,7 @@ Garde-fou : VMAF seul se laisse gonfler par une accentuation (Broadcast : +4 VMA
 | Équilibré | ≥ 60 | ≥ 60 | 48 à < 60 | < 48 |
 | Rapide | ≥ 100 | ≥ 100 | 80 à < 100 | < 80 |
 
-Décision PO n° 5 : si 60 i/s n'est pas tenu en Équilibré, la qualité prime et la vitesse est affichée ; l'écart est alors remonté au PO (révision du budget) plutôt que masqué. Les budgets restent ceux de `docs/architecture.md` tant qu'ils n'ont pas été révisés par ADR.
+Décision PO n° 5 : si 60 i/s n'est pas tenu en Équilibré, la qualité prime et la vitesse est affichée ; l'écart est alors remonté au PO (révision du budget) plutôt que masqué. Les budgets restent ceux de `docs/architecture/index.md` tant qu'ils n'ont pas été révisés par ADR.
 
 ### 7.3 Ressources
 

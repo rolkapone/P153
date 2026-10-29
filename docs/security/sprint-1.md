@@ -36,7 +36,7 @@ Branche `feature/ENH-008-demux-nvdec`, diff `main...feature/ENH-008-demux-nvdec`
 ### Licences
 
 - FFmpeg BtbN : `--enable-version3` → **LGPL-3.0-or-later**, ni `gpl` ni `nonfree` ; dev seulement (inchangé). Registre corrigé ; `deps/ffmpeg.lock.json` à corriger (LOW).
-- **dav1d** (repli AV1 logiciel) : BSD-2-Clause, consigné dans `licences.md` §3 ; doit figurer dans le FFmpeg vcpkg de livraison (`ffmpeg[dav1d]`).
+- **dav1d** (repli AV1 logiciel) : BSD-2-Clause, consigné dans `licences-composants.md` §3 ; doit figurer dans le FFmpeg vcpkg de livraison (`ffmpeg[dav1d]`).
 
 ### Findings
 

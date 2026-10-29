@@ -343,7 +343,7 @@ Aucune : Segoe UI Variable et Cascadia Mono sont des polices système de Windows
 - Executable : `build\dev\src\enhance.exe` (runtime Qt deploye a cote : DLL, `plugins\`, `qml\`).
 - Options : `--glass-testbed` (motif sous la capsule), `--glass-quality=0|1|2` (force la qualite du verre), `--no-mica` (repli opaque force), `--check-modules` (SEC-08 : liste les modules charges hors des dossiers de confiance puis quitte ; code 0 / 3).
 - Mesure du temps GPU de l'interface (QA) : `QT_LOGGING_RULES="enh.render.info=true"` et `QT_FORCE_STDERR_LOGGING=1` (une ligne par seconde de rendu).
-- Decision Mica / repli : ADR-053 de `docs/architecture.md`.
+- Decision Mica / repli : `docs/architecture/ADR-053.md`.
 
 ## 12. À retenir en C++
 
