@@ -13,7 +13,7 @@ Mis à jour le 2026-10-29 (ménage docs). `main` = f3edcbc avant le ménage. Auc
 |---|---|---|---|---|---|---|
 | [ENH-053](stories/ENH-053.md) | Spike qualité de la super-résolution | GPU | 5 | à attribuer | à planifier | scrum-master (planning) |
 | [ENH-042](stories/ENH-042.md) | Conversions couleur CUDA NV12/P010 <-> RGB | GPU | 5 | à attribuer | à planifier | scrum-master |
-| [ENH-041](stories/ENH-041.md) | NGX hors ligne (+ SEC-30 à SEC-36) | GPU | 3 (+ suites) | RENFORCÉE probable | à planifier | scrum-master |
+| [ENH-041](stories/ENH-041.md) | NGX hors ligne (+ SEC-30 à SEC-36) | GPU | 5 | à attribuer | à planifier | scrum-master |
 
 Autres stories : [index dans backlog.md](backlog.md#index-des-stories) (54 fiches dans [stories/](stories/)). Non retenues pour le Sprint 2 : ENH-008b, ENH-009, ENH-010.
 

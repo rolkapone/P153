@@ -53,7 +53,7 @@ Voie : « — » = à attribuer par le scrum-master au planning (aucune voie n'�
 |---|---|---|---|---|---|---|
 | [ENH-001](stories/ENH-001.md) | Spike RTX Video SDK : super-résolution 720p -> 4K | GPU | — | 5 | DONE (kickoff) | 0 |
 | [ENH-002](stories/ENH-002.md) | Spike interpolation : RIFE vs NVIDIA Optical Flow FRUC | GPU | — | 5 | DONE (kickoff) | 0 |
-| [ENH-003](stories/ENH-003.md) | Setup repo, build CMake/MSVC, CI et tests GPU locaux | — | — | 4 | DONE (2026-10-24) | — |
+| [ENH-003](stories/ENH-003.md) | Setup repo, build CMake/MSVC, CI et tests GPU locaux | — | — | 4 | DONE (2026-10-24) | 0 |
 | [ENH-004](stories/ENH-004.md) | Squelette de l'application Qt Quick + prototype Mica | UI | — | 5 | DONE (2026-10-23) | 1 |
 | [ENH-005](stories/ENH-005.md) | Protocole qualité et clips de référence | — | — | 3 | DONE (kickoff) | 0 |
 | [ENH-006](stories/ENH-006.md) | Threat model et registre des licences | — | — | 3 | DONE (kickoff) | 0 |
