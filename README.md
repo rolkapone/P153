@@ -38,7 +38,7 @@ scripts\test.ps1 -Coverage                # + couverture (OpenCppCoverage)
 ```
 
 Presets CMake : `dev`, `dev-nogpu`, `local-gpu` (GPU obligatoire), `release`, `ci`, `ci-ui`.
-Architecture et decisions : `docs/architecture.md`.
+Architecture et decisions : `docs/architecture/index.md`.
 
 ## Equipe
 

@@ -1,6 +1,6 @@
 # Sprint 1 — Seuils QA (ENH-004, ENH-008, ENH-040, ENH-047)
 
-Auteur : qa-tester, 2026-10-21. Statut : **proposé** ; arguments alignés sur `docs/gpu/ENH-047.md` (échantillonnage VRAM 10 ms, image BMP, nom de fichier seul dans le JSON). Base : `docs/qa/protocole.md` (§4 vitesse, §5 VRAM, §7.3 ressources), `docs/gpu/spike.md` (P2.3, P3.6), `docs/design/ui/design-system.md` §12. Rien n'est exécuté à la rédaction (pas de build disponible). Arguments de `enhance-bench` : ceux de `docs/gpu/ENH-047.md` (`--stage decode|vsr-image`, `--in`, `--out`, `--report`, `--repeat`, `--warmup`, `--max-frames`, `--decoder auto|nvdec|software`, `--q`, `--bits`, `--size`, `--iterations`, `--sample-ms`).
+Auteur : qa-tester, 2026-10-21. Statut : **proposé** ; arguments alignés sur `docs/gpu/ENH-047.md` (échantillonnage VRAM 10 ms, image BMP, nom de fichier seul dans le JSON). Base : `docs/qa/protocole.md` (§4 vitesse, §5 VRAM, §7.3 ressources), `docs/gpu/spike-phase2.md` (P2.3 ; `spike-phase3.md` P3.6), `docs/design/ui/design-system-mouvement-composants.md` §12. Rien n'est exécuté à la rédaction (pas de build disponible). Arguments de `enhance-bench` : ceux de `docs/gpu/ENH-047.md` (`--stage decode|vsr-image`, `--in`, `--out`, `--report`, `--repeat`, `--warmup`, `--max-frames`, `--decoder auto|nvdec|software`, `--q`, `--bits`, `--size`, `--iterations`, `--sample-ms`).
 
 ## 1. Conditions de mesure (communes)
 

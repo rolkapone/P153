@@ -1,6 +1,6 @@
 # Checklist UI v1 — ENH-004 (squelette Qt Quick + Mica + verre)
 
-Auteur : qa-tester, 2026-10-21. Statut : v1, à exécuter sur la RTX 5070, build Release. Références : `docs/qa/protocole.md` §9, `docs/design/ui/design-system.md` §12, `docs/qa/sprint-1-seuils.md`.
+Auteur : qa-tester, 2026-10-21. Statut : v1, à exécuter sur la RTX 5070, build Release. Références : `docs/qa/protocole.md` §9, `docs/design/ui/design-system-mouvement-composants.md` §12, `docs/qa/sprint-1-seuils.md`.
 Légende : A = automatisable (outil/script), M = manuel par le PO ou le QA, **PO** = seul le PO peut le faire/juger. Résultat : `[ ]` à faire, `[x]` OK, `[!]` KO (bug noté), `n/v` non vérifié. Captures dans `docs/qa/resultats/ENH-004/captures/` (sans nom d'utilisateur ni chemin visibles), nommées `<etat>_<100|150|200>_<sombre|clair>.png`.
 
 Session : date ____ ; pilote ____ ; Windows ____ ; build (hash git) ____ ; Qt ____ ; écran ____.

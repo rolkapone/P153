@@ -40,7 +40,7 @@ Pourquoi ces quatre, dans cet ordre :
 - **ENH-047** donne à la QA son premier instrument officiel et rend la démo tangible (une image avant / après).
 - Les conversions couleur (ENH-042) et l'encodage (ENH-010) ne tiennent pas dans 15 pts : le premier fichier 4K de bout en bout est le jalon **J2 (Sprint 2)**.
 - **Redécoupage d'ENH-008** (estimation gpu-engineer : 8 pts pour la matrice complète) : ENH-008 (5 pts, ici) garde AVIO maison, RAII, hwaccel, repli logiciel, SEC-13 et la matrice « noyau » (8 combinaisons dont ProRes en repli + `BBB-FAST`) ; **ENH-008b (3 pts, hors sprint, avant ENH-048, au plus tard Sprint 3)** porte le reste de la matrice, 8 / 10 bits, VFR, rotation, dimensions impaires. Le sprint reste à 15 pts ; le total MVP passe à 174.
-- **Non retenu** : l'export RIFE (ENH-043, 5 pts) est prévu au Sprint 3 ; composition validée par le PO le 2026-10-21 (voir `backlog.md`, « Résolues (historique) »).
+- **Non retenu** : l'export RIFE (ENH-043, 5 pts) est prévu au Sprint 3 ; composition validée par le PO le 2026-10-21 (voir `questions-po.md`, « Résolues (historique) »).
 
 ## Ordre d'exécution et dépendances
 
@@ -60,12 +60,12 @@ Une branche par story : `feature/ENH-004-squelette-qt`, `feature/ENH-008-demux-n
 | ENH-008 `[GPU]` | `docs/gpu/ENH-008.md` : approche (hwaccel CUDA, AVIO maison, repli logiciel), matrice noyau, budgets, **estimation 8 pts -> redécoupage appliqué** (ENH-008 5 pts + ENH-008b 3 pts) | gpu-engineer | Fait |
 | ENH-040 `[GPU]` | `docs/gpu/ENH-040.md` : cause de B4, découpage du pont, API NGX, budget (>= 300 i/s, <= 300 Mio), limites | gpu-engineer | Fait |
 | ENH-047 `[GPU]` | `docs/gpu/ENH-047.md` : arguments, schéma du JSON, format d'image du mode `vsr-image` | gpu-engineer | Fait |
-| Seuils QA | `docs/qa/sprint-1-seuils.md` : décodage 720p **>= 1 000 i/s**, VRAM décodage **<= 600 Mio**, VSR **>= 300 i/s** et **<= 300 Mio**, écart `enhance-bench` / `nvidia-smi` **< 10 %**, 10 fichiers à la suite : dérive **<= 50 Mio** ; checklist UI v1 `docs/qa/checklist-ui.md` pour ENH-004. **Critères UX et seuils QA reportés dans `backlog.md`** (ENH-004, 008, 008b, 040, 047) | qa-tester, scrum-master | Fait |
+| Seuils QA | `docs/qa/sprint-1-seuils.md` : décodage 720p **>= 1 000 i/s**, VRAM décodage **<= 600 Mio**, VSR **>= 300 i/s** et **<= 300 Mio**, écart `enhance-bench` / `nvidia-smi` **< 10 %**, 10 fichiers à la suite : dérive **<= 50 Mio** ; checklist UI v1 `docs/qa/checklist-ui.md` pour ENH-004. **Critères UX et seuils QA reportés dans `stories/` (fiches ENH-004, 008, 008b, 040, 047) et `qa/seuils-reference.md`** (ENH-004, 008, 008b, 040, 047) | qa-tester, scrum-master | Fait |
 
 ## Découpage en tâches
 
 ### ENH-004 — Squelette Qt Quick + prototype Mica  [UI] — 5 pts (developer) — branche `feature/ENH-004-squelette-qt`
-Critères UX : `docs/design/ux/ENH-004.md` §7 (UX-1 à UX-10, repris dans `backlog.md`) ; seuils : `docs/qa/checklist-ui.md`. Design : `maquettes/enh-004-squelette.html`, `ENH-004-specs.md`. Décisions PO reçues (voir en-tête) : plus aucune condition au démarrage.
+Critères UX : `docs/design/ux/ENH-004.md` §7 (UX-1 à UX-10, repris dans `stories/ENH-004.md`) ; seuils : `docs/qa/checklist-ui.md`. Design : `maquettes/enh-004-squelette.html`, `ENH-004-specs.md`. Décisions PO reçues (voir en-tête) : plus aucune condition au démarrage.
 | # | Tâche | Qui |
 |---|---|---|
 | T1 | Valider la maquette et les specs ENH-004 (périmètre §1 de la note UX : rien d'autre que le squelette) et la grille de contrôle design | ui-designer, ux-designer |
@@ -141,10 +141,10 @@ Chaque story suit le workflow de `CLAUDE.md` : implémentation -> **reviewer** (
 
 Points livrés dans ce sprint : **15 / 15** (ENH-008 5, ENH-004 5, ENH-040 3, ENH-047 2).
 
-Décisions du PO du 2026-10-24 (n° 22 à 25, détail dans `backlog.md`) : poids RIFE téléchargés par l'équipe au sprint 3 ; Enhance exclu de WER ; seuils SSIM / PSNR validés ; notification de fin de file au MVP = icône de la barre des tâches + résumé + son (toast avec l'installeur).
+Décisions du PO du 2026-10-24 (n° 22 à 25, détail dans `decisions.md`) : poids RIFE téléchargés par l'équipe au sprint 3 ; Enhance exclu de WER ; seuils SSIM / PSNR validés ; notification de fin de file au MVP = icône de la barre des tâches + résumé + son (toast avec l'installeur).
 
 **Clips de test** : la copie de 19 Go dans le worktree a été remplacée par une jonction (traité, plus de tâche devops en attente).
-Hors sprint, créée le 2026-10-24 : ENH-053 (spike qualité SR, 5 pts, avant ENH-009), voir `docs/backlog.md` « Mouvements v0.5 ».
+Hors sprint, créée le 2026-10-24 : ENH-053 (spike qualité SR, 5 pts, avant ENH-009), voir `docs/_archives/backlog-mouvements.md` « Mouvements v0.5 ».
 
 Suites ajoutées au backlog le 2026-10-23 : SEC-27 (cache de pipeline Qt : ENH-025 / ENH-030), SEC-28 (`SetSearchPathMode`, avant ENH-016), B2 (pics de rendu à rejouer machine calme), dette design (pointillés du cadre depuis un jeton, illustration en .svg), SEC-23 et fin de SEC-13 + avertissement de fichier tronqué (ENH-015), journal `nvcuvid.dll` (ENH-008b), recoupement PresentMon avant ENH-010.
 
