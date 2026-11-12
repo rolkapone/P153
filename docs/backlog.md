@@ -15,7 +15,7 @@ Clips de référence : `BBB-FAST`, `BBB-PAN`, `TOS-FACE`, `TOS-DARK`, `SYN-TEXT`
 | Vitesse | **15 pts / sprint, mesurée** (Sprint 1 : 15 / 15 ; un seul sprint terminé, donc un seul point de donnée ; le kickoff n'est pas un sprint) |
 | Sprints restants estimés avant le MVP | **10** (145 / 15 = 9,7, arrondi au sprint supérieur : Sprints 2 à 11) ; fourchette **10 à 12** (stories `[UI]` à 3 cycles de revue, instabilité des mesures GPU, ré-estimations des spikes ENH-053 / ENH-045) |
 | Cadence | Un sprint de 15 pts s'étale sur deux quotas hebdomadaires (décision n° 31), soit environ 2 semaines : MVP visé vers **avril 2027** si le Sprint 2 démarre mi-novembre 2026 |
-| Dernière mise à jour | 2026-11-12 (Sprint 2 validé et recalé, tags `[ML]`, total 181 pts) ; 2026-10-25 (**fin du Sprint 1** : 4 / 4 stories DONE, `main` = `76c559e` ; plan recalé sur la vitesse réelle ; SEC-37 à SEC-40 au backlog ; contenu du Sprint 2 validé par le PO le 2026-11-12, décision n° 29) |
+| Dernière mise à jour | 2026-11-12 (Sprint 2 validé et recalé, tags `[ML]`, total 183 pts) ; 2026-10-25 (**fin du Sprint 1** : 4 / 4 stories DONE, `main` = `76c559e` ; plan recalé sur la vitesse réelle ; SEC-37 à SEC-40 au backlog ; contenu du Sprint 2 validé par le PO le 2026-11-12, décision n° 29) |
 
 Répartition des 145 points restants (recalculée le 2026-11-12, ENH-054 inclus) : Epic A 43, Epic B 37, Epic C 65. Tag `[ML]` attribué à ENH-043, 044, 045, 046 et 053 (implémenteur : ml-engineer, puis gpu-engineer pour l'intégration).
 Total « Plus tard » : 52 pts + 8 pts (ENH-051) ; « Avant publication » : 3 pts (hors MVP).
@@ -29,7 +29,7 @@ Total « Plus tard » : 52 pts + 8 pts (ENH-051) ; « Avant publication » : 3 p
 | J2 | **Premier fichier 4K de bout en bout** : décodage -> super-résolution -> NVENC HEVC 10 bits, i/s et VRAM mesurés par la QA | **3** (recalé : le spike ENH-053 et la sécurité NGX passent avant ENH-009 / ENH-010) |
 | J3 | **Vrai 4K60** : RIFE (export maison, moteur TensorRT, coupures de plan) intégré, AV1, budget VRAM, audio / sous-titres | 5-6 |
 | J4 | **L'application complète côté utilisateur** : file, glisser-déposer, préréglages, progression, pause / annulation, thèmes | 8-9 |
-| J5 | **MVP** : robustesse (fuzzing), zéro réseau prouvé, FFmpeg minimal sans réseau, paquet portable, À propos / CLUF | **11** (143 pts / 15 par sprint) |
+| J5 | **MVP** : robustesse (fuzzing), zéro réseau prouvé, FFmpeg minimal sans réseau, paquet portable, À propos / CLUF | **11** (145 pts / 15 par sprint) |
 
 **ENH-054 (3 pts, hors sprint) précède le Sprint 2** (décision n° 35) ; les stories suivent ensuite le flux PR (décision n° 33). Ordre de bataille : Sprint 1 terminé (`docs/sprints/sprint-1.md`, 15 / 15). **Sprint 2 validé le 2026-11-12** (décision n° 29, plan : [sprints/sprint-2.md](sprints/sprint-2.md)) : ENH-041, ENH-042, ENH-053. Sprint 3 pressenti : ENH-009, ENH-010, ENH-008b (13 pts) + reliquat. ENH-008b (3 pts) : avant ENH-048, au plus tard Sprint 3. Sprints 4-5 : RIFE (ENH-043, ENH-044, ENH-012, ENH-046), AV1, file (ENH-016), journal (ENH-025).
 
