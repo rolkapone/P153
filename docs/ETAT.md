@@ -4,16 +4,16 @@ Mis à jour le 2026-10-29 (ménage docs). `main` = f3edcbc avant le ménage. Auc
 
 ## Sprint
 - **Sprint 1 : terminé** (15 / 15 pts, 2026-10-25) : [sprints/sprint-1.md](sprints/sprint-1.md). Livré : ENH-004, ENH-008, ENH-040, ENH-047.
-- **Sprint 2 : non démarré**, en attente de validation PO. Objectif proposé : « Choisir le bon moteur d'agrandissement, convertir les couleurs sur le GPU et prouver que la super-résolution ne parle pas au réseau. » Contenu proposé : [sprints/sprint-2-proposition.md](sprints/sprint-2-proposition.md).
+- **Sprint 2 : en planning** (15 pts), en attente de validation PO. Objectif : « Choisir le bon moteur d'agrandissement, convertir les couleurs sur le GPU et prouver que la super-résolution ne parle pas au réseau. » Plan, voies, board : [sprints/sprint-2.md](sprints/sprint-2.md) (proposition : [sprint-2-proposition.md](sprints/sprint-2-proposition.md)).
 - Budget de sprint = 100 % du quota hebdomadaire (décision n° 26) ; relevé de départ 82 % au 2026-10-29 (n° 28). Devis CFO à produire avant lancement.
 - Plan de release, vitesse (15 pts / sprint), jalons J0-J5 : [backlog.md](backlog.md).
 
 ## Stories ouvertes (proposées au Sprint 2)
 | Story | Titre | Tags | Pts | Voie | Statut | Prochain agent |
 |---|---|---|---|---|---|---|
-| [ENH-053](stories/ENH-053.md) | Spike qualité de la super-résolution | GPU | 5 | à attribuer | à planifier | scrum-master (planning) |
-| [ENH-042](stories/ENH-042.md) | Conversions couleur CUDA NV12/P010 <-> RGB | GPU | 5 | à attribuer | à planifier | scrum-master |
-| [ENH-041](stories/ENH-041.md) | NGX hors ligne (+ SEC-30 à SEC-36) | GPU | 5 | à attribuer | à planifier | scrum-master |
+| [ENH-053](stories/ENH-053.md) | Spike qualité de la super-résolution | ML, GPU | 5 | RENFORCÉE | TODO (S2) | ml-engineer |
+| [ENH-042](stories/ENH-042.md) | Conversions couleur CUDA NV12/P010 <-> RGB | GPU | 5 | STANDARD | TODO (S2) | gpu-engineer |
+| [ENH-041](stories/ENH-041.md) | NGX hors ligne (+ SEC-30 à SEC-36) | GPU | 5 | RENFORCÉE | TODO (S2, en 1er) | gpu-engineer |
 
 Autres stories : [index dans backlog.md](backlog.md#index-des-stories) (54 fiches dans [stories/](stories/)). Non retenues pour le Sprint 2 : ENH-008b, ENH-009, ENH-010.
 
