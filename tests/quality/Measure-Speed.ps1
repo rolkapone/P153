@@ -15,6 +15,8 @@
   Mode Speed : 1 chauffe non comptee + N repetitions, mediane, min-max, alerte si (max-min)/mediane > 3 %.
   Mode Leak  : traite 10 fichiers a la suite, releve la VRAM au repos entre chaque fichier, calcule la derive.
   Echantillonnage externe : nvidia-smi toutes les 200 ms. Carte au repos, autres applications GPU fermees.
+  Carte au repos : charge GPU < 5 % exigee au depart (attente -IdleWaitSeconds, 60 s par defaut) ; sinon le
+  script refuse de mesurer. -AllowBusy mesure quand meme et ecrit official = false dans le JSON.
   NON EXECUTE a la redaction.
 #>
 [CmdletBinding()]
@@ -32,6 +34,8 @@ param(
     [ValidateSet(8, 10)][int]$Bits = 10,
     [int]$Repeat = 5,
     [int]$PauseSeconds = 20,
+    [ValidateRange(0, 600)][int]$IdleWaitSeconds = 60,   # attente maximale d'une carte au repos (charge GPU < 5 %)
+    [switch]$AllowBusy,                                  # mesure malgre une carte chargee : resultat marque non officiel
     [switch]$Sustained,                                  # ajoute un essai de 3 min en boucle (chauffe thermique)
     [int]$SustainedSeconds = 180
 )
@@ -102,8 +106,21 @@ $result = [ordered]@{
     start_state = Get-GpuState
     warnings = [System.Collections.Generic.List[string]]::new()
 }
-if ($result.start_state.util_pct -gt 5 -or $result.start_state.temp_c -gt 50) {
-    $result.warnings.Add("Carte pas au repos au depart (utilisation $($result.start_state.util_pct) %, $($result.start_state.temp_c) C) : mesure a refaire.")
+# Carte au repos (retro du Sprint 1, action 1) : une mesure officielle exige une charge GPU < 5 % au depart.
+# On attend jusqu'a -IdleWaitSeconds ; au-dela, refus de mesurer, sauf -AllowBusy (mesure marquee non officielle).
+$idleDeadline = (Get-Date).AddSeconds($IdleWaitSeconds)
+while ($result['start_state'].util_pct -ge 5 -and (Get-Date) -lt $idleDeadline) {
+    Start-Sleep -Seconds 2
+    $result['start_state'] = Get-GpuState
+}
+$result['official'] = ($result['start_state'].util_pct -lt 5)
+if (-not $result['official']) {
+    $busy = "Carte pas au repos : utilisation GPU $($result['start_state'].util_pct) % apres $IdleWaitSeconds s d'attente (seuil : < 5 %)"
+    if (-not $AllowBusy) { throw "$busy. Fermer les applications graphiques, ou relancer avec -AllowBusy pour une mesure non officielle." }
+    $result.warnings.Add("$busy : mesure NON OFFICIELLE (-AllowBusy), a ne pas comparer a un seuil.")
+}
+if ($result['start_state'].temp_c -gt 50) {
+    $result.warnings.Add("Carte chaude au depart ($($result['start_state'].temp_c) C) : mesure a refaire a froid.")
 }
 if ($result.start_state.vram_mib -gt 2500) {
     $result.warnings.Add("VRAM deja utilisee au depart : $($result.start_state.vram_mib) Mio (fermer les autres applications). Pic mesure en difference.")

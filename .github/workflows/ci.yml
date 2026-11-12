@@ -1,7 +1,7 @@
 # CI Enhance (ADR-029). Aucun GPU, aucun SDK NVIDIA, aucun secret, aucune publication.
 # Les tests GPU tournent en LOCAL (scripts/test-gpu.ps1).
 # Les controles de securite (identite, secrets, zero reseau sources, deps, lint des workflows) sont dans
-# security.yml (sans paths-ignore). TODO restant : confirmer l'image Windows avec VS 2026 (toolset v145).
+# security.yml (sans paths-ignore). Image Windows : MSVC 19.51 (toolset v145) constate en CI le 2026-10-29.
 name: ci
 
 on:
@@ -39,7 +39,7 @@ jobs:
           if [ -n "$files" ]; then echo "$files" | xargs clang-format --dry-run --Werror; fi
 
   core:
-    runs-on: windows-2025 # TODO: image VS 2026 (toolset v145) a confirmer ; sinon v143 en CI, ecart documente
+    runs-on: windows-2025 # MSVC 19.51 = toolset v145 (constate le 2026-10-29, ADR-020)
     timeout-minutes: 30
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
