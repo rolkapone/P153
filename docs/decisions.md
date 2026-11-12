@@ -1,6 +1,6 @@
 # Enhance — Décisions du PO
 
-Une ligne par décision, numérotation conservée. Texte repris de l'ancien `docs/backlog.md` (n° 1 à 25) ; n° 26 à 28 ajoutées le 2026-10-29.
+Une ligne par décision, numérotation conservée. Texte repris de l'ancien `docs/backlog.md` (n° 1 à 25) ; n° 26 à 28 ajoutées le 2026-10-29, n° 29 à 32 le 2026-11-12.
 
 Décisions n° 1 à 15 : **2026-10-21** (validation de la vision `vision.md`, de ce backlog v0.2, de la stack ADR-001 Qt 6 / Qt Quick et de la direction visuelle). Décisions n° 16 à 19 : **2026-10-23** ; n° 20 à 25 : **2026-10-24**. Numérotation continue, sans doublon ; les renvois « décision n° N » des autres documents restent valables.
 
@@ -32,3 +32,7 @@ Décisions n° 1 à 15 : **2026-10-21** (validation de la vision `vision.md`, de
 26. **Budget de sprint** (2026-10-29) : le budget d'un sprint = 100 % du quota hebdomadaire de l'abonnement.
 27. **Électricité** (2026-10-29) : coût de l'électricité compté pour 0 EUR.
 28. **Relevé de départ** (2026-10-29) : relevé `/usage` de départ = 82 % du quota hebdomadaire consommé le 2026-10-29.
+29. **Composition du Sprint 2** (2026-11-12) : validée telle que proposée, ENH-041 + ENH-042 + ENH-053 = 15 pts, sans story `[UI]` ; J2 (premier fichier 4K) passe au Sprint 3.
+30. **Poids Real-ESRGAN** (2026-11-12) : l'équipe télécharge elle-même les poids pour ENH-053, après validation de la licence par secdevops ; SHA-256 consigné, poids jamais commités (même régime que la n° 22).
+31. **Budget de sprint, amendement de la n° 26** (2026-11-12) : un sprint de 15 pts peut s'étaler sur deux quotas hebdomadaires ; budget = 200 % d'un quota, alerte à 80 % de ce budget.
+32. **Contrôles locaux avant merge** (2026-11-12) : devops ne merge dans `main` qu'après `format.ps1`, `tidy.ps1`, `sast.ps1` et `test.ps1` verts en local sur la branche ; aucun push de branche supplémentaire.

@@ -1,7 +1,7 @@
-# Sprint 2 — planning (2026-10-29, en attente de validation PO)
+# Sprint 2 — planning (2026-10-29, validé par le PO le 2026-11-12, décisions n° 29 à 32)
 
 **Objectif** : « Choisir le bon moteur d'agrandissement, convertir les couleurs sur le GPU et prouver que la super-résolution ne parle pas au réseau. »
-Capacité : 15 pts (vitesse par défaut = Sprint 1). Budget : 100 % du quota hebdomadaire (décision n° 26), devis CFO à produire avant lancement. Contenu : [proposition](sprint-2-proposition.md). Pas de story `[UI]` (question PO n° 1 : [questions-po.md](../questions-po.md)).
+Capacité : 15 pts (vitesse par défaut = Sprint 1). Budget : deux quotas hebdomadaires, alerte à 80 % (décision n° 31) ; devis de `socle:ressources` à recaler après la première story mesurée. Contenu : [proposition](sprint-2-proposition.md). Pas de story `[UI]` (décision n° 29).
 
 ## Stories
 | Ordre | Story | Tags | Voie | Pts | Implémenteur | Dépendances |

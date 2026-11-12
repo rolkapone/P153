@@ -3,12 +3,13 @@
 ## Questions pour le PO et points ouverts
 
 **Pour le PO**
-1. **Composition du Sprint 2** (2026-10-25) : valider « ENH-053 (spike qualité SR) + ENH-042 (conversions couleur) + ENH-041 (NGX hors ligne, sécurité) » = 15 pts, **sans écran à voir** ; ou préférer la variante « ENH-042 + ENH-009 + ENH-008b » (13 pts, déconseillée tant que le spike n'a pas tranché le moteur). Conséquence : J2 (premier fichier 4K) passe au Sprint 3.
-2. **Real-ESRGAN (ENH-053)** : outil local Python approuvé (n° 12) ; confirmer que le PO accepte que l'équipe télécharge les poids Real-ESRGAN (licence à valider par secdevops avant) comme pour RIFE (n° 22).
+1. **Résultats bruts de spike et de QA** (2026-11-12) : `build/spike` (7 Go) et `build/qa-enh040` (1 Go) contiennent des mesures brutes non versionnées ; les supprimer, ou les archiver hors dépôt d'abord ?
 
 (Les questions n° 1 à 4 de la v0.3 ont été tranchées le 2026-10-24 : décisions n° 22 à 25.)
 
 **Résolues (historique)**
+- *Résolu le 2026-11-12* — **Composition du Sprint 2** (décision n° 29) : ENH-041 + ENH-042 + ENH-053 = 15 pts, sans écran à voir ; J2 passe au Sprint 3.
+- *Résolu le 2026-11-12* — **Real-ESRGAN (ENH-053)** (décision n° 30) : l'équipe télécharge les poids après validation de la licence par secdevops.
 - *Résolu le 2026-10-24* — **Poids RIFE** (décision n° 22) : l'équipe télécharge `flownet.pkl` (Practical-RIFE, MIT) au sprint 3 ; SHA-256 consigné, README + `LICENSE` archivés, jamais commités (ENH-043).
 - *Résolu le 2026-10-24* — **WER / SEC-14** (décision n° 23) : Enhance exclu des rapports d'erreurs Windows, aucun vidage ni envoi ; ligne de journal local avec code d'erreur seul (ENH-025).
 - *Résolu le 2026-10-24* — **Seuils SSIM / PSNR** (décision n° 24) : validés (voir « Seuils QA de référence »).
