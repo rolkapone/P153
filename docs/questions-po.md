@@ -3,7 +3,7 @@
 ## Questions pour le PO et points ouverts
 
 **Pour le PO**
-1. **Résultats bruts de spike et de QA** (2026-11-12) : `build/spike` (7 Go) et `build/qa-enh040` (1 Go) contiennent des mesures brutes non versionnées ; les supprimer, ou les archiver hors dépôt d'abord ?
+1. **Dossiers `build/spike` (7 Go) et `build/qa-enh040` (1 Go)** (2026-11-12) : les mesures sont archivées dans `equipe/archives/2026-11-12-spike-qa-mesures.zip` (hors dépôt) ; supprimer les deux dossiers (8 Go) maintenant que l'archive existe ?
 
 (Les questions n° 1 à 4 de la v0.3 ont été tranchées le 2026-10-24 : décisions n° 22 à 25.)
 

@@ -35,4 +35,4 @@ Décisions n° 1 à 15 : **2026-10-21** (validation de la vision `vision.md`, de
 29. **Composition du Sprint 2** (2026-11-12) : validée telle que proposée, ENH-041 + ENH-042 + ENH-053 = 15 pts, sans story `[UI]` ; J2 (premier fichier 4K) passe au Sprint 3.
 30. **Poids Real-ESRGAN** (2026-11-12) : l'équipe télécharge elle-même les poids pour ENH-053, après validation de la licence par secdevops ; SHA-256 consigné, poids jamais commités (même régime que la n° 22).
 31. **Budget de sprint, amendement de la n° 26** (2026-11-12) : un sprint de 15 pts peut s'étaler sur deux quotas hebdomadaires ; budget = 200 % d'un quota, alerte à 80 % de ce budget.
-32. **Contrôles locaux avant merge** (2026-11-12) : devops ne merge dans `main` qu'après `format.ps1`, `tidy.ps1`, `sast.ps1` et `test.ps1` verts en local sur la branche ; aucun push de branche supplémentaire.
+32. **Contrôles locaux avant merge** (2026-11-12) : devops ne merge dans `main` qu'après `format.ps1`, `tidy.ps1`, `sast.ps1` et `test.ps1` verts en local sur la branche ; aucun push de branche supplémentaire. **Précision** (2026-11-12) : pour un diff sans code (documentation seule), `precommit-check.ps1` suffit.

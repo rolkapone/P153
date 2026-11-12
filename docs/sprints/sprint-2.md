@@ -33,6 +33,8 @@ Ordre : ENH-041 d'abord (sécurité, SEC-35 doit précéder ENH-030, pont tout n
 | ENH-053 | TODO | 0 | Licence poids Real-ESRGAN à valider d'abord |
 
 ## Risques
+- Pilote NVIDIA 621.14 installé, références mesurées avec 617.42 : la baseline `main` rejouée dans la session fait foi, pas les chiffres du Sprint 1.
+- Quota au lancement (2026-11-12) : hebdomadaire 38 %, restreint 72 %, remise à zéro le 2026-11-13 à 15:00 UTC ; avant cette heure, seulement la licence Real-ESRGAN (secdevops) et la première étape d'ENH-041.
 - Mesures GPU instables (5-15 %) : règle « carte au repos ». Si NGX télécharge une DLL : escalade immédiate au PO (ENH-041). Estimation d'ENH-041 (5 pts) à confirmer à la première étape.
 
 ## Revue / Rétro

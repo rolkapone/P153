@@ -5,7 +5,7 @@ Mis à jour le 2026-11-12 (audit et validation du Sprint 2). Aucune story en cou
 ## Sprint
 - **Sprint 1 : terminé** (15 / 15 pts, 2026-10-25) : [sprints/sprint-1.md](sprints/sprint-1.md). Livré : ENH-004, ENH-008, ENH-040, ENH-047.
 - **Sprint 2 : validé par le PO le 2026-11-12** (15 pts, décision n° 29), prêt à lancer. Objectif : « Choisir le bon moteur d'agrandissement, convertir les couleurs sur le GPU et prouver que la super-résolution ne parle pas au réseau. » Plan, voies, board : [sprints/sprint-2.md](sprints/sprint-2.md) (proposition : [sprint-2-proposition.md](sprints/sprint-2-proposition.md)).
-- Budget de sprint = deux quotas hebdomadaires pour 15 pts, alerte à 80 % (décision n° 31). Devis produit par `socle:ressources` le 2026-10-29 (`equipe/ressources/devis-sprint-2.md`, non versionné), à recaler après la première story mesurée ; relevé `/usage` à refaire au lancement.
+- Budget de sprint = deux quotas hebdomadaires pour 15 pts, alerte à 80 % (décision n° 31). Relevé `/usage` du 2026-11-12 : hebdomadaire 38 %, restreint 72 %, remise à zéro le 2026-11-13 à 15:00 UTC. Devis produit par `socle:ressources` le 2026-10-29 (`equipe/ressources/devis-sprint-2.md`, non versionné), à recaler après la première story mesurée ; relevé `/usage` à refaire au lancement.
 - Avant tout merge dans `main` : `format.ps1`, `tidy.ps1`, `sast.ps1` et `test.ps1` verts en local (décision n° 32).
 - Plan de release, vitesse (15 pts / sprint), jalons J0-J5 : [backlog.md](backlog.md).
 
@@ -39,7 +39,8 @@ Autres stories : [index dans backlog.md](backlog.md#index-des-stories) (54 fiche
 ## Blocages et points ouverts
 - Poids Real-ESRGAN : licence à valider par secdevops avant téléchargement (ENH-053, décision n° 30).
 - Suivi des coûts : journal des agents sans id de story avant la v3 ; à vérifier sur la première story du Sprint 2.
-- Résultats bruts de spike et de QA dans `build/spike` (7 Go) et `build/qa-enh040` (1 Go) : à archiver ou supprimer, décision PO.
+- Mesures brutes de spike et de QA archivées dans `equipe/archives/2026-11-12-spike-qa-mesures.zip` (hors dépôt). `build/spike` (7 Go) et `build/qa-enh040` (1 Go) restent en place : leur suppression attend l'accord du PO. Après suppression, extraire l'archive pour rejouer les commandes `buildspike...` de [gpu/spike-phase2.md](gpu/spike-phase2.md).
+- Pilote NVIDIA 621.14 installé, mesures de référence prises avec 617.42 : rejouer la baseline `main` avant toute comparaison de vitesse (Sprint 2).
 - SEC-35 doit précéder ENH-030 ; suites LOW SEC-37 à SEC-40 : [ENH-047](stories/ENH-047-suites-secdevops.md).
 
 ## Où trouver quoi
