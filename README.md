@@ -48,9 +48,12 @@ Enhance est concu et realise par une equipe organisee en roles, autour de Carol,
 | Role | Responsabilite |
 |---|---|
 | scrum-master | Backlog, user stories, planning de sprint, suivi et retrospective |
+| ressources | Devis par sprint et par story, suivi de la consommation, alertes de budget |
+| archiviste | Hygiene documentaire : etat du projet, decoupage et taille des documents |
 | ux-designer | Personas, parcours, architecture des ecrans, wireframes, accessibilite |
 | ui-designer | Design system, maquettes animees, mouvements, controle de conformite design |
 | gpu-engineer | Pipeline video GPU : decodage, super-resolution RTX, interpolation, encodage NVENC, VRAM, performances |
+| ml-engineer | Modeles : RIFE, Real-ESRGAN, export ONNX, moteurs TensorRT, evaluation, licences des poids |
 | developer | Application hors pipeline GPU : interface, file d'attente, prereglages, reglages, journalisation |
 | reviewer | Revue de code C++ (APPROVE / CHANGES_REQUESTED) |
 | qa-tester | Qualite objective (PSNR / SSIM / VMAF), vitesse, VRAM, tests de l'interface |

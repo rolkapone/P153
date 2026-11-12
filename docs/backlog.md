@@ -14,7 +14,7 @@ Clips de référence : `BBB-FAST`, `BBB-PAN`, `TOS-FACE`, `TOS-DARK`, `SYN-TEXT`
 | Points restants | **141** (179 - 38) |
 | Vitesse | **15 pts / sprint, mesurée** (Sprint 1 : 15 / 15 ; un seul sprint terminé, donc un seul point de donnée ; le kickoff n'est pas un sprint) |
 | Sprints restants estimés avant le MVP | **10** (141 / 15 = 9,4, arrondi au sprint supérieur : Sprints 2 à 11) ; fourchette **10 à 12** (stories `[UI]` à 3 cycles de revue, instabilité des mesures GPU, ré-estimations des spikes ENH-053 / ENH-045) |
-| Dernière mise à jour | 2026-10-25 (**fin du Sprint 1** : 4 / 4 stories DONE, `main` = `76c559e` ; plan recalé sur la vitesse réelle ; SEC-37 à SEC-40 au backlog ; proposition de contenu du Sprint 2 ci-dessous, à valider par le PO) |
+| Dernière mise à jour | 2026-10-25 (**fin du Sprint 1** : 4 / 4 stories DONE, `main` = `76c559e` ; plan recalé sur la vitesse réelle ; SEC-37 à SEC-40 au backlog ; contenu du Sprint 2 validé par le PO le 2026-11-12, décision n° 29) |
 
 Répartition des points restants : l'ancienne répartition (143) n'était pas exactement sommable ; elle est **à recalculer au planning du Sprint 2** (Pipeline GPU : -2 pts avec ENH-047 livrée ; Fondations, sécurité et CI 8 : ENH-049, 050 ; le reste en file / préréglages / UI / transverse).
 Total « Plus tard » : 52 pts + 8 pts (ENH-051) ; « Avant publication » : 3 pts (hors MVP).
@@ -30,7 +30,7 @@ Total « Plus tard » : 52 pts + 8 pts (ENH-051) ; « Avant publication » : 3 p
 | J4 | **L'application complète côté utilisateur** : file, glisser-déposer, préréglages, progression, pause / annulation, thèmes | 8-9 |
 | J5 | **MVP** : robustesse (fuzzing), zéro réseau prouvé, FFmpeg minimal sans réseau, paquet portable, À propos / CLUF | **11** (141 pts / 15 par sprint) |
 
-Ordre de bataille : Sprint 1 terminé (`docs/sprints/sprint-1.md`, 15 / 15). **Sprint 2 proposé** (voir « Proposition de contenu du Sprint 2 » ([sprints/sprint-2-proposition.md](sprints/sprint-2-proposition.md)), à valider par le PO) : ENH-053, ENH-042, ENH-041. Sprint 3 pressenti : ENH-009, ENH-010, ENH-008b (13 pts) + reliquat. ENH-008b (3 pts) : avant ENH-048, au plus tard Sprint 3. Sprints 4-5 : RIFE (ENH-043, ENH-044, ENH-012, ENH-046), AV1, file (ENH-016), journal (ENH-025).
+Ordre de bataille : Sprint 1 terminé (`docs/sprints/sprint-1.md`, 15 / 15). **Sprint 2 validé le 2026-11-12** (décision n° 29, plan : [sprints/sprint-2.md](sprints/sprint-2.md)) : ENH-041, ENH-042, ENH-053. Sprint 3 pressenti : ENH-009, ENH-010, ENH-008b (13 pts) + reliquat. ENH-008b (3 pts) : avant ENH-048, au plus tard Sprint 3. Sprints 4-5 : RIFE (ENH-043, ENH-044, ENH-012, ENH-046), AV1, file (ENH-016), journal (ENH-025).
 
 
 ## Où est passé le reste (ménage docs du 2026-10-29)
