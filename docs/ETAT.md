@@ -20,7 +20,6 @@ Mis à jour le 2026-11-12 (audit et validation du Sprint 2). Aucune story en cou
 Autres stories : [index dans backlog.md](backlog.md#index-des-stories) (55 fiches dans [stories/](stories/)). Non retenues pour le Sprint 2 : ENH-008b, ENH-009, ENH-010.
 
 ## Dernières décisions du PO (10 dernières ; toutes : [decisions.md](decisions.md))
-26. **Budget de sprint** (2026-10-29) : budget = 100 % du quota hebdomadaire (amendée par la n° 31).
 27. **Électricité** (2026-10-29) : comptée pour 0 EUR.
 28. **Relevé de départ** (2026-10-29) : 82 % du quota hebdomadaire consommé le 2026-10-29.
 29. **Composition du Sprint 2** (2026-11-12) : ENH-041 + ENH-042 + ENH-053 = 15 pts, sans story `[UI]` ; J2 passe au Sprint 3.
@@ -30,6 +29,7 @@ Autres stories : [index dans backlog.md](backlog.md#index-des-stories) (55 fiche
 33. **Flux PR** (2026-11-12) : chaque story = branche poussée + PR « Closes #n », merge si CI verte ; accord permanent du PO pour pousser les branches de story et merger par PR.
 34. **Tests GPU** (2026-11-12) : en local, une fois par story (devops), résultat dans la PR ; le reste en CI GitHub.
 35. **Calendrier** (2026-11-12) : chantier PR / CI fait avant le Sprint 2, hors sprint ([ENH-054](stories/ENH-054.md)).
+36. **Dépôt public** (2026-11-12) : le dépôt reste public (pas d'offre payante) ; rien de confidentiel dedans ; merge des PR en local par devops puis push, jamais par le bouton GitHub.
 
 ## Seuils actifs (détail : [qa/seuils-reference.md](qa/seuils-reference.md), [qa/protocole.md](qa/protocole.md) §7)
 - **Qualité** (écart VMAF 4K vs Lanczos, en part de la marge 100 - VMAF Lanczos) : Qualité max >= 50 %, Équilibré >= 35 %, Rapide >= 20 % ; SSIM/PSNR : PSNR +3,0 / +1,9 / +1,0 dB (décision n° 24). Pas de régression > 5 % vs `main`.
