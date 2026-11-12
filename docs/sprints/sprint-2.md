@@ -11,6 +11,8 @@ Capacité : 15 pts (vitesse par défaut = Sprint 1). Budget : deux quotas hebdom
 | 3 | [ENH-053](../stories/ENH-053.md) Spike qualité SR (VSR q1-q4, Real-ESRGAN TRT) | ML + GPU | RENFORCÉE (modèle tiers, licence des poids) | 5 | ml-engineer (pas de code applicatif) | ENH-040 ; licence poids validée par secdevops avant usage |
 | | **Total** | | | **15** | | |
 
+**ENH-054 (flux PR, CI renforcée, méthodes ; 3 pts, hors sprint) précède le Sprint 2** (décision n° 35) ; les stories du sprint suivent le flux PR (branche poussée, PR « Closes #n », CI verte, tests GPU une fois en local ; décisions n° 33 et 34).
+
 Ordre : ENH-041 d'abord (sécurité, SEC-35 doit précéder ENH-030, pont tout neuf). ENH-053 est indépendante des deux autres : elle peut démarrer en parallèle dès la licence validée. ENH-042 est indépendante aussi. **Maximum 2 agents lourds en parallèle** (ex. 041 + 053 : sécurité + ML). Précède le Sprint 3 : ENH-009 dépend de 053 et 042 ; ENH-010 de 042.
 
 ## Tâches (courtes)
