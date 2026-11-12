@@ -1,6 +1,6 @@
 # Enhance — Backlog produit
 
-Mise à jour du 2026-10-25 : **fin du Sprint 1** (15 / 15, plan de release recalé). Précédente : 2026-10-24, décision PO n° 20 (voir « Mouvements v0.5 »).
+Mise à jour du 2026-11-12 : **Sprint 2 validé** (décision n° 29), index recalé (voies, tags `[ML]`, ENH-041 à 5 pts). Précédente : 2026-10-25, **fin du Sprint 1** (15 / 15, plan de release recalé). Précédente : 2026-10-24, décision PO n° 20 (voir « Mouvements v0.5 »).
 Version : v0.3 du 2026-10-21 (scrum-master, étape 7 du kickoff). Statut : v0.2 validée par le PO le 2026-10-21 ; **v0.3 à relire par le PO** (nouvelles stories, seuils QA, statuts du kickoff).
 Les chiffres des critères `[GPU]` sont désormais **ancrés sur les mesures du spike** (`docs/gpu/spike.md`, phases 2 et 3) ; ceux qui restent des hypothèses sont marqués **[H]**.
 Clips de référence : `BBB-FAST`, `BBB-PAN`, `TOS-FACE`, `TOS-DARK`, `SYN-TEXT` (`docs/qa/clips.md`) ; « REF-A » = `BBB-FAST` en jeu A tant que le PO n'a pas désigné un clip unique. « Sur la 5070 » = RTX 5070 12 Gio du PO, pilote 617.42.
@@ -9,14 +9,15 @@ Clips de référence : `BBB-FAST`, `BBB-PAN`, `TOS-FACE`, `TOS-DARK`, `SYN-TEXT`
 
 | Indicateur | Valeur |
 |---|---|
-| Total points MVP | **179** (126 en v0.2 ; +44 pts de stories nouvelles issues du spike, du threat model et de la revue des licences ; +1 net de ré-estimations, voir « Mouvements v0.3 » ; **+3 pts : ENH-008b**, redécoupage d'ENH-008 au planning du Sprint 1, voir « Mouvements v0.4 » ; **+5 pts : ENH-053**, spike qualité de la super-résolution, décision PO n° 20, voir « Mouvements v0.5 ») |
+| Total points MVP | **183** (181 + 3 pts ENH-054, flux PR / CI / méthodes, décisions n° 33 à 35, - 1 pt d'ENH-049 dont l'ASan passe en ENH-054 ; avant : 179 + 2 pts : SEC-30 à SEC-36 absorbées par ENH-041 au planning du Sprint 2 ; historique : 126 en v0.2 ; +44 pts de stories nouvelles issues du spike, du threat model et de la revue des licences ; +1 net de ré-estimations, voir « Mouvements v0.3 » ; **+3 pts : ENH-008b**, redécoupage d'ENH-008 au planning du Sprint 1, voir « Mouvements v0.4 » ; **+5 pts : ENH-053**, spike qualité de la super-résolution, décision PO n° 20, voir « Mouvements v0.5 ») |
 | Points livrés (kickoff = « sprint 0 », non compté dans la vitesse) | **38** : kickoff 23 (ENH-001 (5), ENH-002 (5), ENH-003 (4, DONE le 2026-10-24), ENH-005 (3), ENH-006 (3), ENH-007 (3)) + **Sprint 1 : 15 / 15** (ENH-008 (5, merge `0c2f748`), ENH-004 (5, merge `79a3e93`), ENH-040 (3, merge `986d7e3`), **ENH-047 (2, DONE le 2026-10-25, merge `76c559e`)**) |
-| Points restants | **141** (179 - 38) |
+| Points restants | **145** (183 - 38) |
 | Vitesse | **15 pts / sprint, mesurée** (Sprint 1 : 15 / 15 ; un seul sprint terminé, donc un seul point de donnée ; le kickoff n'est pas un sprint) |
-| Sprints restants estimés avant le MVP | **10** (141 / 15 = 9,4, arrondi au sprint supérieur : Sprints 2 à 11) ; fourchette **10 à 12** (stories `[UI]` à 3 cycles de revue, instabilité des mesures GPU, ré-estimations des spikes ENH-053 / ENH-045) |
-| Dernière mise à jour | 2026-10-25 (**fin du Sprint 1** : 4 / 4 stories DONE, `main` = `76c559e` ; plan recalé sur la vitesse réelle ; SEC-37 à SEC-40 au backlog ; contenu du Sprint 2 validé par le PO le 2026-11-12, décision n° 29) |
+| Sprints restants estimés avant le MVP | **10** (145 / 15 = 9,7, arrondi au sprint supérieur : Sprints 2 à 11) ; fourchette **10 à 12** (stories `[UI]` à 3 cycles de revue, instabilité des mesures GPU, ré-estimations des spikes ENH-053 / ENH-045) |
+| Cadence | Un sprint de 15 pts s'étale sur deux quotas hebdomadaires (décision n° 31), soit environ 2 semaines : MVP visé vers **avril 2027** si le Sprint 2 démarre mi-novembre 2026 |
+| Dernière mise à jour | 2026-11-12 (Sprint 2 validé et recalé, tags `[ML]`, total 183 pts) ; 2026-10-25 (**fin du Sprint 1** : 4 / 4 stories DONE, `main` = `76c559e` ; plan recalé sur la vitesse réelle ; SEC-37 à SEC-40 au backlog ; contenu du Sprint 2 validé par le PO le 2026-11-12, décision n° 29) |
 
-Répartition des points restants : l'ancienne répartition (143) n'était pas exactement sommable ; elle est **à recalculer au planning du Sprint 2** (Pipeline GPU : -2 pts avec ENH-047 livrée ; Fondations, sécurité et CI 8 : ENH-049, 050 ; le reste en file / préréglages / UI / transverse).
+Répartition des 145 points restants (recalculée le 2026-11-12, ENH-054 inclus) : Epic A 43, Epic B 37, Epic C 65. Tag `[ML]` attribué à ENH-043, 044, 045, 046 et 053 (implémenteur : ml-engineer, puis gpu-engineer pour l'intégration).
 Total « Plus tard » : 52 pts + 8 pts (ENH-051) ; « Avant publication » : 3 pts (hors MVP).
 
 ### Jalons (indicatifs, à recaler à chaque fin de sprint)
@@ -28,9 +29,9 @@ Total « Plus tard » : 52 pts + 8 pts (ENH-051) ; « Avant publication » : 3 p
 | J2 | **Premier fichier 4K de bout en bout** : décodage -> super-résolution -> NVENC HEVC 10 bits, i/s et VRAM mesurés par la QA | **3** (recalé : le spike ENH-053 et la sécurité NGX passent avant ENH-009 / ENH-010) |
 | J3 | **Vrai 4K60** : RIFE (export maison, moteur TensorRT, coupures de plan) intégré, AV1, budget VRAM, audio / sous-titres | 5-6 |
 | J4 | **L'application complète côté utilisateur** : file, glisser-déposer, préréglages, progression, pause / annulation, thèmes | 8-9 |
-| J5 | **MVP** : robustesse (fuzzing), zéro réseau prouvé, FFmpeg minimal sans réseau, paquet portable, À propos / CLUF | **11** (141 pts / 15 par sprint) |
+| J5 | **MVP** : robustesse (fuzzing), zéro réseau prouvé, FFmpeg minimal sans réseau, paquet portable, À propos / CLUF | **11** (145 pts / 15 par sprint) |
 
-Ordre de bataille : Sprint 1 terminé (`docs/sprints/sprint-1.md`, 15 / 15). **Sprint 2 validé le 2026-11-12** (décision n° 29, plan : [sprints/sprint-2.md](sprints/sprint-2.md)) : ENH-041, ENH-042, ENH-053. Sprint 3 pressenti : ENH-009, ENH-010, ENH-008b (13 pts) + reliquat. ENH-008b (3 pts) : avant ENH-048, au plus tard Sprint 3. Sprints 4-5 : RIFE (ENH-043, ENH-044, ENH-012, ENH-046), AV1, file (ENH-016), journal (ENH-025).
+**ENH-054 (3 pts, hors sprint) précède le Sprint 2** (décision n° 35) ; les stories suivent ensuite le flux PR (décision n° 33). Ordre de bataille : Sprint 1 terminé (`docs/sprints/sprint-1.md`, 15 / 15). **Sprint 2 validé le 2026-11-12** (décision n° 29, plan : [sprints/sprint-2.md](sprints/sprint-2.md)) : ENH-041, ENH-042, ENH-053. Sprint 3 pressenti : ENH-009, ENH-010, ENH-008b (13 pts) + reliquat. ENH-008b (3 pts) : avant ENH-048, au plus tard Sprint 3. Sprints 4-5 : RIFE (ENH-043, ENH-044, ENH-012, ENH-046), AV1, file (ENH-016), journal (ENH-025).
 
 
 ## Où est passé le reste (ménage docs du 2026-10-29)
@@ -59,15 +60,16 @@ Voie : « — » = à attribuer par le scrum-master au planning (aucune voie n'�
 | [ENH-006](stories/ENH-006.md) | Threat model et registre des licences | — | — | 3 | DONE (kickoff) | 0 |
 | [ENH-007](stories/ENH-007.md) | Design system et tokens | UI | — | 3 | DONE (kickoff) | 0 |
 | [ENH-040](stories/ENH-040.md) | DLL pont RTX Video et chargement différé des DLL NVIDIA | GPU | — | 3 | DONE (2026-10-24) | 1 |
-| [ENH-041](stories/ENH-041.md) | NGX hors ligne : neutraliser la mise à jour et le prouver | GPU | — | 3 | À faire | — |
-| [ENH-042](stories/ENH-042.md) | Conversions couleur CUDA (NV12 / P010 <-> RGB) | GPU | — | 5 | À faire | — |
-| [ENH-043](stories/ENH-043.md) | Export ONNX maison de RIFE depuis les poids MIT | GPU | — | 5 | À faire | — |
-| [ENH-044](stories/ENH-044.md) | Moteur TensorRT : construction au premier traitement, cache, exécution | GPU | — | 5 | À faire | — |
-| [ENH-045](stories/ENH-045.md) | Comparaison des modèles d'interpolation : RIFE 4.25, FILM, IFRNet, EMA-VFI | GPU | — | 5 | À faire | — |
-| [ENH-046](stories/ENH-046.md) | Détection de coupure de plan | GPU | — | 3 | À faire | — |
+| [ENH-041](stories/ENH-041.md) | NGX hors ligne : neutraliser la mise à jour et le prouver | GPU | RENFORCÉE | 5 | TODO (S2) | 2 |
+| [ENH-042](stories/ENH-042.md) | Conversions couleur CUDA (NV12 / P010 <-> RGB) | GPU | STANDARD | 5 | TODO (S2) | 2 |
+| [ENH-043](stories/ENH-043.md) | Export ONNX maison de RIFE depuis les poids MIT | ML | — | 5 | À faire | — |
+| [ENH-044](stories/ENH-044.md) | Moteur TensorRT : construction au premier traitement, cache, exécution | ML GPU | — | 5 | À faire | — |
+| [ENH-045](stories/ENH-045.md) | Comparaison des modèles d'interpolation : RIFE 4.25, FILM, IFRNet, EMA-VFI | ML | — | 5 | À faire | — |
+| [ENH-046](stories/ENH-046.md) | Détection de coupure de plan | ML | — | 3 | À faire | — |
 | [ENH-047](stories/ENH-047.md) | `enhance-bench` : banc en ligne de commande pour la QA | GPU | — | 2 | DONE (2026-10-25) | 1 |
 | [ENH-048](stories/ENH-048.md) | FFmpeg minimal sans réseau (port vcpkg) | GPU | — | 5 | À faire | — |
-| [ENH-049](stories/ENH-049.md) | Garde-fous CI et chaîne de livraison (reliquat devops du kickoff) | — | — | 5 | À faire | — |
+| [ENH-049](stories/ENH-049.md) | Garde-fous CI et chaîne de livraison (reliquat devops du kickoff) | — | — | 4 | À faire (ASan déplacé en ENH-054) | — |
+| [ENH-054](stories/ENH-054.md) | Flux PR, CI renforcée et méthodes de développement | CI | STANDARD | 3 | À faire (hors sprint, avant le Sprint 2) | — |
 | [ENH-050](stories/ENH-050.md) | À propos, mentions légales et CLUF | UI | — | 3 | À faire | — |
 
 ### Epic B — Pipeline vidéo GPU
@@ -76,7 +78,7 @@ Voie : « — » = à attribuer par le scrum-master au planning (aucune voie n'�
 |---|---|---|---|---|---|---|
 | [ENH-008](stories/ENH-008.md) | Démuxage FFmpeg et décodage NVDEC | GPU | — | 5 | DONE (2026-10-23) | 1 |
 | [ENH-008b](stories/ENH-008b.md) | Matrice de formats étendue | GPU | — | 3 | À faire | — |
-| [ENH-053](stories/ENH-053.md) | Spike qualité de la super-résolution | GPU | — | 5 | À faire | — |
+| [ENH-053](stories/ENH-053.md) | Spike qualité de la super-résolution | ML GPU | RENFORCÉE | 5 | TODO (S2) | 2 |
 | [ENH-009](stories/ENH-009.md) | Super-résolution RTX Video SDK dans le pipeline | GPU | — | 5 | À faire | — |
 | [ENH-010](stories/ENH-010.md) | Encodage NVENC HEVC 8 et 10 bits | GPU | — | 5 | À faire | — |
 | [ENH-011](stories/ENH-011.md) | Encodage NVENC AV1 | GPU | — | 3 | À faire | — |

@@ -55,7 +55,7 @@
 | osv-scanner | Apache-2.0 | CI | **OK** |
 | zizmor (audit des workflows) | MIT | CI | **OK** (optionnel) |
 | Actions GitHub : `actions/checkout`, `actions/cache`, `actions/upload-artifact` | MIT | CI | **OK**, épinglées par SHA |
-| `jurplel/install-qt-action` (+ aqtinstall) | MIT | CI (tests UI uniquement, Qt officiel jamais livré) | **OK**, épinglée par SHA |
+| `jurplel/install-qt-action` (+ aqtinstall) | MIT | CI (tests UI uniquement, Qt officiel jamais livré) | **OK**, épinglée par SHA ; aqtinstall installé provisoirement depuis git au SHA `5a49f2b` (support de Qt 6.11), dépendances pip non figées (MEDIUM, secdevops 2026-11-12), à repasser sur la version 3.4 dès sa sortie |
 | `ilammy/msvc-dev-cmd` (si utilisée) | MIT | CI | **OK**, épinglée par SHA |
 | Runners GitHub | Conditions GitHub | CI | **OK** ; aucun runner auto-hébergé (ADR-029) |
 

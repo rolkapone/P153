@@ -129,6 +129,12 @@ jobs:
           version: '6.11.2'
           arch: win64_msvc2022_64
           modules: 'qtshadertools'
+          cache: true
+          # aqtinstall 3.3.0 (derniere release) ne connait pas la nouvelle arborescence de
+          # download.qt.io pour Qt 6.11.x (qt6_6112_msvc2022_64/) : correctif en amont (PR 1000,
+          # 7e5a5c3) non publie. Source epinglee par SHA de commit ; a retirer des que
+          # aqtinstall 3.4 sort.
+          aqtsource: 'git+https://github.com/miurahr/aqtinstall.git@5a49f2b391ae8ee1d3c0dd87f8b33c1d49a4deb7'
       - name: Configure + build (preset ci-ui)
         shell: pwsh
         run: scripts/build.ps1 -Preset ci-ui

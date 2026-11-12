@@ -21,6 +21,9 @@ jobs:
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
+          # Sur une PR, on verifie la tete de la branche et non le commit de fusion provisoire
+          # (refs/pull/N/merge), que GitHub cree avec sa propre identite (decision n° 33, flux PR).
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
           fetch-depth: 0
           persist-credentials: false
       - name: Auteurs, committers et trailers de tout l'historique
